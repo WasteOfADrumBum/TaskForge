@@ -1,15 +1,23 @@
 {
   "name": "taskforge",
-  "version": "1.0.0",
-  "description": "This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).",
-  "main": "index.js",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "format": "prettier --write .",
+    "test": "jest",
+    "test:client": "npm --workspace client run test",
+    "test:server": "npm --workspace server run test"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
-    "prettier": "^3.5.3"
+    "eslint": "^9.24.0",
+    "prettier": "^3.5.3",
+    "jest": "^29.7.0",
+    "typescript": "^5.8.3",
+    "@types/node": "^22.14.0",
+    "ts-node": "^10.9.2"
   }
 }
