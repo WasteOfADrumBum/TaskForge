@@ -1,49 +1,40 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Box,
-  Button,
-  Heading,
-  Input,
-  VStack,
-  Field,
-} from "@chakra-ui/react";
+import { Box, Button, Heading, Input, VStack, Field } from "@chakra-ui/react";
 import { toaster } from "../../components/ui/toaster";
 
-const LoginPage: React.FC = () => {
+const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
+  const handleRegister = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
+      const response = await fetch("http://localhost:5000/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
       const data = await response.json();
-      console.log("Login response:", data); // Log the response for debugging
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-        navigate("/home");
+      if (data.message === "User registered successfully") {
         toaster.create({
-          title: "Login Successful",
-          description: "You have logged in successfully.",
+          title: "Registration Successful",
+          description: "You have successfully registered.",
           type: "success",
         });
+        navigate("/login");
       } else {
         toaster.create({
-          title: "Login Failed",
+          title: "Registration Failed",
           description: data.message,
           type: "error",
         });
       }
     } catch (error) {
-      console.error("Error logging in:", error);
+      console.error("Error registering user:", error);
       toaster.create({
         title: "Error",
-        description: "An error occurred while logging in.",
+        description: "An error occurred while registering.",
         type: "error",
       });
     }
@@ -52,7 +43,7 @@ const LoginPage: React.FC = () => {
   return (
     <Box maxW="md" mx="auto" mt={10} p={5} borderWidth={1} borderRadius="md" boxShadow="lg">
       <Heading as="h2" size="xl" mb={6} textAlign="center">
-        Login
+        Register
       </Heading>
       <VStack direction={{ base: "column", md: "row" }} gap="6">
         <Field.Root required>
@@ -77,12 +68,12 @@ const LoginPage: React.FC = () => {
           />
         </Field.Root>
 
-        <Button colorScheme="teal" size="lg" width="full" onClick={handleLogin}>
-          Login
+        <Button colorScheme="teal" size="lg" width="full" onClick={handleRegister}>
+          Register
         </Button>
       </VStack>
     </Box>
   );
 };
 
-export default LoginPage;
+export default RegisterPage;

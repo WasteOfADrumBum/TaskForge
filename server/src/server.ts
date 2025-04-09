@@ -28,6 +28,27 @@ app.get("/", (req, res) => {
   res.send("Server is running!");
 });
 
+// POST route to handle user registration (/api/auth/register)
+app.post("/api/auth/register", (req, res) => {
+  const { username, password } = req.body;
+  // Here you would typically save the user to the database
+  res.status(201).json({ message: "User registered successfully", user: { username } });
+});
+
+// POST route to handle user login (/api/auth/login)
+app.post("/api/auth/login", (req, res) => {
+  const { username, password } = req.body;
+  // Here you would typically check the user credentials
+  res.status(200).json({ message: "User logged in successfully", user: { username } });
+});
+
+// POST route to handle user logout (/api/auth/logout)
+app.post("/api/auth/logout", (req, res) => {
+  // Here you would typically handle user logout
+  res.status(200).json({ message: "User logged out successfully" });
+});
+
+
 // Fallback to NeDB if MongoDB connection fails
 let localDb: NeDB;
 
