@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node dist/server.js",
-    "dev": "ts-node src/server.ts",
+    "dev": "nodemon --watch src --ext ts --exec \"node --loader ts-node/esm ./src/server.ts\"",
     "build": "tsc",
+    "start": "node dist/server.js",
     "test": "jest",
     "lint": "eslint src --ext .js,.ts",
     "format": "prettier --write src"

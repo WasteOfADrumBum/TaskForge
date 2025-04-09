@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { loginUser } from "../../redux/slices/authSlice";
-import { RootState } from "../../redux/store";
+import { loginUser } from "../../../redux/slices/authSlice";
+import { RootState } from "../../../redux/store";
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState("");

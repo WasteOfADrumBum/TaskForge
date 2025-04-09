@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const handleLogin = async () => {
     try {
@@ -16,7 +16,7 @@ const LoginPage: React.FC = () => {
       const data = await response.json();
       if (data.token) {
         localStorage.setItem("token", data.token);
-        history.push("/home");
+        navigate("/home");
       } else {
         alert(data.message);
       }
