@@ -16,7 +16,9 @@ const RegisterPage: React.FC = () => {
         body: JSON.stringify({ email, password }),
       });
       const data = await response.json();
+      console.log("Login response:", data); // Log the response for debugging
       if (data.message === "User registered successfully") {
+        console.log("Registration successful:", data); // Log the success message for debugging
         toaster.create({
           title: "Registration Successful",
           description: "You have successfully registered.",
@@ -24,6 +26,7 @@ const RegisterPage: React.FC = () => {
         });
         navigate("/login");
       } else {
+        console.log("Registration failed:", data.message); // Log the error message for debugging
         toaster.create({
           title: "Registration Failed",
           description: data.message,

@@ -25,6 +25,7 @@ const LoginPage: React.FC = () => {
       const data = await response.json();
       console.log("Login response:", data); // Log the response for debugging
       if (data.token) {
+        console.log("Login successful, token:", data.token); // Log the token for debugging
         localStorage.setItem("token", data.token);
         navigate("/home");
         toaster.create({
@@ -33,6 +34,7 @@ const LoginPage: React.FC = () => {
           type: "success",
         });
       } else {
+        console.log("Login failed:", data.message); // Log the error message for debugging
         toaster.create({
           title: "Login Failed",
           description: data.message,
