@@ -28,6 +28,3 @@ Thumbs.db
 .vscode/
 .idea/
 
-# npm package lock files (optional)
-package-lock.json
-yarn.lock
