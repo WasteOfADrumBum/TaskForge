@@ -1,14 +1,41 @@
+import { User } from '../../models/userModel';
 import { createUser, findUserByEmail } from './index';
 
+jest.mock('../../models/userModel', () => ({
+  User: {
+    create: jest.fn(),
+    findOne: jest.fn(),
+  },
+}));
+
+const mockedUser = jest.mocked(User);
+
 describe('authService', () => {
-  it('creates a user that can be found by email', async () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('creates a user through the User model', async () => {
+    const userData = { email: 'test@example.com', password: 'hashed-password' };
+    const createdUser = { id: 'user-id', ...userData };
+
+    mockedUser.create.mockResolvedValue(createdUser as never);
+
+    const result = await createUser(userData);
+
+    expect(mockedUser.create).toHaveBeenCalledWith(userData);
+    expect(result).toEqual(createdUser);
+  });
+
+  it('finds a user by email through the User model', async () => {
     const email = 'test@example.com';
-    const password = 'hashed-password';
+    const foundUser = { id: 'user-id', email, password: 'hashed-password' };
 
-    const createdUser = await createUser({ email, password });
-    const foundUser = await findUserByEmail(email);
+    mockedUser.findOne.mockResolvedValue(foundUser as never);
 
-    expect(foundUser).toEqual(createdUser);
-    expect(foundUser).toMatchObject({ email, password });
+    const result = await findUserByEmail(email);
+
+    expect(mockedUser.findOne).toHaveBeenCalledWith({ email });
+    expect(result).toEqual(foundUser);
   });
 });

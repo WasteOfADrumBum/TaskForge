@@ -1,12 +1,10 @@
-// server/src/routes/authRoutes/index.ts
-import { Router } from "express";
-import { register, login } from "../../controllers/authController";
-import { RequestHandler } from "express"; 
+import { Router } from 'express';
+import { login, logout, register } from '../../controllers/authController';
 
 const router = Router();
 
-// Explicitly type the handlers as RequestHandler
-router.post("/register", register as RequestHandler);
-router.post("/login", login as RequestHandler);
+router.post('/register', register);
+router.post('/login', login);
+router.post('/logout', logout);
 
 export default router;
