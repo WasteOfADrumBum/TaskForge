@@ -17,7 +17,6 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.5.0",
     "redux-devtools-extension": "^2.13.9",
-    "typescript": "^4.9.5",
     "web-vitals": "^4.2.4"
   },
   "devDependencies": {
@@ -29,6 +28,7 @@
     "eslint": "^9.24.0",
     "jsdom": "^30.1.1",
     "prettier": "^3.5.3",
+    "typescript": "^5.9.3",
     "vite": "^8.3.1",
     "vitest": "^5.0.2"
   },
@@ -37,7 +37,7 @@
     "start": "vite",
     "build": "vite build",
     "test": "vitest run",
-    "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
+    "lint": "eslint src",
     "format": "prettier --write src",
     "preview": "vite preview",
     "test:watch": "vitest"
