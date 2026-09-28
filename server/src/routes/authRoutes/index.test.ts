@@ -25,19 +25,34 @@ describe('auth routes', () => {
 
   it('registers a new user without returning the password hash', async () => {
     mockedFindUserByEmail.mockResolvedValue(null);
-    mockedCreateUser.mockResolvedValue({ id: 'user-id', email: 'test@example.com', password: 'hashed-password' } as never);
+    mockedCreateUser.mockResolvedValue({
+      id: 'user-id',
+      email: 'test@example.com',
+      password: 'hashed-password',
+    } as never);
 
-    const response = await request(app).post('/api/auth/register').send({ email: 'test@example.com', password: 'Password123!' });
+    const response = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'test@example.com', password: 'Password123!' });
 
     expect(response.status).toBe(201);
-    expect(response.body).toEqual({ message: 'User created', user: { id: 'user-id', email: 'test@example.com' } });
+    expect(response.body).toEqual({
+      message: 'User created',
+      user: { id: 'user-id', email: 'test@example.com' },
+    });
     expect(response.body.user.password).toBeUndefined();
   });
 
   it('rejects registration when the user already exists', async () => {
-    mockedFindUserByEmail.mockResolvedValue({ id: 'user-id', email: 'test@example.com', password: 'hashed-password' } as never);
+    mockedFindUserByEmail.mockResolvedValue({
+      id: 'user-id',
+      email: 'test@example.com',
+      password: 'hashed-password',
+    } as never);
 
-    const response = await request(app).post('/api/auth/register').send({ email: 'test@example.com', password: 'Password123!' });
+    const response = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'test@example.com', password: 'Password123!' });
 
     expect(response.status).toBe(409);
     expect(response.body).toEqual({ message: 'User already exists' });
@@ -46,7 +61,9 @@ describe('auth routes', () => {
   it('rejects login with invalid credentials', async () => {
     mockedFindUserByEmail.mockResolvedValue(null);
 
-    const response = await request(app).post('/api/auth/login').send({ email: 'missing@example.com', password: 'Password123!' });
+    const response = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'missing@example.com', password: 'Password123!' });
 
     expect(response.status).toBe(401);
     expect(response.body).toEqual({ message: 'Invalid credentials' });
@@ -55,9 +72,15 @@ describe('auth routes', () => {
   it('logs in a user with valid credentials', async () => {
     const password = 'Password123!';
     const hashedPassword = await bcrypt.hash(password, 10);
-    mockedFindUserByEmail.mockResolvedValue({ id: 'user-id', email: 'test@example.com', password: hashedPassword } as never);
+    mockedFindUserByEmail.mockResolvedValue({
+      id: 'user-id',
+      email: 'test@example.com',
+      password: hashedPassword,
+    } as never);
 
-    const response = await request(app).post('/api/auth/login').send({ email: 'test@example.com', password });
+    const response = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'test@example.com', password });
 
     expect(response.status).toBe(200);
     expect(response.body.message).toBe('Logged in successfully');
