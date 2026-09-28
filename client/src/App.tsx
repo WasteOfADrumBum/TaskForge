@@ -1,19 +1,23 @@
-// App.tsx
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { LoginPage, HomePage, RegisterPage, NotFoundPage } from './pages';
+import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 import { Toaster } from './components/ui/toaster';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import { HomePage, LoginPage, NotFoundPage, RegisterPage } from './pages';
 
-const App: React.FC = () => {
+const App = () => {
   return (
     <Router>
       <Toaster />
+
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/" element={<LoginPage />} />
-        <Route path="*" element={<NotFoundPage />} /> {/* Fallback route */}
+
+        <Route element={<ProtectedRoute />}>
+          <Route path="/home" element={<HomePage />} />
+        </Route>
+
+        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Router>
   );
