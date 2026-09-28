@@ -5,7 +5,9 @@ import mongoose from "mongoose";
 
 console.log('\x1b[32m%s\x1b[0m', '🚀 Starting server...');
 
-if (!process.env.MONGO_URI) {
+const MONGO_URI = process.env.MONGO_URI;
+
+if (!MONGO_URI) {
   console.error(
     '\x1b[31m%s\x1b[0m',
     '❌ MongoDB URI is not defined in the environment variables.',
@@ -17,9 +19,21 @@ if (!process.env.MONGO_URI) {
   process.exit(1);
 }
 
+if (!process.env.JWT_SECRET) {
+  console.error(
+    '\x1b[31m%s\x1b[0m',
+    '❌ JWT_SECRET is not defined in the environment variables.',
+  );
+  console.error(
+    '\x1b[33m%s\x1b[0m',
+    'Please set the JWT_SECRET variable in your .env file.',
+  );
+  process.exit(1);
+}
+
 console.log(
   '\x1b[32m%s\x1b[0m',
-  '✅ MongoDB URI is defined in the environment variables',
+  '✅ Required environment variables are defined',
 );
 
 const app = express();
@@ -56,13 +70,16 @@ app.post("/api/auth/logout", (req, res) => {
 
 const connectToDatabase = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI as string);
+    await mongoose.connect(MONGO_URI);
     console.log('\x1b[32m%s\x1b[0m', '✅ Connected to MongoDB');
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+
     console.error(
       '\x1b[31m%s\x1b[0m',
-      `❌ MongoDB connection error: \x1b[35m${err.message || err}\x1b[0m`,
+      `❌ MongoDB connection error: \x1b[35m${message}\x1b[0m`,
     );
+
     throw err;
   }
 };
@@ -87,10 +104,12 @@ process.on("SIGINT", async () => {
   try {
     await mongoose.connection.close();
     console.log('\x1b[32m%s\x1b[0m', '✅ MongoDB connection closed');
-  } catch (err) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+
     console.error(
       '\x1b[31m%s\x1b[0m',
-      `❌ Error closing MongoDB connection: \x1b[35m${err}\x1b[0m`,
+      `❌ Error closing MongoDB connection: \x1b[35m${message}\x1b[0m`,
     );
   }
 
