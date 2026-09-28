@@ -9,19 +9,32 @@
     "dev": "concurrently \"npm --workspace client run dev\" \"npm --workspace server run dev\"",
     "build": "concurrently \"npm --workspace client run build\" \"npm --workspace server run build\"",
     "start": "concurrently \"npm --workspace client run start\" \"npm --workspace server run start\"",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint": "npm run lint --workspace client && npm run lint --workspace server",
     "format": "prettier --write .",
-    "test": "jest",
+    "test": "npm run test:client && npm run test:server",
     "test:client": "npm --workspace client run test",
-    "test:server": "npm --workspace server run test"
+    "test:server": "npm --workspace server run test",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "@types/node": "^22.14.0",
     "concurrently": "^9.1.2",
     "eslint": "^9.24.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.5",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.12.0",
     "jest": "^29.7.0",
     "prettier": "^3.5.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.71.0"
+  },
+  "engines": {
+    "node": ">=24",
+    "npm": ">=11"
   }
 }
