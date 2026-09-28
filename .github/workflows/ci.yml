@@ -1,38 +1,39 @@
-name: CI Pipeline
+name: CI
 
 on:
   push:
-    branches: [develop, staging, production]
+    branches: [main]
   pull_request:
-    branches: [develop, staging, production]
+    branches: [main]
 
 jobs:
-  build-and-test:
+  quality:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [20.x]
-
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - name: Use Node.js 24
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 24
+          cache: npm
 
       - name: Install dependencies
-        run: |
-          cd client
-          npm ci
+        run: npm ci
 
-      - name: Run Prettier
-        run: |
-          cd client
-          npx prettier --check .
+      - name: Check formatting
+        run: npm run format:check
 
-      - name: Run Tests
-        run: |
-          cd client
-          npm test -- --coverage
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Audit dependencies
+        run: npm audit
