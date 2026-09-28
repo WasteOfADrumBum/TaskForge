@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { createUser, findUserByEmail } from '../../services/authService';
+import { requireEnv } from '../../config/env';
 
 export const register = async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -49,7 +50,7 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, { expiresIn: '1h' });
+    const token = jwt.sign({ id: user.id }, requireEnv('JWT_SECRET'), { expiresIn: '1h' });
 
     return res.json({ message: 'Logged in successfully', token });
   } catch {

@@ -48,4 +48,3 @@ process.on('SIGINT', async () => {
 });
 
 void startServer();
-
