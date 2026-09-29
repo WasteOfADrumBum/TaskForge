@@ -7,6 +7,7 @@ import {
   Heading,
   HStack,
   Input,
+  NativeSelect,
   SimpleGrid,
   Text,
   Textarea,
@@ -34,6 +35,23 @@ import {
   isTaskOverdue,
   type TaskSort,
 } from '../../utils/tasks';
+
+const statusLabel: Record<TaskStatus, string> = {
+  todo: 'To Do',
+  'in-progress': 'In Progress',
+  done: 'Done',
+};
+const priorityLabel: Record<TaskPriority, string> = { low: 'Low', medium: 'Medium', high: 'High' };
+const statusPalette: Record<TaskStatus, string> = {
+  todo: 'gray',
+  'in-progress': 'blue',
+  done: 'green',
+};
+const priorityPalette: Record<TaskPriority, string> = {
+  low: 'gray',
+  medium: 'orange',
+  high: 'red',
+};
 
 const HomePage = () => {
   const dispatch = useAppDispatch();
@@ -139,12 +157,30 @@ const HomePage = () => {
     setStatus(task.status);
     setPriority(task.priority);
     setDueDate(task.dueDate ? task.dueDate.slice(0, 10) : '');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleQuickStatus = async (task: Task) => {
+    if (!token) return;
+    const taskId = getTaskId(task);
+    const nextStatus: TaskStatus = task.status === 'done' ? 'todo' : 'done';
+    try {
+      const updated = await updateTask(token, taskId, { status: nextStatus });
+      dispatch(replaceTask(updated));
+      toaster.create({
+        title: nextStatus === 'done' ? 'Task Completed' : 'Task Reopened',
+        description: task.title,
+        type: 'success',
+      });
+    } catch (updateError) {
+      const message = updateError instanceof Error ? updateError.message : 'Unable to update task';
+      dispatch(setTaskError(message));
+    }
   };
 
   const handleDelete = async (task: Task) => {
     if (!token) return;
-    const confirmed = window.confirm('Delete task ' + task.title + '?');
-    if (!confirmed) return;
+    if (!window.confirm('Delete task ' + task.title + '?')) return;
     const taskId = getTaskId(task);
     try {
       await deleteTask(token, taskId);
@@ -174,190 +210,292 @@ const HomePage = () => {
   };
 
   return (
-    <Box maxW="7xl" mx="auto" p={6}>
-      <HStack justify="space-between" mb={8}>
-        <Box>
-          <Heading>TaskForge</Heading>
-          <Text>Forge your workload into a plan.</Text>
-        </Box>
-        <Button onClick={handleLogout}>Log out</Button>
-      </HStack>
-
-      <SimpleGrid columns={{ base: 2, md: 5 }} gap={4} mb={8}>
-        <Box borderWidth={1} borderRadius="lg" p={4}>
-          <Text fontSize="sm">Total</Text>
-          <Heading size="lg">{summary.total}</Heading>
-        </Box>
-        <Box borderWidth={1} borderRadius="lg" p={4}>
-          <Text fontSize="sm">To Do</Text>
-          <Heading size="lg">{summary.todo}</Heading>
-        </Box>
-        <Box borderWidth={1} borderRadius="lg" p={4}>
-          <Text fontSize="sm">In Progress</Text>
-          <Heading size="lg">{summary.inProgress}</Heading>
-        </Box>
-        <Box borderWidth={1} borderRadius="lg" p={4}>
-          <Text fontSize="sm">Done</Text>
-          <Heading size="lg">{summary.done}</Heading>
-        </Box>
-        <Box borderWidth={1} borderRadius="lg" p={4}>
-          <Text fontSize="sm">Overdue</Text>
-          <Heading size="lg">{summary.overdue}</Heading>
-        </Box>
-      </SimpleGrid>
-
-      <SimpleGrid columns={{ base: 1, lg: 2 }} gap={8}>
-        <Box as="form" onSubmit={handleSubmit} borderWidth={1} borderRadius="lg" p={6}>
-          <Heading size="lg" mb={5}>
-            {editingId ? 'Edit Task' : 'Create Task'}
-          </Heading>
-          <VStack align="stretch" gap={4}>
-            <Field.Root required>
-              <Field.Label>Title</Field.Label>
-              <Input
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                placeholder="What needs to get done?"
-              />
-            </Field.Root>
-            <Field.Root>
-              <Field.Label>Description</Field.Label>
-              <Textarea
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                placeholder="Add useful context"
-              />
-            </Field.Root>
-            <Field.Root>
-              <Field.Label>Status</Field.Label>
-              <select
-                value={status}
-                onChange={(event) => setStatus(event.target.value as TaskStatus)}
-              >
-                <option value="todo">To do</option>
-                <option value="in-progress">In progress</option>
-                <option value="done">Done</option>
-              </select>
-            </Field.Root>
-            <Field.Root>
-              <Field.Label>Priority</Field.Label>
-              <select
-                value={priority}
-                onChange={(event) => setPriority(event.target.value as TaskPriority)}
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
-            </Field.Root>
-            <Field.Root>
-              <Field.Label>Due date</Field.Label>
-              <Input
-                type="date"
-                value={dueDate}
-                onChange={(event) => setDueDate(event.target.value)}
-              />
-            </Field.Root>
-            {error && <Text color="red.500">{error}</Text>}
-            <HStack>
-              <Button type="submit" loading={loading}>
-                {editingId ? 'Save Changes' : 'Create Task'}
-              </Button>
-              {editingId && (
-                <Button type="button" variant="outline" onClick={resetForm}>
-                  Cancel
-                </Button>
-              )}
-            </HStack>
-          </VStack>
-        </Box>
-
-        <Box>
-          <Heading size="lg" mb={5}>
-            Your Tasks
-          </Heading>
-          <VStack align="stretch" gap={3} mb={5}>
-            <Input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search tasks..."
-            />
-            <SimpleGrid columns={{ base: 1, md: 3 }} gap={3}>
-              <select
-                value={statusFilter}
-                onChange={(event) => setStatusFilter(event.target.value as TaskStatus | 'all')}
-              >
-                <option value="all">All statuses</option>
-                <option value="todo">To do</option>
-                <option value="in-progress">In progress</option>
-                <option value="done">Done</option>
-              </select>
-              <select
-                value={priorityFilter}
-                onChange={(event) => setPriorityFilter(event.target.value as TaskPriority | 'all')}
-              >
-                <option value="all">All priorities</option>
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
-              <select value={sort} onChange={(event) => setSort(event.target.value as TaskSort)}>
-                <option value="created-desc">Newest first</option>
-                <option value="created-asc">Oldest first</option>
-                <option value="due-asc">Due date</option>
-                <option value="priority-desc">Priority</option>
-              </select>
-            </SimpleGrid>
-            <HStack justify="space-between">
-              <Text fontSize="sm">
-                Showing {filteredTasks.length} of {tasks.length} tasks
+    <Box minH="100vh" bg="bg.subtle">
+      <Box bg="bg.panel" borderBottomWidth="1px">
+        <Box maxW="7xl" mx="auto" px={{ base: 4, md: 6 }} py={5}>
+          <HStack justify="space-between" align="center">
+            <Box>
+              <Heading size="2xl">TaskForge</Heading>
+              <Text color="fg.muted" mt={1}>
+                Forge your workload into a plan.
               </Text>
-              <Button size="sm" variant="outline" onClick={resetFilters}>
-                Clear filters
-              </Button>
-            </HStack>
-          </VStack>
-
-          {loading && tasks.length === 0 && <Text>Loading tasks...</Text>}
-          {!loading && tasks.length === 0 && <Text>No tasks yet. Create your first task.</Text>}
-          {!loading && tasks.length > 0 && filteredTasks.length === 0 && (
-            <Text>No tasks match your current filters.</Text>
-          )}
-
-          <VStack align="stretch" gap={4}>
-            {filteredTasks.map((task) => {
-              const taskId = getTaskId(task);
-              const overdue = isTaskOverdue(task);
-              return (
-                <Box key={taskId} borderWidth={1} borderRadius="lg" p={5}>
-                  <HStack justify="space-between" align="start">
-                    <Box>
-                      <Heading size="md">{task.title}</Heading>
-                      <Text mt={2}>{task.description || 'No description'}</Text>
-                    </Box>
-                    <HStack>
-                      <Badge>{task.status}</Badge>
-                      <Badge>{task.priority}</Badge>
-                      {overdue && <Badge>Overdue</Badge>}
-                    </HStack>
-                  </HStack>
-                  {task.dueDate && (
-                    <Text mt={3}>Due: {new Date(task.dueDate).toLocaleDateString()}</Text>
-                  )}
-                  <HStack mt={4}>
-                    <Button size="sm" variant="outline" onClick={() => startEdit(task)}>
-                      Edit
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => void handleDelete(task)}>
-                      Delete
-                    </Button>
-                  </HStack>
-                </Box>
-              );
-            })}
-          </VStack>
+            </Box>
+            <Button variant="outline" onClick={handleLogout}>
+              Log out
+            </Button>
+          </HStack>
         </Box>
-      </SimpleGrid>
+      </Box>
+
+      <Box maxW="7xl" mx="auto" px={{ base: 4, md: 6 }} py={8}>
+        <SimpleGrid columns={{ base: 2, md: 5 }} gap={4} mb={8}>
+          <Box bg="bg.panel" borderWidth="1px" borderRadius="xl" p={5}>
+            <Text color="fg.muted" fontSize="sm">
+              Total Tasks
+            </Text>
+            <Heading mt={1}>{summary.total}</Heading>
+          </Box>
+          <Box bg="bg.panel" borderWidth="1px" borderRadius="xl" p={5}>
+            <Text color="fg.muted" fontSize="sm">
+              To Do
+            </Text>
+            <Heading mt={1}>{summary.todo}</Heading>
+          </Box>
+          <Box bg="bg.panel" borderWidth="1px" borderRadius="xl" p={5}>
+            <Text color="fg.muted" fontSize="sm">
+              In Progress
+            </Text>
+            <Heading mt={1}>{summary.inProgress}</Heading>
+          </Box>
+          <Box bg="bg.panel" borderWidth="1px" borderRadius="xl" p={5}>
+            <Text color="fg.muted" fontSize="sm">
+              Completed
+            </Text>
+            <Heading mt={1}>{summary.done}</Heading>
+          </Box>
+          <Box bg="bg.panel" borderWidth="1px" borderRadius="xl" p={5}>
+            <Text color="red.500" fontSize="sm">
+              Overdue
+            </Text>
+            <Heading color={summary.overdue > 0 ? 'red.500' : undefined} mt={1}>
+              {summary.overdue}
+            </Heading>
+          </Box>
+        </SimpleGrid>
+
+        <SimpleGrid columns={{ base: 1, xl: 3 }} gap={8} alignItems="start">
+          <Box
+            as="form"
+            onSubmit={handleSubmit}
+            bg="bg.panel"
+            borderWidth="1px"
+            borderRadius="xl"
+            p={6}
+          >
+            <Heading size="lg" mb={1}>
+              {editingId ? 'Edit Task' : 'Create Task'}
+            </Heading>
+            <Text color="fg.muted" mb={6}>
+              {editingId ? 'Update the details below.' : 'Add something new to your workload.'}
+            </Text>
+            <VStack align="stretch" gap={5}>
+              <Field.Root required>
+                <Field.Label>Title</Field.Label>
+                <Input
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  placeholder="What needs to get done?"
+                />
+              </Field.Root>
+              <Field.Root>
+                <Field.Label>Description</Field.Label>
+                <Textarea
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                  placeholder="Add useful context"
+                  rows={4}
+                />
+              </Field.Root>
+              <SimpleGrid columns={{ base: 1, md: 2 }} gap={4}>
+                <Field.Root>
+                  <Field.Label>Status</Field.Label>
+                  <NativeSelect.Root>
+                    <NativeSelect.Field
+                      value={status}
+                      onChange={(event) => setStatus(event.target.value as TaskStatus)}
+                    >
+                      <option value="todo">To Do</option>
+                      <option value="in-progress">In Progress</option>
+                      <option value="done">Done</option>
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
+                </Field.Root>
+                <Field.Root>
+                  <Field.Label>Priority</Field.Label>
+                  <NativeSelect.Root>
+                    <NativeSelect.Field
+                      value={priority}
+                      onChange={(event) => setPriority(event.target.value as TaskPriority)}
+                    >
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
+                </Field.Root>
+              </SimpleGrid>
+              <Field.Root>
+                <Field.Label>Due date</Field.Label>
+                <Input
+                  type="date"
+                  value={dueDate}
+                  onChange={(event) => setDueDate(event.target.value)}
+                />
+              </Field.Root>
+              {error && (
+                <Box borderWidth="1px" borderColor="red.300" bg="red.50" borderRadius="md" p={3}>
+                  <Text color="red.700">{error}</Text>
+                </Box>
+              )}
+              <HStack>
+                <Button type="submit" loading={loading}>
+                  {editingId ? 'Save Changes' : 'Create Task'}
+                </Button>
+                {editingId && (
+                  <Button type="button" variant="outline" onClick={resetForm}>
+                    Cancel
+                  </Button>
+                )}
+              </HStack>
+            </VStack>
+          </Box>
+
+          <Box gridColumn={{ xl: 'span 2' }}>
+            <Box bg="bg.panel" borderWidth="1px" borderRadius="xl" p={6} mb={5}>
+              <HStack justify="space-between" mb={4}>
+                <Box>
+                  <Heading size="lg">Your Tasks</Heading>
+                  <Text color="fg.muted" fontSize="sm" mt={1}>
+                    {filteredTasks.length} of {tasks.length} shown
+                  </Text>
+                </Box>
+                <Button size="sm" variant="ghost" onClick={resetFilters}>
+                  Reset filters
+                </Button>
+              </HStack>
+              <VStack align="stretch" gap={4}>
+                <Input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Search titles and descriptions..."
+                />
+                <SimpleGrid columns={{ base: 1, md: 3 }} gap={3}>
+                  <NativeSelect.Root>
+                    <NativeSelect.Field
+                      value={statusFilter}
+                      onChange={(event) =>
+                        setStatusFilter(event.target.value as TaskStatus | 'all')
+                      }
+                    >
+                      <option value="all">All statuses</option>
+                      <option value="todo">To Do</option>
+                      <option value="in-progress">In Progress</option>
+                      <option value="done">Done</option>
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
+                  <NativeSelect.Root>
+                    <NativeSelect.Field
+                      value={priorityFilter}
+                      onChange={(event) =>
+                        setPriorityFilter(event.target.value as TaskPriority | 'all')
+                      }
+                    >
+                      <option value="all">All priorities</option>
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
+                  <NativeSelect.Root>
+                    <NativeSelect.Field
+                      value={sort}
+                      onChange={(event) => setSort(event.target.value as TaskSort)}
+                    >
+                      <option value="created-desc">Newest first</option>
+                      <option value="created-asc">Oldest first</option>
+                      <option value="due-asc">Due date</option>
+                      <option value="priority-desc">Highest priority</option>
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
+                </SimpleGrid>
+              </VStack>
+            </Box>
+
+            {loading && tasks.length === 0 && (
+              <Box bg="bg.panel" borderWidth="1px" borderRadius="xl" p={8} textAlign="center">
+                <Text color="fg.muted">Loading your tasks...</Text>
+              </Box>
+            )}
+            {!loading && tasks.length === 0 && (
+              <Box bg="bg.panel" borderWidth="1px" borderRadius="xl" p={8} textAlign="center">
+                <Heading size="md">No tasks yet</Heading>
+                <Text color="fg.muted" mt={2}>
+                  Create your first task to start building your workspace.
+                </Text>
+              </Box>
+            )}
+            {!loading && tasks.length > 0 && filteredTasks.length === 0 && (
+              <Box bg="bg.panel" borderWidth="1px" borderRadius="xl" p={8} textAlign="center">
+                <Heading size="md">Nothing matches</Heading>
+                <Text color="fg.muted" mt={2}>
+                  Try changing your search or filters.
+                </Text>
+              </Box>
+            )}
+
+            <VStack align="stretch" gap={4}>
+              {filteredTasks.map((task) => {
+                const taskId = getTaskId(task);
+                const overdue = isTaskOverdue(task);
+                return (
+                  <Box
+                    key={taskId}
+                    bg="bg.panel"
+                    borderWidth="1px"
+                    borderColor={overdue ? 'red.300' : undefined}
+                    borderRadius="xl"
+                    p={5}
+                  >
+                    <HStack justify="space-between" align="start" gap={4}>
+                      <Box flex="1">
+                        <HStack gap={2} mb={2}>
+                          <Badge colorPalette={statusPalette[task.status]}>
+                            {statusLabel[task.status]}
+                          </Badge>
+                          <Badge colorPalette={priorityPalette[task.priority]}>
+                            {priorityLabel[task.priority]}
+                          </Badge>
+                          {overdue && <Badge colorPalette="red">Overdue</Badge>}
+                        </HStack>
+                        <Heading
+                          size="md"
+                          textDecoration={task.status === 'done' ? 'line-through' : undefined}
+                        >
+                          {task.title}
+                        </Heading>
+                        <Text color="fg.muted" mt={2}>
+                          {task.description || 'No description provided.'}
+                        </Text>
+                        {task.dueDate && (
+                          <Text mt={3} fontSize="sm" color={overdue ? 'red.500' : 'fg.muted'}>
+                            Due {new Date(task.dueDate).toLocaleDateString()}
+                          </Text>
+                        )}
+                      </Box>
+                    </HStack>
+                    <HStack mt={5} flexWrap="wrap">
+                      <Button size="sm" onClick={() => void handleQuickStatus(task)}>
+                        {task.status === 'done' ? 'Reopen' : 'Mark Done'}
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => startEdit(task)}>
+                        Edit
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => void handleDelete(task)}>
+                        Delete
+                      </Button>
+                    </HStack>
+                  </Box>
+                );
+              })}
+            </VStack>
+          </Box>
+        </SimpleGrid>
+      </Box>
     </Box>
   );
 };
