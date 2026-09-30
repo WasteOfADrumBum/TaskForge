@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Box, Button, Field, Heading, HStack, Input, Text, VStack } from '@chakra-ui/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { register } from '../../api/auth';
+import Brand from '../../components/layout/Brand';
 import { toaster } from '../../components/ui/toaster';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks/typedHooks';
 import { setError, setLoading } from '../../redux/slices/authSlice';
@@ -38,9 +39,7 @@ const RegisterPage = () => {
   return (
     <Box minH="100vh" bg="bg.subtle">
       <HStack maxW="7xl" mx="auto" px={{ base: 4, md: 6 }} py={5} justify="space-between">
-        <Heading size="xl">
-          <Link to="/">TaskForge</Link>
-        </Heading>
+        <Brand compact />
         <Button asChild variant="ghost">
           <Link to="/login">Sign in</Link>
         </Button>
