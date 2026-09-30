@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from 'react';
-import { Box, Button, Field, Heading, Input, Text, VStack } from '@chakra-ui/react';
+import { Box, Button, Field, Heading, HStack, Input, Text, VStack } from '@chakra-ui/react';
 import { Link, useNavigate } from 'react-router-dom';
-import { toaster } from '../../components/ui/toaster';
 import { login } from '../../api/auth';
+import Brand from '../../components/layout/Brand';
+import { toaster } from '../../components/ui/toaster';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks/typedHooks';
 import { setError, setLoading, setToken } from '../../redux/slices/authSlice';
 
@@ -23,7 +24,7 @@ const LoginPage = () => {
       localStorage.setItem('token', data.token);
       dispatch(setToken(data.token));
       toaster.create({
-        title: 'Login Successful',
+        title: 'Welcome back',
         description: 'You have logged in successfully.',
         type: 'success',
       });
@@ -31,55 +32,68 @@ const LoginPage = () => {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to log in';
       dispatch(setError(message));
-      toaster.create({ title: 'Login Failed', description: message, type: 'error' });
+      toaster.create({ title: 'Login failed', description: message, type: 'error' });
     } finally {
       dispatch(setLoading(false));
     }
   };
 
   return (
-    <Box
-      as="form"
-      onSubmit={handleLogin}
-      maxW="md"
-      mx="auto"
-      mt={10}
-      p={5}
-      borderWidth={1}
-      borderRadius="md"
-      boxShadow="lg"
-    >
-      <Heading as="h2" size="xl" mb={6} textAlign="center">
-        Login
-      </Heading>
-      <VStack gap="6">
-        <Field.Root required>
-          <Field.Label>Email</Field.Label>
-          <Input
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="Enter your email"
-            size="lg"
-          />
-        </Field.Root>
-        <Field.Root required>
-          <Field.Label>Password</Field.Label>
-          <Input
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="Enter your password"
-            size="lg"
-          />
-        </Field.Root>
-        <Button type="submit" size="lg" width="full" loading={loading}>
-          Login
+    <Box minH="100vh" bg="bg.subtle">
+      <HStack maxW="7xl" mx="auto" px={{ base: 4, md: 6 }} py={5} justify="space-between">
+        <Brand compact />
+        <Button asChild variant="ghost">
+          <Link to="/register">Create account</Link>
         </Button>
-        <Text>
-          Need an account? <Link to="/register">Register</Link>
-        </Text>
-      </VStack>
+      </HStack>
+      <Box maxW="md" mx="auto" px={4} py={{ base: 10, md: 20 }}>
+        <Box
+          as="form"
+          onSubmit={handleLogin}
+          bg="bg.panel"
+          borderWidth="1px"
+          borderRadius="2xl"
+          p={{ base: 6, md: 8 }}
+          boxShadow="sm"
+        >
+          <VStack align="stretch" gap={6}>
+            <Box>
+              <Heading size="2xl">Welcome back</Heading>
+              <Text color="fg.muted" mt={2}>
+                Sign in to continue to your TaskForge workspace.
+              </Text>
+            </Box>
+            <Field.Root required>
+              <Field.Label>Email</Field.Label>
+              <Input
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="you@example.com"
+                size="lg"
+                autoComplete="email"
+              />
+            </Field.Root>
+            <Field.Root required>
+              <Field.Label>Password</Field.Label>
+              <Input
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="Enter your password"
+                size="lg"
+                autoComplete="current-password"
+              />
+            </Field.Root>
+            <Button type="submit" size="lg" width="full" loading={loading}>
+              Sign in
+            </Button>
+            <Text textAlign="center" color="fg.muted">
+              New to TaskForge? <Link to="/register">Create an account</Link>
+            </Text>
+          </VStack>
+        </Box>
+      </Box>
     </Box>
   );
 };

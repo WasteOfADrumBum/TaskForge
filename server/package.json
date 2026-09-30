@@ -5,15 +5,17 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon --watch src --ext ts --exec \"node --trace-warnings --loader ts-node/esm ./src/server.ts\"",
-    "build": "tsc",
-    "start": "node dist/server.js",
+    "build": "tsc --noEmit && tsup src/server.ts --format esm --platform node --out-dir dist/server --clean",
+    "start": "node dist/server/server.js",
     "test": "jest",
     "lint": "eslint src",
-    "format": "prettier --write src"
+    "format": "prettier --write src",
+    "seed:demo": "node --loader ts-node/esm ./src/scripts/seedDemo.ts"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
+    "dotenv": "^18.0.4",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.13.2"
@@ -33,6 +35,7 @@
     "supertest": "^7.1.0",
     "ts-jest": "^29.4.14",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "tsup": "^8.5.1",
+    "typescript": "5.9.3"
   }
 }
