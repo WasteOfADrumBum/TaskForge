@@ -9,7 +9,8 @@
     "start": "node dist/server.js",
     "test": "jest",
     "lint": "eslint src",
-    "format": "prettier --write src"
+    "format": "prettier --write src",
+    "seed:demo": "node --loader ts-node/esm ./src/scripts/seedDemo.ts"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
