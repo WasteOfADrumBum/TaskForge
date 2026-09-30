@@ -7,7 +7,7 @@ interface BrandProps {
 
 const Brand = ({ compact = false, hero = false }: BrandProps) => (
   <Image
-    src={hero ? '/taskforge-logo.png' : '/taskforge-logo-Alt.png'}
+    src={hero ? '/taskforge-logo.png' : '/taskforge-logo-alt.png'}
     alt="TaskForge"
     h={
       hero
