@@ -3,7 +3,7 @@ services:
     name: taskforge-api
     runtime: node
     plan: free
-    buildCommand: npm ci && npm run build --workspace server
+    buildCommand: npm ci --include=dev && npm run build --workspace server
     startCommand: npm run start --workspace server
     healthCheckPath: /health
     envVars:
