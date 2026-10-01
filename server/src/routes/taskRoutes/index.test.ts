@@ -35,6 +35,18 @@ describe('task routes', () => {
     expect(response.body).toEqual({ message: 'Authentication required' });
   });
 
+  it.each([
+    jwt.sign({ id: userId }, 'test-jwt-secret', { expiresIn: -1 }),
+    jwt.sign({ id: userId }, 'wrong-secret', { expiresIn: '7d' }),
+    'malformed',
+  ])('rejects expired, incorrectly signed, and malformed JWTs', async (invalidToken) => {
+    const response = await request(app)
+      .get('/api/tasks')
+      .set('Authorization', 'Bearer ' + invalidToken);
+    expect(response.status).toBe(401);
+    expect(mockedFindTasksByOwner).not.toHaveBeenCalled();
+  });
+
   it('lists tasks owned by the authenticated user', async () => {
     const tasks = [{ id: taskId, title: 'First task', owner: userId }];
     mockedFindTasksByOwner.mockResolvedValue(tasks as never);

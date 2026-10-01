@@ -1,5 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
+export const SESSION_EXPIRED_MESSAGE = 'Your session has expired. Please log in again.';
+
 interface AuthState {
   token: string | null;
   loading: boolean;
@@ -31,9 +33,14 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = null;
     },
+    sessionExpired(state) {
+      state.token = null;
+      state.loading = false;
+      state.error = SESSION_EXPIRED_MESSAGE;
+    },
   },
 });
 
-export const { setToken, setLoading, setError, clearAuth } = authSlice.actions;
+export const { setToken, setLoading, setError, clearAuth, sessionExpired } = authSlice.actions;
 
 export default authSlice.reducer;

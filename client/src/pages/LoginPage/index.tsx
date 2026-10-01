@@ -5,7 +5,12 @@ import { login } from '../../api/auth';
 import Brand from '../../components/layout/Brand';
 import { toaster } from '../../components/ui/toaster';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks/typedHooks';
-import { setError, setLoading, setToken } from '../../redux/slices/authSlice';
+import {
+  SESSION_EXPIRED_MESSAGE,
+  setError,
+  setLoading,
+  setToken,
+} from '../../redux/slices/authSlice';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -13,6 +18,8 @@ const LoginPage = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const loading = useAppSelector((state) => state.auth.loading);
+  // Login and register failures are shown as toasts; only session expiry is shown inline.
+  const sessionExpired = useAppSelector((state) => state.auth.error === SESSION_EXPIRED_MESSAGE);
 
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -63,6 +70,11 @@ const LoginPage = () => {
                 Sign in to continue to your TaskForge workspace.
               </Text>
             </Box>
+            {sessionExpired && (
+              <Text role="alert" color="red.fg">
+                {SESSION_EXPIRED_MESSAGE}
+              </Text>
+            )}
             <Field.Root required>
               <Field.Label>Email</Field.Label>
               <Input

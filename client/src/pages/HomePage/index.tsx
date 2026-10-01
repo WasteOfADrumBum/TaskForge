@@ -1,3 +1,4 @@
+import { SessionExpiredError } from '../../utils/session';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import {
   Box,
@@ -70,6 +71,7 @@ const HomePage = () => {
         const loadedTasks = await getTasks(token);
         if (active) dispatch(setTasks(loadedTasks));
       } catch (loadError) {
+        if (loadError instanceof SessionExpiredError) return;
         const message = loadError instanceof Error ? loadError.message : 'Unable to load tasks';
         if (active) dispatch(setTaskError(message));
       } finally {
@@ -122,6 +124,7 @@ const HomePage = () => {
       }
       resetForm();
     } catch (submitError) {
+      if (submitError instanceof SessionExpiredError) return;
       const message = submitError instanceof Error ? submitError.message : 'Unable to save task';
       dispatch(setTaskError(message));
       toaster.create({ title: 'Task Error', description: message, type: 'error' });
@@ -155,6 +158,7 @@ const HomePage = () => {
         type: 'success',
       });
     } catch (updateError) {
+      if (updateError instanceof SessionExpiredError) return;
       const message = updateError instanceof Error ? updateError.message : 'Unable to update task';
       dispatch(setTaskError(message));
       toaster.create({ title: 'Update Failed', description: message, type: 'error' });
@@ -172,6 +176,7 @@ const HomePage = () => {
       toaster.create({ title: 'Task Deleted', description: deleteTarget.title, type: 'success' });
       setDeleteTarget(null);
     } catch (deleteError) {
+      if (deleteError instanceof SessionExpiredError) return;
       const message = deleteError instanceof Error ? deleteError.message : 'Unable to delete task';
       dispatch(setTaskError(message));
       toaster.create({ title: 'Delete Failed', description: message, type: 'error' });
