@@ -1,3 +1,4 @@
+import { authenticatedFetch } from './authenticatedFetch';
 import type { Task, TaskInput, TaskUpdate } from '../types/task';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
@@ -21,7 +22,9 @@ const authHeaders = (token: string) => ({
 });
 
 export const getTasks = async (token: string): Promise<Task[]> => {
-  const response = await fetch(API_URL + '/api/tasks', { headers: authHeaders(token) });
+  const response = await authenticatedFetch(API_URL + '/api/tasks', {
+    headers: authHeaders(token),
+  });
 
   if (!response.ok) {
     throw new Error(await getErrorMessage(response, 'Unable to load tasks'));
@@ -32,7 +35,7 @@ export const getTasks = async (token: string): Promise<Task[]> => {
 };
 
 export const createTask = async (token: string, input: TaskInput): Promise<Task> => {
-  const response = await fetch(API_URL + '/api/tasks', {
+  const response = await authenticatedFetch(API_URL + '/api/tasks', {
     method: 'POST',
     headers: authHeaders(token),
     body: JSON.stringify(input),
@@ -51,7 +54,7 @@ export const updateTask = async (
   taskId: string,
   updates: TaskUpdate,
 ): Promise<Task> => {
-  const response = await fetch(API_URL + '/api/tasks/' + taskId, {
+  const response = await authenticatedFetch(API_URL + '/api/tasks/' + taskId, {
     method: 'PATCH',
     headers: authHeaders(token),
     body: JSON.stringify(updates),
@@ -66,7 +69,7 @@ export const updateTask = async (
 };
 
 export const deleteTask = async (token: string, taskId: string): Promise<void> => {
-  const response = await fetch(API_URL + '/api/tasks/' + taskId, {
+  const response = await authenticatedFetch(API_URL + '/api/tasks/' + taskId, {
     method: 'DELETE',
     headers: authHeaders(token),
   });

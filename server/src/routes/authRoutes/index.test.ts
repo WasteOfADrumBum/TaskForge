@@ -1,5 +1,6 @@
 import request from 'supertest';
 import bcrypt from 'bcrypt';
+import jwt, { type JwtPayload } from 'jsonwebtoken';
 import app from '../../app';
 import { createUser, findUserByEmail } from '../../services/authService';
 
@@ -85,6 +86,9 @@ describe('auth routes', () => {
     expect(response.status).toBe(200);
     expect(response.body.message).toBe('Logged in successfully');
     expect(response.body.token).toEqual(expect.any(String));
+    const payload = jwt.verify(response.body.token, process.env.JWT_SECRET!) as JwtPayload;
+    expect(payload.id).toBe('user-id');
+    expect(payload.exp! - payload.iat!).toBe(7 * 24 * 60 * 60);
   });
 
   it('logs out successfully', async () => {

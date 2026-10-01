@@ -1,6 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { Task } from '../../types/task';
 import { getTaskId } from '../../types/task';
+import { clearAuth, sessionExpired } from './authSlice';
 
 interface TaskState {
   items: Task[];
@@ -17,6 +18,10 @@ const initialState: TaskState = {
 const taskSlice = createSlice({
   name: 'tasks',
   initialState,
+  extraReducers: (builder) => {
+    builder.addCase(sessionExpired, () => initialState);
+    builder.addCase(clearAuth, () => initialState);
+  },
   reducers: {
     setTasks(state, action: PayloadAction<Task[]>) {
       state.items = action.payload;

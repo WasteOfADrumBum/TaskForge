@@ -5,10 +5,11 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import ProtectedRoute from './ProtectedRoute';
 import authReducer from '../../redux/slices/authSlice';
+import taskReducer from '../../redux/slices/taskSlice';
 
 const renderProtectedRoute = (token: string | null) => {
   const store = configureStore({
-    reducer: { auth: authReducer },
+    reducer: { auth: authReducer, tasks: taskReducer },
     preloadedState: { auth: { token, loading: false, error: null } },
   });
 
@@ -24,6 +25,7 @@ const renderProtectedRoute = (token: string | null) => {
       </MemoryRouter>
     </Provider>,
   );
+  return store;
 };
 
 describe('ProtectedRoute', () => {
@@ -33,7 +35,23 @@ describe('ProtectedRoute', () => {
   });
 
   it('renders protected content for authenticated users', () => {
-    renderProtectedRoute('jwt-token');
+    renderProtectedRoute(
+      `header.${btoa(JSON.stringify({ exp: Date.now() / 1000 + 3600 }))}.signature`,
+    );
     expect(screen.getByRole('heading', { name: 'Protected Home' })).toBeInTheDocument();
   });
+
+  it.each(['malformed', `header.${btoa(JSON.stringify({ exp: 1 }))}.signature`])(
+    'clears an expired or malformed token and redirects without rendering the dashboard',
+    (token) => {
+      localStorage.setItem('token', token);
+      const store = renderProtectedRoute(token);
+      expect(screen.queryByRole('heading', { name: 'Protected Home' })).not.toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Login Page' })).toBeInTheDocument();
+      expect(localStorage.getItem('token')).toBeNull();
+      expect(store.getState().auth.token).toBeNull();
+      expect(store.getState().auth.error).toMatch(/session has expired/);
+      expect(store.getState().tasks).toEqual({ items: [], loading: false, error: null });
+    },
+  );
 });
