@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Provider } from '../ui/provider';
 import TaskCard from './TaskCard';
 import type { Task } from '../../types/task';
@@ -45,6 +45,40 @@ describe('TaskCard', () => {
     const { onStatusChange } = renderCard(task);
     await user.click(screen.getByRole('button', { name: /reopen/i }));
     expect(onStatusChange).toHaveBeenCalledWith(task, 'todo');
+  });
+
+  describe('due dates', () => {
+    // Late evening local time is where reading UTC-midnight due dates in local time went wrong.
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date(2026, 9, 15, 23, 55));
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+    const dueOn = (date: string) => ({ ...baseTask, dueDate: date + 'T00:00:00.000Z' });
+
+    it('shows a task due today with its own date and no overdue badge', () => {
+      renderCard(dueOn('2026-10-15'));
+      expect(screen.getByText('Due ' + new Date(2026, 9, 15).toLocaleDateString())).toBeVisible();
+      expect(screen.queryByText('Overdue')).not.toBeInTheDocument();
+    });
+
+    it('marks a task due yesterday as overdue', () => {
+      renderCard(dueOn('2026-10-14'));
+      expect(screen.getByText('Overdue')).toBeInTheDocument();
+      expect(screen.getByText('Due ' + new Date(2026, 9, 14).toLocaleDateString())).toBeVisible();
+    });
+
+    it('does not mark a task due tomorrow as overdue', () => {
+      renderCard(dueOn('2026-10-16'));
+      expect(screen.queryByText('Overdue')).not.toBeInTheDocument();
+    });
+
+    it('does not mark a completed task as overdue', () => {
+      renderCard({ ...dueOn('2026-10-14'), status: 'done' });
+      expect(screen.queryByText('Overdue')).not.toBeInTheDocument();
+    });
   });
 
   it('calls edit and delete actions', async () => {

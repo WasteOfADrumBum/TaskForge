@@ -22,7 +22,7 @@
 
 ## Overview
 
-TaskForge is a production-deployed task management app built with React, TypeScript, Node.js, Express, and MongoDB. Users create an account, sign in, and manage their own private tasks with priorities, due dates, status tracking, search, filters, and a summary dashboard.
+TaskForge is a production-deployed task management app built with React, TypeScript, Node.js, Express, and MongoDB. Users create an account, sign in, and manage their own private tasks with priorities, due dates, status tracking, search, and filters, starting each day from a task-driven Command Center.
 
 It is also the foundation for a larger goal: a personal AI orchestration platform with agents, shared knowledge, and a daily command center. **Those AI capabilities are planned, not built.** See the [roadmap](docs/roadmap.md) for exactly what exists today.
 
@@ -40,10 +40,12 @@ Screenshots are being captured. See [docs/images/](docs/images/README.md) for th
 - **Private, user-owned data.** Every task query on the server is scoped to the signed-in user. One user can never read or change another user's tasks.
 - **Task management.** Create, edit, and delete tasks with a title, description, status (to do / in progress / done), priority (low / medium / high), and due date.
 - **Search, filter, and sort.** Search by text, filter by status and priority, and sort by created date, due date, or priority.
-- **Productivity summary.** Totals by status plus an overdue count.
+- **Command Center.** A daily brief with open, in-progress, completed, and overdue metrics, plus today's priorities, a completion summary, and recent task changes. Its "Recommended next" suggestions come from fixed rules over your tasks, are labeled "Rule based", and are not AI.
+- **App shell.** A persistent sidebar and top bar (current section, date, refresh, New Task). On phones the sidebar becomes a drawer.
 - **Session-expiration handling.** Expired or rejected sessions sign the user out cleanly and explain why (see below).
-- **Light, dark, and system themes.** Chosen on the Settings page.
+- **Dark-first theme.** A dark command-center look with teal, orange, and violet accents. Light and system modes are available on the Settings page.
 - **Polished UI.** Landing page, auth pages, and workspace built with Chakra UI v3; routes are lazy-loaded.
+- **Workforce (planned).** The `/workforce` page shows the planned AI Workforce concepts and says clearly that they are not yet enabled.
 
 ## Tech stack
 

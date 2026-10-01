@@ -35,6 +35,13 @@ Every later phase (agents, knowledge, command center) builds on this base of aut
 
 ### In progress
 
+- **TaskForge v2 authenticated shell** (`feat/taskforge-v2-shell`):
+  - A persistent sidebar (Command Center, Work, Workforce, Settings, logout) becomes a drawer below the `lg` breakpoint.
+  - A top bar shows the current section, the date, a refresh action, and New Task.
+  - The dark v2 theme uses teal, orange, and violet accents.
+  - The task workspace moved to `/work` with the same task behavior, and `/home` is now the Command Center. The summary metric cards moved to the Command Center (the "Total" count is no longer shown). Settings and Log out moved from the page header to the sidebar. Buttons use the v2 colors.
+  - Task loading moved into the shell, so it runs once per session, with a manual refresh.
+  - Validated locally, including a real-browser check at 390px and 1440px.
 - **Screenshots:** the shot list is in `docs/images/README.md`; the images still need capturing.
 - **Production verification:** URLs, health check, CORS, and API wiring are verified. The live smoke test (register, login, task CRUD, session expiry) is still to do.
 - **MongoDB Atlas:** confirm the cluster and tier in the Atlas dashboard.
@@ -70,3 +77,5 @@ $0. Every service stays on its free tier. Accept free-tier limits such as cold s
 - JWTs are stored in `localStorage` and logout is stateless. This is acceptable for portfolio scope; revisit if refresh tokens are added.
 - The session-expiry check on the client is UI-only. The server stays the authority on signature and expiry.
 - Task types are written separately on the client and the server. Update both sides when the task shape changes.
+- The v2 shell's UX came from a separate TaskForge v2 prototype built on the Sites platform. Only the visual and product ideas were ported. The production app keeps its React/Vite/Chakra client, Express/MongoDB API, JWT auth, and Vercel/Render hosting.
+- Due dates are calendar dates. The form sends `YYYY-MM-DD`, MongoDB stores it as UTC midnight, and the client reads the UTC date part through `client/src/utils/dates.ts`. That code used to parse it as a local timestamp, so west of UTC a task due today showed as overdue and displayed the previous day. Fixed on `feat/taskforge-v2-shell`; the API and database are unchanged.

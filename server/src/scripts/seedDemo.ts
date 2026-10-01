@@ -23,13 +23,16 @@ const seedDemo = async () => {
 
   await Task.deleteMany({ owner: user._id });
 
-  const now = new Date();
-  const tomorrow = new Date(now);
-  tomorrow.setDate(now.getDate() + 1);
-  const nextWeek = new Date(now);
-  nextWeek.setDate(now.getDate() + 7);
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
+  // Due dates are calendar dates stored as UTC midnight, the same shape the task form
+  // produces, so the client shows the intended day in every time zone.
+  const dueInDays = (days: number) => {
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  };
+  const tomorrow = dueInDays(1);
+  const nextWeek = dueInDays(7);
+  const yesterday = dueInDays(-1);
 
   await Task.insertMany([
     {

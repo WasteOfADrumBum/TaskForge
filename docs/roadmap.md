@@ -49,6 +49,7 @@ AI features go through a provider abstraction and are never hard-wired to one pa
 - [x] **COMPLETE**: README rewrite (portfolio-facing README with stack, architecture, auth, testing, deployment, and setup)
 - [x] **COMPLETE**: Architecture diagram ([architecture.md](architecture.md), Mermaid)
 - [x] **COMPLETE**: Live-demo link (https://taskforge-alpha-six.vercel.app, verified HTTP 200 on 2026-10-01)
+- [ ] **IN PROGRESS**: TaskForge v2 authenticated shell (persistent sidebar, top bar, mobile drawer, dark v2 theme; task workspace moved to `/work`; branch `feat/taskforge-v2-shell`, validated locally, waiting for review and merge)
 - [ ] **IN PROGRESS**: MongoDB Atlas (production database per project owner; the live API is running, which requires a working database connection; record the cluster name and free tier from the Atlas dashboard to close this item)
 - [ ] **IN PROGRESS**: Screenshots (folder and shot list in `docs/images/`; images not yet captured)
 - [ ] **IN PROGRESS**: Production verification (URLs, health check, CORS, and API wiring verified; live smoke test of register, login, task CRUD, and session expiry not yet run)
@@ -57,7 +58,7 @@ AI features go through a provider abstraction and are never hard-wired to one pa
 
 ## Phase 2: AI Workforce ([details](phases/phase-2-ai-workforce.md))
 
-**Status: PLANNED**
+**Status: PLANNED.** A `/workforce` placeholder page (branch `feat/taskforge-v2-shell`) describes these concepts and labels them as planned. Nothing below is implemented.
 
 - [ ] **PLANNED**: Agent Registry (role, description, skills, permissions, tools, status)
 - [ ] **PLANNED**: Assign TaskForge tasks to agents
@@ -91,17 +92,17 @@ AI features go through a provider abstraction and are never hard-wired to one pa
 
 ## Phase 4: Command Center ([details](phases/phase-4-command-center.md))
 
-**Status: PLANNED**
+**Status: IN PROGRESS** (task-based foundation on branch `feat/taskforge-v2-shell`, waiting for review and merge)
 
-- [ ] **PLANNED**: Unified home dashboard
-- [ ] **PLANNED**: Today's priorities
-- [ ] **PLANNED**: Tasks
-- [ ] **PLANNED**: Projects
-- [ ] **PLANNED**: Agent activity
+- [ ] **IN PROGRESS**: Unified home dashboard (Command Center at `/home`; tasks are its only data source so far)
+- [ ] **IN PROGRESS**: Today's priorities (derived from tasks: overdue, due today, high priority, due soon)
+- [ ] **IN PROGRESS**: Tasks (open, in-progress, completed, and overdue metrics; completion summary; recent task changes from task timestamps)
+- [ ] **PLANNED**: Projects (no projects model yet)
+- [ ] **PLANNED**: Agent activity (depends on Phase 2)
 - [ ] **PLANNED**: Calendar
 - [ ] **PLANNED**: Email highlights
-- [ ] **PLANNED**: Morning briefing
-- [ ] **PLANNED**: Recommendations
+- [ ] **PLANNED**: Morning briefing (a fixed-text daily brief line exists; the agent-generated briefing is planned)
+- [ ] **IN PROGRESS**: Recommendations (rule-based only, labeled as such; AI recommendations are planned)
 
 ## Phase 5: Reviews ([details](phases/phase-5-reviews.md))
 

@@ -59,7 +59,13 @@ The request flow is `routes → controllers → services → models`:
 
 ## Client architecture
 
-- `App.tsx` lazy-loads pages from `src/pages/<Name>/index.tsx`. `/home` and `/settings` sit behind `components/auth/ProtectedRoute`.
+- `App.tsx` exports `AppRoutes` and lazy-loads pages from `src/pages/<Name>/index.tsx`.
+  - Public: `/` (landing), `/login`, `/register`.
+  - Authenticated, behind `ProtectedRoute` inside `components/layout/AppShell`: `/home` (`CommandCenterPage`), `/work` (`WorkPage`, the task workspace), `/workforce` (a placeholder; Phase 2 is not built), and `/settings`.
+- `AppShell` owns the sidebar (`Sidebar`; a drawer below `lg`), `TopBar`, and task loading (`hooks/useTaskLoader`). Pages read tasks from Redux; they don't fetch them on mount.
+- Command Center insights are pure functions in `utils/commandCenter.ts`. They are rule-based; never present them as AI.
+- Theme: `assets/theme/theme.ts` overrides Chakra's dark semantic tokens (`bg.*`, `fg.*`, `border.*`) with the v2 palette and adds `accent.{teal,orange,violet}` and `shell.*`. Use these tokens, not hex values. Dark is the default color mode.
+- Tests: `src/test/renderApp.tsx` renders `AppRoutes` with an in-memory task API stub. jsdom applies only base (mobile) styles, so shell tests navigate through the drawer.
 - Redux store (`redux/store.ts`, `rootreducer.ts`) has two slices:
   - `authSlice`: `token` (seeded from `localStorage.token`), `loading`, `error`.
   - `taskSlice`: `items`, `loading`, `error`. It resets on both `clearAuth` and `sessionExpired`.
@@ -69,9 +75,10 @@ The request flow is `routes → controllers → services → models`:
   - Authenticated calls go through `api/authenticatedFetch.ts`.
   - On a 401 it calls `expireSession` (`utils/session.ts`), which clears `localStorage` and dispatches `sessionExpired`. It then throws `SessionExpiredError`.
   - It also throws if the token changed mid-request. A stale request must never sign out a newly logged-in user.
-  - Callers should ignore `SessionExpiredError` and not show it as a normal error (see `HomePage`).
+  - Callers should ignore `SessionExpiredError` and not show it as a normal error (see `WorkPage` and `hooks/useTaskLoader.ts`).
   - `ProtectedRoute` also checks the JWT `exp` client-side (UI-only) with `isTokenExpired`.
 - Tasks may come back with `_id` or `id`. Always use `getTaskId(task)` from `types/task.ts`.
+- **Due dates are calendar dates.** The API returns them as UTC midnight (`YYYY-MM-DDT00:00:00.000Z`). Never pass a `dueDate` to `new Date()` to compare or display it, because that shifts the day west of UTC. Use `utils/dates.ts` (`toCalendarDate`, `daysUntilDueDate`, `formatCalendarDate`). In tests, build due dates in that API shape and keep them independent of the time zone.
 - Filtering, sorting, and summary logic lives in `utils/tasks.ts` as pure, tested functions. Keep that logic out of components.
 - UI is Chakra UI v3. `components/ui/*` are Chakra CLI snippets (provider, toaster, color-mode, tooltip). Show user feedback with `toaster`.
 - `client/src/types/task.ts` duplicates the server task types by hand. Update both sides when the task shape changes.

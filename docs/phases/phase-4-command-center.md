@@ -1,6 +1,6 @@
 # Phase 4: Command Center
 
-**Status: PLANNED**
+**Status: IN PROGRESS.** A task-based foundation is on branch `feat/taskforge-v2-shell`. Item-level status lives in [roadmap.md](../roadmap.md#phase-4-command-center-details).
 
 ## Objective
 
@@ -14,17 +14,26 @@ It turns TaskForge into the place where the day starts, not just another app to 
 
 A unified dashboard, today's priorities, tasks, projects, agent activity, calendar, email highlights, a morning briefing, and recommendations.
 
+## Implemented so far (foundation)
+
+The Command Center at `/home` uses **task data only**. Everything on it is computed from the signed-in user's tasks in `client/src/utils/commandCenter.ts`, with no AI and no new API endpoints.
+
+- **Daily brief:** time-of-day greeting, plus how many tasks need attention today and how many are open.
+- **Metrics:** open tasks, in progress, completed (with completion %), and overdue.
+- **Today's priorities:** overdue first, then due today, high priority, and due within 3 days.
+- **Task summary:** completion progress, plus counts by status.
+- **Recent task changes:** "created" or "updated", from each task's `createdAt`/`updatedAt`. The API keeps no change history, so this is not a full activity log.
+- **Recommended next:** fixed rules, labeled "Rule based" in the UI. Resolve overdue work, continue or finish in-progress work, start a high-priority task, plan for tasks due soon.
+
 ## Planned capabilities
 
-- Unified home dashboard
-- Today's priorities
-- Tasks
+- Unified home dashboard across all sources
 - Projects
 - Agent activity
 - Calendar
 - Email highlights
-- Morning briefing
-- Recommendations
+- Agent-generated morning briefing
+- AI recommendations, alongside the rule-based ones
 
 ## Dependencies
 
@@ -48,3 +57,6 @@ Use free APIs only (for example, the Google Calendar and Gmail APIs within their
 ## Notes/decisions
 
 - Calendar and email access start as read-only.
+- The layout and visual direction came from the TaskForge v2 prototype, built separately on the Sites platform. That prototype was a UX reference only. Production keeps the existing React + Vite + Chakra UI client and Express + MongoDB API; nothing from the prototype's runtime (Cloudflare Workers, D1, Drizzle, Next.js-style routing) was adopted.
+- Recommendations stay deterministic until the Phase 2 provider abstraction exists. The UI must never present rule-based output as AI output.
+- "Overdue", "due today", and "due soon" compare the due date's calendar date with the user's local today, using the same helper (`utils/dates.ts`) as the Work page. The time zone no longer shifts a due date by a day. (The Command Center fixes "today" when the page loads, so a tab left open past midnight shows yesterday's view until it reloads.)
