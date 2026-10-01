@@ -1,6 +1,6 @@
 # Phase 2: AI Workforce
 
-**Status: PLANNED.** Nothing in this phase is implemented yet. Item-level status lives in [roadmap.md](../roadmap.md#phase-2-ai-workforce).
+**Status: PLANNED.** Nothing in this phase is implemented yet. Item-level status lives in [roadmap.md](../roadmap.md#phase-2-ai-workforce-details).
 
 ## Objective
 

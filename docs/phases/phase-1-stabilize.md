@@ -1,6 +1,6 @@
 # Phase 1: Stabilize TaskForge
 
-**Status: IN PROGRESS.** Item-level status lives in [roadmap.md](../roadmap.md#phase-1-stabilize-taskforge).
+**Status: IN PROGRESS.** Item-level status lives in [roadmap.md](../roadmap.md#phase-1-stabilize-taskforge-details).
 
 ## Objective
 
@@ -29,29 +29,25 @@ Every later phase (agents, knowledge, command center) builds on this base of aut
 - Enterprise UI polish, landing page, polished login and register pages
 - Lazy-loaded routes and client bundle splitting
 - Demo seed script (`seed:demo`)
-- Render (`render.yaml`) and Vercel (`vercel.json`) deployment config
+- Render (`render.yaml`) and Vercel (`client/vercel.json`) deployment config, with production env config verified live
+- Session-expiration handling (PR #4): a 401 clears the session and returns to `/login` with a message; stale requests never sign out a newer session; the JWT lifetime is 7d
+- Portfolio README, [architecture doc](../architecture.md), and verified live-demo link
 
 ### In progress
 
-- **Session-expiration handling** (`fix/session-expiration-handling`):
-  - `authenticatedFetch` catches a 401 from the API.
-  - It clears the token and task state, then redirects to `/login` with a "session expired" message.
-  - A stale request never signs out a newly logged-in user.
-  - `ProtectedRoute` also checks the JWT `exp` claim client-side.
-  - The JWT lifetime goes from 1h to 7d, so demo users are not signed out mid-session.
-- **Production config confirmation:** record the Atlas cluster, the Vercel `VITE_API_URL`, and the Render `CLIENT_ORIGIN`.
+- **Screenshots:** the shot list is in `docs/images/README.md`; the images still need capturing.
+- **Production verification:** URLs, health check, CORS, and API wiring are verified. The live smoke test (register, login, task CRUD, session expiry) is still to do.
+- **MongoDB Atlas:** confirm the cluster and tier in the Atlas dashboard.
+- **Documentation cleanup:** backfill CHANGELOG entries for work before PR #4.
 
 ### Remaining
 
 - Demo reliability: handle Render cold starts gracefully, keep the demo account seeded, and show a clear loading state
-- README rewrite, screenshots, architecture diagram, live-demo link
-- Production verification: a smoke test against the live URLs (register, login, task CRUD, expiry)
-- Documentation cleanup: backfill CHANGELOG and remove stale docs
 
 ## Dependencies
 
 - MongoDB Atlas free cluster, Render free web service, Vercel free project, GitHub Actions
-- The production URLs must be recorded before the live-demo and production-verification items can be done.
+- Production URLs are recorded in [project-status.md](../project-status.md).
 
 ## Definition of done
 
