@@ -153,6 +153,46 @@ describe('Work page task workspace', () => {
     );
   });
 
+  it('treats due dates as calendar dates for badges, display, sorting, and editing', async () => {
+    // Only Date is faked, pinned to late evening local time, so this holds in every time zone.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 9, 15, 23, 55));
+    try {
+      const { fetchMock } = await renderWork([
+        makeTask({ _id: 't', title: 'Write release notes', dueDate: '2026-10-16T00:00:00.000Z' }),
+        makeTask({ _id: 'y', title: 'Due yesterday', dueDate: '2026-10-14T00:00:00.000Z' }),
+        makeTask({ _id: 'd', title: 'Due today', dueDate: '2026-10-15T00:00:00.000Z' }),
+      ]);
+      const shownDate = (day: number) => 'Due ' + new Date(2026, 9, day).toLocaleDateString();
+
+      expect(taskCard('Due yesterday').getByText('Overdue')).toBeInTheDocument();
+      expect(taskCard('Due yesterday').getByText(shownDate(14))).toBeInTheDocument();
+      expect(taskCard('Due today').queryByText('Overdue')).not.toBeInTheDocument();
+      expect(taskCard('Due today').getByText(shownDate(15))).toBeInTheDocument();
+      expect(taskCard('Write release notes').queryByText('Overdue')).not.toBeInTheDocument();
+
+      await userEvent.selectOptions(
+        screen.getByRole('combobox', { name: 'Sort tasks' }),
+        'due-asc',
+      );
+      const order = within(screen.getByRole('region', { name: 'Your Tasks' }))
+        .getAllByRole('heading', { level: 2 })
+        .map((heading) => heading.textContent)
+        .filter((text) => text !== 'Your Tasks');
+      expect(order).toEqual(['Due yesterday', 'Due today', 'Write release notes']);
+
+      await userEvent.click(taskCard('Due today').getByRole('button', { name: 'Edit' }));
+      expect(screen.getByLabelText('Due date')).toHaveValue('2026-10-15');
+      await userEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
+      await waitFor(() => expect(requests(fetchMock, 'PATCH')).toHaveLength(1));
+      expect(JSON.parse(String(requests(fetchMock, 'PATCH')[0][1]?.body)).dueDate).toBe(
+        '2026-10-15',
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('shows an empty state when there are no tasks', async () => {
     signIn();
     stubTaskApi([]);

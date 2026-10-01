@@ -59,4 +59,4 @@ Use free APIs only (for example, the Google Calendar and Gmail APIs within their
 - Calendar and email access start as read-only.
 - The layout and visual direction came from the TaskForge v2 prototype, built separately on the Sites platform. That prototype was a UX reference only. Production keeps the existing React + Vite + Chakra UI client and Express + MongoDB API; nothing from the prototype's runtime (Cloudflare Workers, D1, Drizzle, Next.js-style routing) was adopted.
 - Recommendations stay deterministic until the Phase 2 provider abstraction exists. The UI must never present rule-based output as AI output.
-- "Overdue" and "due today" use the same local-time reading of `dueDate` as the Work page, so both views always agree.
+- "Overdue", "due today", and "due soon" compare the due date's calendar date with the user's local today, using the same helper (`utils/dates.ts`) as the Work page. The time zone no longer shifts a due date by a day. (The Command Center fixes "today" when the page loads, so a tab left open past midnight shows yesterday's view until it reloads.)

@@ -1,24 +1,15 @@
 import { type Task } from '../types/task';
+import { daysUntilDueDate, toCalendarDate } from './dates';
 
 // Deterministic, task-derived insights for the Command Center. Nothing here is AI-generated.
 
-const DAY_MS = 24 * 60 * 60 * 1000;
 const DUE_SOON_DAYS = 3;
 const priorityRank = { low: 1, medium: 2, high: 3 } as const;
 
-const startOfDay = (date: Date) => {
-  const day = new Date(date);
-  day.setHours(0, 0, 0, 0);
-  return day;
-};
-
-// Reads dueDate the same way as isTaskOverdue (local time), so every view agrees on what is
+// Uses the shared calendar-date helper, like isTaskOverdue, so every view agrees on what is
 // overdue, due today, and due soon.
-export const daysUntilDue = (task: Task, now: Date = new Date()): number | null => {
-  if (!task.dueDate) return null;
-  const due = startOfDay(new Date(task.dueDate)).getTime();
-  return Math.round((due - startOfDay(now).getTime()) / DAY_MS);
-};
+export const daysUntilDue = (task: Task, now: Date = new Date()): number | null =>
+  daysUntilDueDate(task.dueDate, now);
 
 const isOpen = (task: Task) => task.status !== 'done';
 
@@ -46,8 +37,12 @@ const getPriorityReason = (task: Task, now: Date): PriorityReason | null => {
   return null;
 };
 
-const dueTime = (task: Task) =>
-  task.dueDate ? new Date(task.dueDate).getTime() : Number.POSITIVE_INFINITY;
+// Earliest due calendar date first; tasks without a due date last.
+const compareDue = (a: Task, b: Task) => {
+  const dueA = toCalendarDate(a.dueDate) ?? '9999-12-31';
+  const dueB = toCalendarDate(b.dueDate) ?? '9999-12-31';
+  return dueA < dueB ? -1 : dueA > dueB ? 1 : 0;
+};
 
 export const getTodaysPriorities = (
   tasks: Task[],
@@ -60,7 +55,7 @@ export const getTodaysPriorities = (
     .sort(
       (a, b) =>
         reasonOrder[a.reason] - reasonOrder[b.reason] ||
-        dueTime(a.task) - dueTime(b.task) ||
+        compareDue(a.task, b.task) ||
         priorityRank[b.task.priority] - priorityRank[a.task.priority],
     )
     .slice(0, limit);
@@ -80,9 +75,7 @@ export const getRecommendations = (
   limit = 3,
 ): Recommendation[] => {
   const open = tasks.filter(isOpen);
-  const overdue = open
-    .filter((task) => (daysUntilDue(task, now) ?? 0) < 0)
-    .sort((a, b) => dueTime(a) - dueTime(b));
+  const overdue = open.filter((task) => (daysUntilDue(task, now) ?? 0) < 0).sort(compareDue);
   const inProgress = open.filter((task) => task.status === 'in-progress');
   const highNotStarted = open.filter(
     (task) => task.status === 'todo' && task.priority === 'high' && !overdue.includes(task),

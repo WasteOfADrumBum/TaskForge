@@ -29,6 +29,7 @@ import {
   setTaskLoading,
 } from '../../redux/slices/taskSlice';
 import { getTaskId, type Task, type TaskPriority, type TaskStatus } from '../../types/task';
+import { toCalendarDate } from '../../utils/dates';
 import { filterAndSortTasks, type TaskSort } from '../../utils/tasks';
 
 const WorkPage = () => {
@@ -122,7 +123,7 @@ const WorkPage = () => {
     setTitle(task.title);
     setDescription(task.description ?? '');
     setPriority(task.priority);
-    setDueDate(task.dueDate ? task.dueDate.slice(0, 10) : '');
+    setDueDate(toCalendarDate(task.dueDate) ?? '');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 

@@ -8,6 +8,7 @@ import { system } from '../assets/theme/theme';
 import { store } from '../redux/store';
 import { setToken } from '../redux/slices/authSlice';
 import type { Task } from '../types/task';
+import { localCalendarDate } from '../utils/dates';
 
 export const validToken = () =>
   'header.' + btoa(JSON.stringify({ exp: Date.now() / 1000 + 3600 })) + '.signature';
@@ -19,10 +20,12 @@ export const signIn = () => {
   return token;
 };
 
+// A due date `days` from the local today, in the shape the API returns for a date-only due
+// date: UTC midnight of that calendar day.
 export const daysFromNow = (days: number) => {
   const date = new Date();
   date.setDate(date.getDate() + days);
-  return date.toISOString();
+  return localCalendarDate(date) + 'T00:00:00.000Z';
 };
 
 export const makeTask = (overrides: Partial<Task> & { _id: string; title: string }): Task => ({

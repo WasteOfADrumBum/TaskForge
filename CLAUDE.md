@@ -78,6 +78,7 @@ The request flow is `routes → controllers → services → models`:
   - Callers should ignore `SessionExpiredError` and not show it as a normal error (see `WorkPage` and `hooks/useTaskLoader.ts`).
   - `ProtectedRoute` also checks the JWT `exp` client-side (UI-only) with `isTokenExpired`.
 - Tasks may come back with `_id` or `id`. Always use `getTaskId(task)` from `types/task.ts`.
+- **Due dates are calendar dates.** The API returns them as UTC midnight (`YYYY-MM-DDT00:00:00.000Z`). Never pass a `dueDate` to `new Date()` to compare or display it, because that shifts the day west of UTC. Use `utils/dates.ts` (`toCalendarDate`, `daysUntilDueDate`, `formatCalendarDate`). In tests, build due dates in that API shape and keep them independent of the time zone.
 - Filtering, sorting, and summary logic lives in `utils/tasks.ts` as pure, tested functions. Keep that logic out of components.
 - UI is Chakra UI v3. `components/ui/*` are Chakra CLI snippets (provider, toaster, color-mode, tooltip). Show user feedback with `toaster`.
 - `client/src/types/task.ts` duplicates the server task types by hand. Update both sides when the task shape changes.

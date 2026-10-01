@@ -6,13 +6,13 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 
 ## Checkpoint
 
-| Item                      | Value                                                                                                            |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Current phase             | Phase 1: Stabilize TaskForge (Phase 4 Command Center foundation started)                                         |
-| Current branch            | `feat/taskforge-v2-shell`                                                                                        |
-| Current checkpoint        | TaskForge v2 authenticated shell, Command Center foundation, Work page, Workforce placeholder                    |
-| Last completed checkpoint | Portfolio documentation (PR #5, merged to `main` as `3b50914`)                                                   |
-| Next recommended          | `fix/due-date-timezone` (due dates read in local time show "due today" as overdue), then production verification |
+| Item                      | Value                                                                                                                     |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Current phase             | Phase 1: Stabilize TaskForge (Phase 4 Command Center foundation started)                                                  |
+| Current branch            | `feat/taskforge-v2-shell`                                                                                                 |
+| Current checkpoint        | TaskForge v2 authenticated shell, Command Center foundation, Work page, Workforce placeholder, due-date calendar-date fix |
+| Last completed checkpoint | Portfolio documentation (PR #5, merged to `main` as `3b50914`)                                                            |
+| Next recommended          | `chore/production-verification`: live smoke test of the v2 shell, then capture screenshots                                |
 
 ## Known blockers
 
@@ -70,7 +70,8 @@ Run on `feat/taskforge-v2-shell` on 2026-10-01 (local, before PR):
 | ---------------------- | ----------------------------------------------------------------------------------------------------------- |
 | `npm run format:check` | Pass                                                                                                        |
 | `npm run lint`         | Pass (0 warnings)                                                                                           |
-| `npm test`             | Pass: client 96/96 (13 files), server 22/22 (4 suites)                                                      |
+| `npm test`             | Pass: client 118/118 (14 files), server 22/22 (4 suites)                                                    |
+| Time-zone independence | Client suite passes under `TZ` = UTC−12, Los Angeles, New York, UTC, Kolkata, and UTC+14                    |
 | `npm run build`        | Pass (client + server)                                                                                      |
 | `npm audit`            | Pass (0 vulnerabilities)                                                                                    |
 | `git diff --check`     | Pass                                                                                                        |

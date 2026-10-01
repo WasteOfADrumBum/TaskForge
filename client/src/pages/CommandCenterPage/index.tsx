@@ -52,7 +52,8 @@ const CommandCenterPage = () => {
   const error = useAppSelector((state) => state.tasks.error);
   const [now] = useState(() => new Date());
 
-  const summary = useMemo(() => getTaskSummary(tasks), [tasks]);
+  // One `now` for every section, so the Overdue metric and the priorities always agree.
+  const summary = useMemo(() => getTaskSummary(tasks, now), [tasks, now]);
   // Count from the full list; only the panel shows the top five.
   const allPriorities = useMemo(
     () => getTodaysPriorities(tasks, now, Number.POSITIVE_INFINITY),

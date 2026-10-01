@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Task } from '../types/task';
 import { filterAndSortTasks, getTaskSummary, isTaskOverdue } from './tasks';
 
@@ -71,11 +71,34 @@ describe('task utilities', () => {
     expect(summary.done).toBe(1);
   });
 
-  it('detects overdue unfinished tasks', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-10-15T12:00:00.000Z'));
-    expect(isTaskOverdue(tasks[0])).toBe(true);
-    expect(isTaskOverdue(tasks[1])).toBe(false);
-    vi.useRealTimers();
+  it.each([
+    ['just after midnight', new Date(2026, 9, 15, 0, 5)],
+    ['late evening', new Date(2026, 9, 15, 23, 55)],
+  ])('treats a due date as a calendar date at %s', (_label, now) => {
+    const dueOn = (date: string): Task => ({ ...tasks[0], dueDate: date + 'T00:00:00.000Z' });
+    expect(isTaskOverdue(dueOn('2026-10-14'), now)).toBe(true);
+    expect(isTaskOverdue(dueOn('2026-10-15'), now)).toBe(false);
+    expect(isTaskOverdue(dueOn('2026-10-16'), now)).toBe(false);
+    expect(isTaskOverdue({ ...dueOn('2026-10-14'), status: 'done' }, now)).toBe(false);
+  });
+
+  describe('with the clock fixed', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('detects overdue unfinished tasks', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-10-15T12:00:00.000Z'));
+      expect(isTaskOverdue(tasks[0])).toBe(true);
+      expect(isTaskOverdue(tasks[1])).toBe(false);
+      // Task 3 (in progress, due Oct 1) is overdue too; the summary must count both.
+      expect(getTaskSummary(tasks).overdue).toBe(2);
+    });
+  });
+
+  it('counts overdue tasks against a given date', () => {
+    expect(getTaskSummary(tasks, new Date(2026, 9, 5, 12)).overdue).toBe(1);
+    expect(getTaskSummary(tasks, new Date(2026, 8, 30, 12)).overdue).toBe(0);
   });
 });

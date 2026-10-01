@@ -37,3 +37,10 @@ All notable changes to TaskForge are recorded here.
 - Tasks now load once for the whole signed-in session, with a refresh button in the top bar, instead of on every visit to the task page.
 - New dark "v2" visual theme with teal, orange, and violet accents. The default color mode is now dark (previously it followed the system); light and system modes are still available in Settings.
 - The Figtree font is now loaded (it was already configured but never loaded).
+
+### Fixed
+
+- Task due dates are now treated as calendar dates. Previously, in time zones west of UTC (all of the US):
+  - a task due today was marked overdue;
+  - every due date displayed as the day before.
+- The API and database are unchanged. The demo seed script now writes due dates as calendar dates (UTC midnight), like the task form, so demo dates no longer shift when seeded in the evening.

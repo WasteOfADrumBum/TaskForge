@@ -2,6 +2,7 @@ import { Badge, Box, HStack, Text } from '@chakra-ui/react';
 import { LuCalendarDays, LuCircle, LuCircleCheck, LuLoaderCircle } from 'react-icons/lu';
 import type { Task, TaskStatus } from '../../types/task';
 import type { PriorityReason } from '../../utils/commandCenter';
+import { formatCalendarDate } from '../../utils/dates';
 
 const reasonLabel: Record<PriorityReason, string> = {
   overdue: 'Overdue',
@@ -54,7 +55,7 @@ const PriorityTaskRow = ({ task, reason }: PriorityTaskRowProps) => (
         {task.dueDate && (
           <HStack gap={1}>
             <LuCalendarDays aria-hidden="true" />
-            <Text>Due {new Date(task.dueDate).toLocaleDateString()}</Text>
+            <Text>Due {formatCalendarDate(task.dueDate)}</Text>
           </HStack>
         )}
       </HStack>

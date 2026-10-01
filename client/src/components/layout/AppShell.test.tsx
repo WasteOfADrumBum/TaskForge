@@ -251,6 +251,40 @@ describe('authenticated app shell', () => {
     ]);
   });
 
+  it('shows a task due today as "Due today" on the Command Center, not overdue', async () => {
+    // Only Date is faked, pinned to late evening local time (where the old parsing failed),
+    // so the test is the same in every time zone and can't race midnight.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 9, 15, 23, 55));
+    try {
+      signIn();
+      stubTaskApi([
+        makeTask({ _id: 'today', title: 'Due today task', dueDate: '2026-10-15T00:00:00.000Z' }),
+        makeTask({
+          _id: 'yesterday',
+          title: 'Due yesterday task',
+          dueDate: '2026-10-14T00:00:00.000Z',
+        }),
+      ]);
+      renderApp('/home');
+      const priorities = within(await screen.findByRole('region', { name: /today's priorities/i }));
+      const row = (title: string) => within(priorities.getByText(title).closest('li')!);
+      expect(row('Due today task').getByText('Due today')).toBeInTheDocument();
+      expect(row('Due today task').queryByText('Overdue')).not.toBeInTheDocument();
+      expect(
+        row('Due today task').getByText('Due ' + new Date(2026, 9, 15).toLocaleDateString()),
+      ).toBeInTheDocument();
+      expect(row('Due yesterday task').getByText('Overdue')).toBeInTheDocument();
+      expect(screen.getByText('Resolve 1 overdue task')).toBeInTheDocument();
+      expect(screen.getByText('"Due yesterday task" was due 1 day ago.')).toBeInTheDocument();
+      expect(screen.getByText(/2 tasks need your attention today/)).toBeInTheDocument();
+      const metrics = within(screen.getByRole('region', { name: 'Task metrics' }));
+      expect(metrics.getByText('Overdue').parentElement?.parentElement).toHaveTextContent('1');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('counts every task needing attention, not just the five shown', async () => {
     signIn();
     stubTaskApi(

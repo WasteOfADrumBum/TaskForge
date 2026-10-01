@@ -11,6 +11,7 @@ import {
   LuTrash2,
 } from 'react-icons/lu';
 import type { Task, TaskPriority, TaskStatus } from '../../types/task';
+import { formatCalendarDate } from '../../utils/dates';
 import { isTaskOverdue } from '../../utils/tasks';
 
 interface TaskCardProps {
@@ -88,7 +89,7 @@ const TaskCard = ({ task, onEdit, onDelete, onStatusChange }: TaskCardProps) => 
           {task.dueDate && (
             <HStack gap={1.5} mt={3} color={overdue ? 'red.500' : 'fg.muted'} fontSize="sm">
               <LuCalendarDays />
-              <Text>Due {new Date(task.dueDate).toLocaleDateString()}</Text>
+              <Text>Due {formatCalendarDate(task.dueDate)}</Text>
             </HStack>
           )}
         </Box>
