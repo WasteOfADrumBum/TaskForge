@@ -25,18 +25,19 @@ const statusLabel: Record<TaskStatus, string> = {
   'in-progress': 'In Progress',
   done: 'Done',
 };
+// v2 accents: violet = not started, orange = in progress, teal = done.
 const statusPalette: Record<TaskStatus, string> = {
-  todo: 'blue',
+  todo: 'purple',
   'in-progress': 'orange',
-  done: 'green',
+  done: 'teal',
 };
 const statusBorder: Record<TaskStatus, string> = {
-  todo: 'blue.400',
-  'in-progress': 'orange.400',
-  done: 'green.400',
+  todo: 'accent.violet',
+  'in-progress': 'accent.orange',
+  done: 'accent.teal',
 };
 const priorityPalette: Record<TaskPriority, string> = {
-  low: 'blue',
+  low: 'gray',
   medium: 'orange',
   high: 'red',
 };
@@ -95,7 +96,7 @@ const TaskCard = ({ task, onEdit, onDelete, onStatusChange }: TaskCardProps) => 
           {task.status === 'todo' && (
             <Button
               size="sm"
-              colorPalette="blue"
+              colorPalette="teal"
               onClick={() => onStatusChange(task, 'in-progress')}
             >
               <LuPlay />
@@ -103,7 +104,7 @@ const TaskCard = ({ task, onEdit, onDelete, onStatusChange }: TaskCardProps) => 
             </Button>
           )}
           {task.status === 'in-progress' && (
-            <Button size="sm" colorPalette="green" onClick={() => onStatusChange(task, 'done')}>
+            <Button size="sm" colorPalette="teal" onClick={() => onStatusChange(task, 'done')}>
               <LuCheck />
               Mark Done
             </Button>
@@ -114,7 +115,7 @@ const TaskCard = ({ task, onEdit, onDelete, onStatusChange }: TaskCardProps) => 
               Reopen
             </Button>
           )}
-          <Button size="sm" variant="outline" colorPalette="blue" onClick={() => onEdit(task)}>
+          <Button size="sm" variant="outline" onClick={() => onEdit(task)}>
             <LuPencil />
             Edit
           </Button>

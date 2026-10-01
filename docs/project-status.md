@@ -6,19 +6,23 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 
 ## Checkpoint
 
-| Item                      | Value                                                                                      |
-| ------------------------- | ------------------------------------------------------------------------------------------ |
-| Current phase             | Phase 1: Stabilize TaskForge                                                               |
-| Current branch            | `docs/portfolio-documentation`                                                             |
-| Current checkpoint        | Portfolio documentation: README rewrite, architecture doc, production links                |
-| Last completed checkpoint | Session-expiration handling + project workflow docs (PR #4, merged to `main` as `3434bf4`) |
-| Next recommended          | `chore/production-verification`: capture screenshots and run the live smoke test           |
+| Item                      | Value                                                                                                            |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Current phase             | Phase 1: Stabilize TaskForge (Phase 4 Command Center foundation started)                                         |
+| Current branch            | `feat/taskforge-v2-shell`                                                                                        |
+| Current checkpoint        | TaskForge v2 authenticated shell, Command Center foundation, Work page, Workforce placeholder                    |
+| Last completed checkpoint | Portfolio documentation (PR #5, merged to `main` as `3b50914`)                                                   |
+| Next recommended          | `fix/due-date-timezone` (due dates read in local time show "due today" as overdue), then production verification |
 
 ## Known blockers
 
 - None in the code.
-- Screenshots must be captured by hand from the live app (see below).
+- Screenshots must be captured by hand from the live app (see below). The v2 shell changes how the app looks, so capture them after this branch merges.
 - The live smoke test (register, login, task CRUD, session expiry) has not been run yet.
+
+## Design reference
+
+The v2 shell and Command Center UX came from a separate TaskForge v2 prototype built on the Sites platform. The production app keeps its existing architecture: React + Vite + Chakra UI, Express + MongoDB, JWT auth, Vercel + Render. No part of the prototype's runtime was adopted.
 
 ## Production URLs
 
@@ -45,7 +49,7 @@ Free-tier note: Render free services sleep when idle, so the first request after
 
 | Item             | Status                                                          |
 | ---------------- | --------------------------------------------------------------- |
-| README           | Rewritten for portfolio readers                                 |
+| README           | Rewritten for portfolio readers; updated for the v2 shell       |
 | Architecture doc | Done: [architecture.md](architecture.md), with Mermaid diagrams |
 | Screenshots      | **TODO.** None captured yet; see the list below                 |
 
@@ -55,18 +59,19 @@ Capture these into `docs/images/` (guidelines in [images/README.md](images/READM
 
 - [ ] `landing-page.png`: `/`
 - [ ] `login.png`: `/login`
-- [ ] `dashboard.png`: `/home` with sample data (don't run `seed:demo` against production; see the warning in images/README.md)
+- [ ] `dashboard.png`: `/home` (Command Center) with sample data (don't run `seed:demo` against production; see the warning in images/README.md)
 - [ ] `settings.png`: `/settings`
 
 ## Validation status
 
-Run on `docs/portfolio-documentation` on 2026-10-01 (local, before PR):
+Run on `feat/taskforge-v2-shell` on 2026-10-01 (local, before PR):
 
-| Check                  | Result                                                 |
-| ---------------------- | ------------------------------------------------------ |
-| `npm run format:check` | Pass                                                   |
-| `npm run lint`         | Pass (0 warnings)                                      |
-| `npm test`             | Pass: client 51/51 (10 files), server 22/22 (4 suites) |
-| `npm run build`        | Pass (client + server)                                 |
-| `npm audit`            | Pass (0 vulnerabilities)                               |
-| `git diff --check`     | Pass                                                   |
+| Check                  | Result                                                                                                      |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `npm run format:check` | Pass                                                                                                        |
+| `npm run lint`         | Pass (0 warnings)                                                                                           |
+| `npm test`             | Pass: client 96/96 (13 files), server 22/22 (4 suites)                                                      |
+| `npm run build`        | Pass (client + server)                                                                                      |
+| `npm audit`            | Pass (0 vulnerabilities)                                                                                    |
+| `git diff --check`     | Pass                                                                                                        |
+| Browser layout check   | No horizontal overflow at 390px or 1440px on `/home`, `/work`, `/workforce`, `/settings` (Edge, mocked API) |

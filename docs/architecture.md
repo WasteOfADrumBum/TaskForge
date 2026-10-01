@@ -34,7 +34,10 @@ flowchart LR
 ## Frontend
 
 - Built with Vite and served by Vercel as static files. `client/vercel.json` rewrites every path to `index.html` so client-side routes like `/home` work on refresh.
-- Routing (React Router v7) with lazy-loaded pages. `/home` and `/settings` are wrapped in `ProtectedRoute`.
+- Routing (React Router v7) with lazy-loaded pages:
+  - Public: `/` (landing), `/login`, `/register`.
+  - Authenticated: `/home` (Command Center), `/work` (task workspace), `/workforce` (planned-feature placeholder), and `/settings`. All four sit behind `ProtectedRoute` inside a shared `AppShell` layout.
+- The `AppShell` provides the sidebar (a drawer below the `lg` breakpoint), the top bar, and the skip-to-content link. It loads the user's tasks once per session; the top bar's refresh action reloads them.
 - State (Redux Toolkit): an `auth` slice (token, loading, error) and a `tasks` slice (items, loading, error).
 - API layer (`client/src/api/`): plain `fetch`. Task calls go through `authenticatedFetch`, which handles `401` responses and stale requests.
 - The API base URL comes from `VITE_API_URL` at build time.
