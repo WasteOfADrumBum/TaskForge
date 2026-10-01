@@ -44,16 +44,16 @@ AI features go through a provider abstraction and are never hard-wired to one pa
 - [x] **COMPLETE**: Demo-data tooling (`npm --workspace server run seed:demo`)
 - [x] **COMPLETE**: Render deployment config (`render.yaml`, `/health` check)
 - [x] **COMPLETE**: Vercel deployment config (`client/vercel.json` SPA rewrites)
-- [ ] **IN PROGRESS**: MongoDB Atlas (used through `MONGO_URI`; the production cluster is not yet confirmed in docs)
-- [ ] **IN PROGRESS**: Production environment configuration (`.env.example` files and `render.yaml` exist; the Vercel `VITE_API_URL` and Render `CLIENT_ORIGIN` values are not yet confirmed in docs)
-- [ ] **IN PROGRESS**: Session-expiration handling, including the JWT lifetime change from 1h to 7d (branch `fix/session-expiration-handling`; validated locally, waiting for review and merge)
+- [x] **COMPLETE**: Production environment configuration (verified 2026-10-01: the live client calls the Render API via `VITE_API_URL`, and Render's `CLIENT_ORIGIN` allows the Vercel origin)
+- [x] **COMPLETE**: Session-expiration handling, including the JWT lifetime change from 1h to 7d (PR #4, CI green, merged)
+- [x] **COMPLETE**: README rewrite (portfolio-facing README with stack, architecture, auth, testing, deployment, and setup)
+- [x] **COMPLETE**: Architecture diagram ([architecture.md](architecture.md), Mermaid)
+- [x] **COMPLETE**: Live-demo link (https://taskforge-alpha-six.vercel.app, verified HTTP 200 on 2026-10-01)
+- [ ] **IN PROGRESS**: MongoDB Atlas (production database per project owner; the live API is running, which requires a working database connection; record the cluster name and free tier from the Atlas dashboard to close this item)
+- [ ] **IN PROGRESS**: Screenshots (folder and shot list in `docs/images/`; images not yet captured)
+- [ ] **IN PROGRESS**: Production verification (URLs, health check, CORS, and API wiring verified; live smoke test of register, login, task CRUD, and session expiry not yet run)
+- [ ] **IN PROGRESS**: Documentation cleanup (stale README and manifest names fixed; CHANGELOG backfill for earlier work still open)
 - [ ] **PLANNED**: Demo reliability (Render free-tier cold starts, demo account always seeded)
-- [ ] **PLANNED**: README rewrite (the current README is an old idea brainstorm)
-- [ ] **PLANNED**: Screenshots
-- [ ] **PLANNED**: Architecture diagram
-- [ ] **PLANNED**: Live-demo link
-- [ ] **PLANNED**: Production verification (end-to-end smoke test on the live URLs)
-- [ ] **PLANNED**: Documentation cleanup (CHANGELOG backfill, remove stale docs)
 
 ## Phase 2: AI Workforce ([details](phases/phase-2-ai-workforce.md))
 

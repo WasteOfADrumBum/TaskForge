@@ -9,7 +9,7 @@ TaskForge is a full-stack task manager built as a public portfolio app. It is an
 - `client/`: React 19 + TypeScript + Vite, Chakra UI v3, Redux Toolkit, React Router v7. Deployed to **Vercel**.
 - `server/`: Express 5 + TypeScript (ESM), Mongoose/MongoDB, JWT auth with bcrypt. Deployed to **Render** (`render.yaml`, free plan, health check at `/health`).
 
-TaskForge is growing into a personal AI orchestration platform. `README.md` is an old idea brainstorm, not current docs, and many of the features it lists are not built. Check `docs/roadmap.md` for what actually exists.
+TaskForge is growing into a personal AI orchestration platform. `README.md` is the public, portfolio-facing overview; `docs/architecture.md` describes the system and deployment. Check `docs/roadmap.md` for what actually exists before describing a feature.
 
 ## Commands
 
@@ -65,7 +65,7 @@ The request flow is `routes → controllers → services → models`:
   - `taskSlice`: `items`, `loading`, `error`. It resets on both `clearAuth` and `sessionExpired`.
 - Use the typed hooks `useAppDispatch` / `useAppSelector` from `redux/hooks/typedHooks.ts`.
 - The API layer is in `src/api/`. It uses plain `fetch` with no axios. Functions take the token explicitly and throw `Error(message)` with the server's `message`. Task calls go through `authenticatedFetch`, which also reads the global `store`. Component tests that call the task API must use that store, not a separate `configureStore`.
-- **Session expiration** (in progress on `fix/session-expiration-handling`):
+- **Session expiration:**
   - Authenticated calls go through `api/authenticatedFetch.ts`.
   - On a 401 it calls `expireSession` (`utils/session.ts`), which clears `localStorage` and dispatches `sessionExpired`. It then throws `SessionExpiredError`.
   - It also throws if the token changed mid-request. A stale request must never sign out a newly logged-in user.
