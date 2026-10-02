@@ -54,6 +54,9 @@ export const stubTaskApi = (initial: Task[] = []) => {
     const method = options.method ?? 'GET';
     const body = options.body ? JSON.parse(String(options.body)) : {};
     if (url.endsWith('/api/auth/logout')) return json(200, { message: 'Logged out successfully' });
+    if (url.endsWith('/api/auth/register')) {
+      return json(201, { message: 'User created', user: { id: 'user-1', email: body.email } });
+    }
     if (url.endsWith('/api/auth/login')) {
       return json(200, { message: 'Logged in successfully', token: validToken() });
     }

@@ -2,18 +2,37 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="/favicon.ico" />
+    <link rel="icon" href="/favicon.ico" sizes="16x16 32x32" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#101216" />
     <meta name="description" content="TaskForge - Project and task management" />
     <link rel="apple-touch-icon" href="/logo192.png" />
     <link rel="manifest" href="/manifest.json" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap"
-    />
+    <link rel="preload" href="/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <!--
+      Apply the saved color mode before first paint so dark mode (the default) doesn't flash
+      white while the app loads. Reads the same "theme" key next-themes uses.
+    -->
+    <script>
+      (function () {
+        var mode = 'dark';
+        try {
+          var saved = localStorage.getItem('theme');
+          if (saved === 'light' || saved === 'dark') mode = saved;
+          else if (saved === 'system')
+            mode = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        } catch (e) {}
+        document.documentElement.classList.add(mode);
+        document.documentElement.style.colorScheme = mode;
+      })();
+    </script>
+    <!-- #101216 must match the dark `bg` tokens in client/src/assets/theme/theme.ts. -->
+    <style>
+      html.dark,
+      html.dark body {
+        background-color: #101216;
+      }
+    </style>
     <title>TaskForge | Full-Stack Task Management</title>
   </head>
   <body>

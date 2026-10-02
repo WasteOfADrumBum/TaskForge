@@ -38,6 +38,7 @@
     "build": "vite build",
     "test": "vitest run",
     "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
     "format": "prettier --write src",
     "preview": "vite preview",
     "test:watch": "vitest"

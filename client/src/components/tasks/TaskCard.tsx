@@ -19,6 +19,8 @@ interface TaskCardProps {
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
   onStatusChange: (task: Task, status: TaskStatus) => void;
+  // The current moment for the overdue badge; pass `useToday()` so it rolls over at midnight.
+  now?: Date;
 }
 
 const statusLabel: Record<TaskStatus, string> = {
@@ -49,8 +51,8 @@ const PriorityIcon = ({ priority }: { priority: TaskPriority }) => {
   return <LuMinus />;
 };
 
-const TaskCard = ({ task, onEdit, onDelete, onStatusChange }: TaskCardProps) => {
-  const overdue = isTaskOverdue(task);
+const TaskCard = ({ task, onEdit, onDelete, onStatusChange, now }: TaskCardProps) => {
+  const overdue = isTaskOverdue(task, now);
   const borderColor = overdue ? 'red.400' : statusBorder[task.status];
   return (
     <Box

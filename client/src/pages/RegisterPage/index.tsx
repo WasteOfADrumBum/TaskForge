@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Box, Button, Field, Heading, HStack, Input, Text, VStack } from '@chakra-ui/react';
+import { Box, Button, chakra, Field, Heading, HStack, Input, Text, VStack } from '@chakra-ui/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { register } from '../../api/auth';
 import Brand from '../../components/layout/Brand';
@@ -45,8 +45,7 @@ const RegisterPage = () => {
         </Button>
       </HStack>
       <Box maxW="md" mx="auto" px={4} py={{ base: 10, md: 20 }}>
-        <Box
-          as="form"
+        <chakra.form
           onSubmit={handleRegister}
           bg="bg.panel"
           borderWidth="1px"
@@ -90,7 +89,7 @@ const RegisterPage = () => {
               Already have an account? <Link to="/login">Sign in</Link>
             </Text>
           </VStack>
-        </Box>
+        </chakra.form>
       </Box>
     </Box>
   );
