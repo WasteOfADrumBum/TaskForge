@@ -32,19 +32,23 @@ Every later phase (agents, knowledge, command center) builds on this base of aut
 - Render (`render.yaml`) and Vercel (`client/vercel.json`) deployment config, with production env config verified live
 - Session-expiration handling (PR #4): a 401 clears the session and returns to `/login` with a message; stale requests never sign out a newer session; the JWT lifetime is 7d
 - Portfolio README, [architecture doc](../architecture.md), and verified live-demo link
+- TaskForge v2 authenticated shell (PR #6):
+  - persistent sidebar and drawer, top bar, Command Center at `/home`, task workspace at `/work`, Workforce placeholder, and the dark v2 theme;
+  - due dates treated as calendar dates.
+- Production verification (2026-10-01): 62/62 live checks. Details are in [project-status.md](../project-status.md#production-verification-2026-10-01).
+- Screenshots: 6 real production captures in `docs/images/`, shown in the README.
 
 ### In progress
 
-- **TaskForge v2 authenticated shell** (`feat/taskforge-v2-shell`):
-  - A persistent sidebar (Command Center, Work, Workforce, Settings, logout) becomes a drawer below the `lg` breakpoint.
-  - A top bar shows the current section, the date, a refresh action, and New Task.
-  - The dark v2 theme uses teal, orange, and violet accents.
-  - The task workspace moved to `/work` with the same task behavior, and `/home` is now the Command Center. The summary metric cards moved to the Command Center (the "Total" count is no longer shown). Settings and Log out moved from the page header to the sidebar. Buttons use the v2 colors.
-  - Task loading moved into the shell, so it runs once per session, with a manual refresh.
-  - Validated locally, including a real-browser check at 390px and 1440px.
-- **Screenshots:** the shot list is in `docs/images/README.md`; the images still need capturing.
-- **Production verification:** URLs, health check, CORS, and API wiring are verified. The live smoke test (register, login, task CRUD, session expiry) is still to do.
-- **MongoDB Atlas:** confirm the cluster and tier in the Atlas dashboard.
+- **Production visual polish** (`chore/v2-production-verification`, waiting for merge):
+  - TaskForge app icons and favicon replace the React defaults.
+  - Logos are cropped to their content; the hero is 818 → 139 KB and the alt logo 410 → 48 KB.
+  - Figtree is self-hosted, and body text now uses it (it was limited to headings before).
+  - The theme is applied before first paint, so there's no white flash.
+  - The Command Center, Work page Overdue badges, and top bar date roll over at midnight.
+  - The client typecheck is clean and now runs in CI.
+- **MongoDB Atlas:** confirm the cluster and free tier in the Atlas dashboard.
+- **Render Blueprint:** confirm the live service is synced to `render.yaml` in the Render dashboard.
 - **Documentation cleanup:** backfill CHANGELOG entries for work before PR #4.
 
 ### Remaining
@@ -78,4 +82,4 @@ $0. Every service stays on its free tier. Accept free-tier limits such as cold s
 - The session-expiry check on the client is UI-only. The server stays the authority on signature and expiry.
 - Task types are written separately on the client and the server. Update both sides when the task shape changes.
 - The v2 shell's UX came from a separate TaskForge v2 prototype built on the Sites platform. Only the visual and product ideas were ported. The production app keeps its React/Vite/Chakra client, Express/MongoDB API, JWT auth, and Vercel/Render hosting.
-- Due dates are calendar dates. The form sends `YYYY-MM-DD`, MongoDB stores it as UTC midnight, and the client reads the UTC date part through `client/src/utils/dates.ts`. That code used to parse it as a local timestamp, so west of UTC a task due today showed as overdue and displayed the previous day. Fixed on `feat/taskforge-v2-shell`; the API and database are unchanged.
+- Due dates are calendar dates. The form sends `YYYY-MM-DD`, MongoDB stores it as UTC midnight, and the client reads the UTC date part through `client/src/utils/dates.ts`. That code used to parse it as a local timestamp, so west of UTC a task due today showed as overdue and displayed the previous day. Fixed in PR #6; the API and database are unchanged.
