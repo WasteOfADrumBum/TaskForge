@@ -27,6 +27,8 @@ All notable changes to TaskForge are recorded here.
   - recent task changes;
   - rule-based recommendations.
 - Workforce placeholder at `/workforce`. It states that AI Workforce is planned and not yet enabled, and shows the planned concepts, each labeled "Planned".
+- README screenshots: 6 real captures from production (landing, sign in, Command Center, Work, Workforce, Settings).
+- `npm run typecheck` (client `tsc --noEmit`), now also run in CI.
 
 ### Changed
 
@@ -36,7 +38,10 @@ All notable changes to TaskForge are recorded here.
 - The task workspace moved from `/home` to `/work`. Create, edit, delete, status changes, search, filters, sorting, and session handling work as before. Its summary metric cards moved to the Command Center (the "Total" count is no longer shown), and Settings and Log out moved to the sidebar.
 - Tasks now load once for the whole signed-in session, with a refresh button in the top bar, instead of on every visit to the task page.
 - New dark "v2" visual theme with teal, orange, and violet accents. The default color mode is now dark (previously it followed the system); light and system modes are still available in Settings.
-- The Figtree font is now loaded (it was already configured but never loaded).
+- The Figtree font is now loaded (it was already configured but never loaded). It is self-hosted from `/fonts` (SIL Open Font License), so visitors make no requests to Google Fonts. Body text now actually uses Figtree; an old `index.css` rule had limited it to headings.
+- TaskForge-branded app icons (`favicon.ico`, `logo192.png`, `logo512.png`) replace the default React icons. The manifest uses the dark theme colors.
+- Logos are cropped to their visible content, so the sidebar and header logos are legible, and they are smaller files: `taskforge-logo.png` went from 818 to 139 KB and `taskforge-logo-alt.png` from 410 to 48 KB.
+- The saved color mode (dark by default) is applied before the app loads, so pages no longer flash white first.
 
 ### Fixed
 
@@ -44,3 +49,5 @@ All notable changes to TaskForge are recorded here.
   - a task due today was marked overdue;
   - every due date displayed as the day before.
 - The API and database are unchanged. The demo seed script now writes due dates as calendar dates (UTC midnight), like the task form, so demo dates no longer shift when seeded in the evening.
+- The Command Center, the Work page's Overdue badges, and the top bar date now roll over at local midnight. Previously, a tab left open overnight kept showing yesterday's priorities until it reloaded.
+- Typecheck errors on the login, register, and task forms are fixed (`chakra.form` instead of `Box as="form"`).

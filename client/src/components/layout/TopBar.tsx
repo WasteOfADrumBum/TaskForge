@@ -1,6 +1,7 @@
 import { Breadcrumb, Button, HStack, IconButton, Text } from '@chakra-ui/react';
 import { LuPanelLeftOpen, LuPlus, LuRefreshCw } from 'react-icons/lu';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useToday } from '../../hooks/useToday';
 import { navItems } from './Sidebar';
 
 export const MOBILE_NAV_ID = 'mobile-navigation';
@@ -19,6 +20,7 @@ const dateFormat = new Intl.DateTimeFormat('en-US', {
 });
 
 const TopBar = ({ navOpen, onOpenNav, onRefresh, refreshing }: TopBarProps) => {
+  const today = useToday();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   // Match whole path segments: '/workforce' must not match the '/work' item.
@@ -67,7 +69,7 @@ const TopBar = ({ navOpen, onOpenNav, onRefresh, refreshing }: TopBarProps) => {
       </HStack>
       <HStack gap={{ base: 2, md: 3 }} flexShrink={0}>
         <Text fontSize="sm" color="fg.muted" display={{ base: 'none', md: 'block' }}>
-          {dateFormat.format(new Date())}
+          {dateFormat.format(today)}
         </Text>
         <IconButton
           aria-label="Refresh tasks"

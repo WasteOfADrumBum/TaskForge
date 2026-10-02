@@ -9,7 +9,7 @@ import {
   Text,
   VStack,
 } from '@chakra-ui/react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import {
   LuCircleCheck,
   LuClock,
@@ -23,6 +23,7 @@ import EmptyState from '../../components/common/EmptyState';
 import MetricCard from '../../components/common/MetricCard';
 import SectionHeader from '../../components/common/SectionHeader';
 import PriorityTaskRow from '../../components/tasks/PriorityTaskRow';
+import { useToday } from '../../hooks/useToday';
 import { useAppSelector } from '../../redux/hooks/typedHooks';
 import { getTaskId } from '../../types/task';
 import {
@@ -50,9 +51,9 @@ const CommandCenterPage = () => {
   const tasks = useAppSelector((state) => state.tasks.items);
   const loading = useAppSelector((state) => state.tasks.loading);
   const error = useAppSelector((state) => state.tasks.error);
-  const [now] = useState(() => new Date());
-
-  // One `now` for every section, so the Overdue metric and the priorities always agree.
+  // One `now` for every section, so the Overdue metric and the priorities always agree. It
+  // advances when the local day changes, so a tab left open past midnight stays correct.
+  const now = useToday();
   const summary = useMemo(() => getTaskSummary(tasks, now), [tasks, now]);
   // Count from the full list; only the panel shows the top five.
   const allPriorities = useMemo(

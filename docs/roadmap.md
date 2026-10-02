@@ -49,16 +49,20 @@ AI features go through a provider abstraction and are never hard-wired to one pa
 - [x] **COMPLETE**: README rewrite (portfolio-facing README with stack, architecture, auth, testing, deployment, and setup)
 - [x] **COMPLETE**: Architecture diagram ([architecture.md](architecture.md), Mermaid)
 - [x] **COMPLETE**: Live-demo link (https://taskforge-alpha-six.vercel.app, verified HTTP 200 on 2026-10-01)
-- [ ] **IN PROGRESS**: TaskForge v2 authenticated shell (persistent sidebar, top bar, mobile drawer, dark v2 theme; task workspace moved to `/work`; branch `feat/taskforge-v2-shell`, validated locally, waiting for review and merge)
-- [ ] **IN PROGRESS**: MongoDB Atlas (production database per project owner; the live API is running, which requires a working database connection; record the cluster name and free tier from the Atlas dashboard to close this item)
-- [ ] **IN PROGRESS**: Screenshots (folder and shot list in `docs/images/`; images not yet captured)
-- [ ] **IN PROGRESS**: Production verification (URLs, health check, CORS, and API wiring verified; live smoke test of register, login, task CRUD, and session expiry not yet run)
-- [ ] **IN PROGRESS**: Documentation cleanup (stale README and manifest names fixed; CHANGELOG backfill for earlier work still open)
+- [x] **COMPLETE**: TaskForge v2 authenticated shell (persistent sidebar, top bar, mobile drawer, dark v2 theme; task workspace at `/work`; PR #6 merged and verified in production on 2026-10-01)
+- [x] **COMPLETE**: Production verification (2026-10-01: 62/62 automated checks against the live app in Edge with the New York time zone, covering every page, register, login, task create/edit/delete, status progression, due today/overdue, filters and sort, refresh, theme modes, 390/768/1440px layouts, the mobile drawer, logout, and both expired-session paths; throwaway `smoke-test-*@example.com` accounts were used and their tasks deleted; production demo data was not touched)
+- [x] **COMPLETE**: Screenshots (6 real captures from production in `docs/images/`, shown in the README)
+- [ ] **IN PROGRESS**: Production visual polish (TaskForge app icons and favicon, cropped and smaller logos, self-hosted Figtree, no white flash before the dark theme, client typecheck in CI; branch `chore/v2-production-verification`, validated locally, waiting for review and merge)
+- [ ] **PLANNED**: Recapture screenshots after the visual polish deploys (the current set shows the old, smaller logos)
+- [ ] **PLANNED**: Remove the two smoke-test accounts (`smoke-test-*@example.com`, 0 tasks each) in Atlas; there is no delete-account API
+- [ ] **IN PROGRESS**: MongoDB Atlas (production database per project owner; the live API is running, which requires a working database connection; record the cluster name and free tier from the Atlas dashboard to close this item. Not verifiable from the repo or a terminal.)
+- [ ] **IN PROGRESS**: Render Blueprint sync (`render.yaml` defines the service; confirm in the Render dashboard that the live service is synced to it. Not verifiable from the repo or a terminal.)
+- [ ] **IN PROGRESS**: Documentation cleanup (stale README and manifest names fixed; CHANGELOG backfill for work before PR #4 still open)
 - [ ] **PLANNED**: Demo reliability (Render free-tier cold starts, demo account always seeded)
 
 ## Phase 2: AI Workforce ([details](phases/phase-2-ai-workforce.md))
 
-**Status: PLANNED.** A `/workforce` placeholder page (branch `feat/taskforge-v2-shell`) describes these concepts and labels them as planned. Nothing below is implemented.
+**Status: PLANNED.** A `/workforce` placeholder page (merged in PR #6) describes these concepts and labels them as planned. Nothing below is implemented.
 
 - [ ] **PLANNED**: Agent Registry (role, description, skills, permissions, tools, status)
 - [ ] **PLANNED**: Assign TaskForge tasks to agents
@@ -92,7 +96,7 @@ AI features go through a provider abstraction and are never hard-wired to one pa
 
 ## Phase 4: Command Center ([details](phases/phase-4-command-center.md))
 
-**Status: IN PROGRESS** (task-based foundation on branch `feat/taskforge-v2-shell`, waiting for review and merge)
+**Status: IN PROGRESS** (task-based foundation merged in PR #6)
 
 - [ ] **IN PROGRESS**: Unified home dashboard (Command Center at `/home`; tasks are its only data source so far)
 - [ ] **IN PROGRESS**: Today's priorities (derived from tasks: overdue, due today, high priority, due soon)

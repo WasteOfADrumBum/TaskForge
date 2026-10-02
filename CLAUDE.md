@@ -20,6 +20,7 @@ npm run dev            # client (Vite :5173) + server (nodemon :5000) together
 npm run build          # client vite build + server tsc --noEmit && tsup
 npm test               # client (Vitest) then server (Jest)
 npm run lint           # ESLint for both workspaces (root eslint.config.mjs)
+npm run typecheck      # client tsc --noEmit (the server typechecks in its build)
 npm run format:check   # Prettier check (CI fails on this)
 npm run format         # Prettier write
 ```
@@ -34,7 +35,7 @@ npm --workspace server run test -- -t "lists tasks"          # Jest, by test nam
 npm --workspace server run seed:demo                         # resets demo user's tasks (needs MONGO_URI, DEMO_EMAIL, DEMO_PASSWORD)
 ```
 
-CI (`.github/workflows/ci.yml`, on push/PR to `main`) runs, in order: `npm ci` → `format:check` → `lint` → `test` → `build` → `npm audit`. Run the same checks locally before pushing.
+CI (`.github/workflows/ci.yml`, on push/PR to `main`) runs, in order: `npm ci` → `format:check` → `lint` → `typecheck` → `test` → `build` → `npm audit`. Run the same checks locally before pushing.
 
 ## Environment
 

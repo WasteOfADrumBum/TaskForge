@@ -32,7 +32,23 @@ It is also the foundation for a larger goal: a personal AI orchestration platfor
 
 ## Screenshots
 
-Screenshots are being captured. See [docs/images/](docs/images/README.md) for the planned set (landing page, login, dashboard, settings). Until then, the [live demo](https://taskforge-alpha-six.vercel.app) is the best preview.
+Captured from the live app with sample data. More details are in [docs/images](docs/images/README.md).
+
+**Command Center**: the daily brief, task metrics, today's priorities, and rule-based recommendations.
+
+![Command Center](docs/images/command-center.png)
+
+**Work**: create, filter, and move tasks through To Do, In Progress, and Done.
+
+![Work page](docs/images/work.png)
+
+| Landing page                                  | Sign in                           |
+| --------------------------------------------- | --------------------------------- |
+| ![Landing page](docs/images/landing-page.png) | ![Sign in](docs/images/login.png) |
+
+| Workforce (planned)                                 | Settings                              |
+| --------------------------------------------------- | ------------------------------------- |
+| ![Workforce placeholder](docs/images/workforce.png) | ![Settings](docs/images/settings.png) |
 
 ## Key features
 

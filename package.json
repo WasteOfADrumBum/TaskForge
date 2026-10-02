@@ -10,6 +10,7 @@
     "build": "concurrently \"npm --workspace client run build\" \"npm --workspace server run build\"",
     "start": "concurrently \"npm --workspace client run start\" \"npm --workspace server run start\"",
     "lint": "npm run lint --workspace client && npm run lint --workspace server",
+    "typecheck": "npm run typecheck --workspace client",
     "format": "prettier --write .",
     "test": "npm run test:client && npm run test:server",
     "test:client": "npm --workspace client run test",

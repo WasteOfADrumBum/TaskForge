@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import {
   Box,
   Button,
+  chakra,
   Field,
   Heading,
   HStack,
@@ -20,6 +21,7 @@ import EmptyState from '../../components/common/EmptyState';
 import DeleteTaskDialog from '../../components/tasks/DeleteTaskDialog';
 import TaskCard from '../../components/tasks/TaskCard';
 import { toaster } from '../../components/ui/toaster';
+import { useToday } from '../../hooks/useToday';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks/typedHooks';
 import {
   addTask,
@@ -50,6 +52,8 @@ const WorkPage = () => {
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | 'all'>('all');
   const [sort, setSort] = useState<TaskSort>('created-desc');
   const titleRef = useRef<HTMLInputElement>(null);
+  // Overdue badges roll over at local midnight, like the Command Center.
+  const today = useToday();
 
   const filteredTasks = useMemo(
     () =>
@@ -190,8 +194,7 @@ const WorkPage = () => {
         </Text>
       </Box>
       <SimpleGrid columns={{ base: 1, xl: 3 }} gap={6} alignItems="start">
-        <Box
-          as="form"
+        <chakra.form
           aria-labelledby="task-form-heading"
           onSubmit={handleSubmit}
           bg="bg.panel"
@@ -272,7 +275,7 @@ const WorkPage = () => {
               )}
             </HStack>
           </VStack>
-        </Box>
+        </chakra.form>
         <Box
           as="section"
           aria-labelledby="task-list-heading"
@@ -391,6 +394,7 @@ const WorkPage = () => {
                 onEdit={startEdit}
                 onDelete={setDeleteTarget}
                 onStatusChange={(item, status) => void handleStatusChange(item, status)}
+                now={today}
               />
             ))}
           </VStack>

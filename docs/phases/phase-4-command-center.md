@@ -1,6 +1,6 @@
 # Phase 4: Command Center
 
-**Status: IN PROGRESS.** A task-based foundation is on branch `feat/taskforge-v2-shell`. Item-level status lives in [roadmap.md](../roadmap.md#phase-4-command-center-details).
+**Status: IN PROGRESS.** A task-based foundation was merged in PR #6. Item-level status lives in [roadmap.md](../roadmap.md#phase-4-command-center-details).
 
 ## Objective
 
@@ -59,4 +59,5 @@ Use free APIs only (for example, the Google Calendar and Gmail APIs within their
 - Calendar and email access start as read-only.
 - The layout and visual direction came from the TaskForge v2 prototype, built separately on the Sites platform. That prototype was a UX reference only. Production keeps the existing React + Vite + Chakra UI client and Express + MongoDB API; nothing from the prototype's runtime (Cloudflare Workers, D1, Drizzle, Next.js-style routing) was adopted.
 - Recommendations stay deterministic until the Phase 2 provider abstraction exists. The UI must never present rule-based output as AI output.
-- "Overdue", "due today", and "due soon" compare the due date's calendar date with the user's local today, using the same helper (`utils/dates.ts`) as the Work page. The time zone no longer shifts a due date by a day. (The Command Center fixes "today" when the page loads, so a tab left open past midnight shows yesterday's view until it reloads.)
+- "Overdue", "due today", and "due soon" compare the due date's calendar date with the user's local today, using the same helper (`utils/dates.ts`) as the Work page. The time zone no longer shifts a due date by a day.
+- "Today" comes from `hooks/useToday.ts`. It rolls over just after local midnight, and re-checks when a tab becomes visible or focused, so a tab left open overnight re-classifies due dates without a reload. The greeting (morning/afternoon/evening) is set at load and updates with the next day change.
