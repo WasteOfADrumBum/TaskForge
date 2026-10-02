@@ -1,10 +1,10 @@
 # Phase 2: AI Workforce
 
-**Status: PLANNED.** No AI Workforce capability is implemented yet. The only work so far is the Work + Projects foundation (below), which is a prerequisite and not a Workforce feature. Item-level status lives in [roadmap.md](../roadmap.md#phase-2-ai-workforce-details).
+**Status: IN PROGRESS (foundation only).** No AI capability exists: nothing runs an agent or calls a model. Work + Projects is merged, and the Agent Registry (persistent agent definitions) is on a branch. Item-level status lives in [roadmap.md](../roadmap.md#phase-2-ai-workforce-details).
 
-## Foundation: Work + Projects (in progress)
+## Foundation: Work + Projects (complete)
 
-Projects are the first post-Phase-1 domain object (branch `feat/work-projects-foundation`). They give Phase 2 something concrete to build on:
+Projects are the first post-Phase-1 domain object (PR #9, merged). They give Phase 2 something concrete to build on:
 
 - **Work organization:** tasks can belong to a project, and each project shows its own tasks, progress, and activity.
 - **Agent assignment, later:** agents will be assigned to tasks in a project, and project ownership will bound what an agent can see and change, the same way task ownership does today.
@@ -12,6 +12,17 @@ Projects are the first post-Phase-1 domain object (branch `feat/work-projects-fo
 - **Knowledge, Career, and Learning, later:** project-level knowledge (Phase 3) and learning or portfolio projects (Phase 6) can attach to the same project records instead of inventing parallel structures.
 
 Nothing here registers agents, runs anything, or calls an AI provider.
+
+## Foundation: Agent Registry (in progress)
+
+Branch `feat/agent-registry-foundation` makes agents a persistent, user-owned domain object. **It stores agent definitions only.**
+
+- **Built:** an `Agent` model (name, role, description, status `active`/`paused`/`disabled`, skills, permissions, owner, timestamps); owner-scoped CRUD at `/api/agents`; the Workforce page as a real registry (list, create, edit, delete); an agent detail page at `/workforce/:id`; and a Workforce summary on the Command Center.
+- **Skills:** lowercase slug strings on the agent (for example `research`, `software-development`). No separate Skill collection; that can come later if matching needs more than tags.
+- **Permissions:** identifiers from a fixed catalog (`task.read`, `task.update`, `project.read`, `project.update`, `artifact.draft`). They are metadata for the future permission boundary. **Nothing enforces them yet**, because nothing executes.
+- **Privacy:** the same rules as Projects. Another user's agent looks exactly like a missing one (`404`), and `owner` can't be set from a request.
+- **Not built (still planned):** AI execution, model calls, the provider abstraction, agent runs, task assignment, handoffs, approvals, the audit trail, and permission enforcement. The agent detail page lists Assignments, Runs, and Approvals only as labeled "Planned" placeholders, with no data.
+- **Deferred:** a `tools` field. It will be added when there are real tools to describe.
 
 ## Objective
 
@@ -31,7 +42,7 @@ This is the core of the "personal AI orchestration platform" direction. Phases 3
 
 ### Agent Registry
 
-Each agent has a `role`, `description`, `skills`, `permissions`, `tools`, and `status` (active or disabled). Agents are owned per user, just like tasks.
+Each agent has a `role`, `description`, `skills`, `permissions`, `tools`, and `status`. Agents are owned per user, just like tasks. The registry part (everything except `tools`, with statuses active, paused, and disabled) is being built on the foundation branch above.
 
 ### Task assignment
 
@@ -99,7 +110,7 @@ interface AIProvider {
 
 ## Definition of done
 
-- [ ] Agents can be registered, edited, and disabled. Every agent is scoped to its owner.
+- [ ] Agents can be registered, edited, and disabled. Every agent is scoped to its owner. (In progress on `feat/agent-registry-foundation`.)
 - [ ] A task can be assigned to an agent, and the run moves through every state.
 - [ ] Handoffs create linked child runs.
 - [ ] Every agent result needs human approval. Rejections are recorded.

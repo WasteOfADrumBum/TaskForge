@@ -3,7 +3,14 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { store } from '../../redux/store';
 import { clearAuth } from '../../redux/slices/authSlice';
-import { makeProject, makeTask, renderApp, signIn, stubTaskApi } from '../../test/renderApp';
+import {
+  makeAgent,
+  makeProject,
+  makeTask,
+  renderApp,
+  signIn,
+  stubTaskApi,
+} from '../../test/renderApp';
 
 vi.mock('../../components/ui/toaster', () => ({ toaster: { create: vi.fn() } }));
 
@@ -57,6 +64,38 @@ describe('Command Center active projects', () => {
     const panel = await waitFor(() => activeProjects());
     await userEvent.click(panel.getByRole('link', { name: 'Launch' }));
     expect(await screen.findByRole('heading', { level: 1, name: 'Launch' })).toBeInTheDocument();
+  });
+
+  it('summarizes the workforce by status when agents exist', async () => {
+    signIn();
+    stubTaskApi(
+      [],
+      [],
+      [
+        makeAgent({ _id: 'a1', name: 'Scout' }),
+        makeAgent({ _id: 'a2', name: 'Builder' }),
+        makeAgent({ _id: 'a3', name: 'Napper', status: 'paused' }),
+        makeAgent({ _id: 'a4', name: 'Retired', status: 'disabled' }),
+      ],
+    );
+    renderApp('/home');
+    const panel = within(await screen.findByRole('region', { name: /workforce/i }));
+    expect(panel.getByText('4')).toBeInTheDocument();
+    expect(panel.getByText('Active').nextSibling).toHaveTextContent('2');
+    expect(panel.getByText('Paused').nextSibling).toHaveTextContent('1');
+    expect(panel.getByText('Disabled').nextSibling).toHaveTextContent('1');
+    expect(panel.getByText(/agents don’t run yet/i)).toBeInTheDocument();
+    await userEvent.click(panel.getByRole('link', { name: 'Open Workforce' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Workforce' })).toBeInTheDocument();
+  });
+
+  it('hides the workforce panel when there are no agents', async () => {
+    signIn();
+    stubTaskApi();
+    renderApp('/home');
+    await screen.findByRole('heading', { level: 1, name: /good/i });
+    await waitFor(() => expect(store.getState().agents.loaded).toBe(true));
+    expect(screen.queryByRole('region', { name: /workforce/i })).not.toBeInTheDocument();
   });
 
   it('hides the panel when there are no active projects', async () => {

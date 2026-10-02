@@ -13,11 +13,13 @@ const WorkPage = lazy(() => import('./pages/WorkPage'));
 const ProjectsPage = lazy(() => import('./pages/ProjectsPage'));
 const ProjectDetailPage = lazy(() => import('./pages/ProjectDetailPage'));
 const WorkforcePage = lazy(() => import('./pages/WorkforcePage'));
+const AgentDetailPage = lazy(() => import('./pages/AgentDetailPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 
 // Public: `/` (landing), `/login`, `/register`.
 // Authenticated, inside the app shell: `/home` (Command Center), `/work` (tasks),
-// `/work/projects`, `/work/projects/:id`, `/workforce`, `/settings`.
+// `/work/projects`, `/work/projects/:id`, `/workforce` (Agent Registry), `/workforce/:id`,
+// `/settings`.
 export const AppRoutes = () => (
   <Suspense fallback={<div>Loading...</div>}>
     <Routes>
@@ -31,6 +33,7 @@ export const AppRoutes = () => (
           <Route path="/work/projects" element={<ProjectsPage />} />
           <Route path="/work/projects/:id" element={<ProjectDetailPage />} />
           <Route path="/workforce" element={<WorkforcePage />} />
+          <Route path="/workforce/:id" element={<AgentDetailPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Route>

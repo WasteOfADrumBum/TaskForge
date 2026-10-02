@@ -96,10 +96,9 @@ describe('authenticated app shell', () => {
 
     nav = await openNav();
     expect(nav.getByRole('link', { name: 'Work' })).toHaveAttribute('aria-current', 'page');
-    await userEvent.click(nav.getByRole('link', { name: /workforce/i }));
-    expect(
-      await screen.findByText('AI Workforce is planned and not yet enabled.'),
-    ).toBeInTheDocument();
+    await userEvent.click(nav.getByRole('link', { name: 'Workforce' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Workforce' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Your Agents' })).toBeInTheDocument();
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
 
     nav = await openNav();
@@ -107,18 +106,15 @@ describe('authenticated app shell', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Settings' })).toBeInTheDocument();
   });
 
-  it('shows the workforce placeholder with every concept marked as planned', async () => {
+  it('links Workforce in the sidebar without a Planned badge', async () => {
     signIn();
     stubTaskApi();
     renderApp('/workforce');
-    expect(
-      await screen.findByText('AI Workforce is planned and not yet enabled.'),
-    ).toBeInTheDocument();
-    const concepts = within(screen.getByRole('list', { name: 'Planned workforce concepts' }));
-    for (const name of ['Workers', 'Skills', 'Permissions', 'Assignments', 'Runs']) {
-      expect(concepts.getByRole('heading', { name })).toBeInTheDocument();
-    }
-    expect(concepts.getAllByText('Planned')).toHaveLength(5);
+    await screen.findByRole('heading', { level: 1, name: 'Workforce' });
+    const nav = within(screen.getByRole('navigation', { name: 'Main navigation', hidden: true }));
+    const link = nav.getByRole('link', { name: 'Workforce', hidden: true });
+    expect(link).toHaveAttribute('aria-current', 'page');
+    expect(link).not.toHaveTextContent('Planned');
   });
 
   it('redirects signed-out users from shell routes to login', async () => {
@@ -186,17 +182,19 @@ describe('authenticated app shell', () => {
     await waitFor(() => expect(screen.getByRole('textbox', { name: /title/i })).toHaveFocus());
   });
 
-  it('reloads tasks and projects from the refresh action', async () => {
+  it('reloads tasks, projects, and agents from the refresh action', async () => {
     signIn();
     const { fetchMock } = stubTaskApi(sampleTasks);
     renderApp('/home');
     await screen.findByText('Overdue report');
     expect(requestsTo(fetchMock, 'GET', '/api/tasks')).toHaveLength(1);
     await waitFor(() => expect(requestsTo(fetchMock, 'GET', '/api/projects')).toHaveLength(1));
+    expect(requestsTo(fetchMock, 'GET', '/api/agents')).toHaveLength(1);
 
     await userEvent.click(screen.getByRole('button', { name: 'Refresh workspace' }));
     await waitFor(() => expect(requestsTo(fetchMock, 'GET', '/api/tasks')).toHaveLength(2));
     expect(requestsTo(fetchMock, 'GET', '/api/projects')).toHaveLength(2);
+    expect(requestsTo(fetchMock, 'GET', '/api/agents')).toHaveLength(2);
   });
 
   it('loads tasks and projects once per session, not on every section change', async () => {
@@ -205,7 +203,7 @@ describe('authenticated app shell', () => {
     renderApp('/home');
     await screen.findByText('Overdue report');
 
-    for (const name of ['Work', 'Settings', 'Command Center']) {
+    for (const name of ['Work', 'Workforce', 'Settings', 'Command Center']) {
       const nav = await openNav();
       await userEvent.click(nav.getByRole('link', { name }));
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
@@ -213,6 +211,7 @@ describe('authenticated app shell', () => {
     expect(await screen.findByText('Overdue report')).toBeInTheDocument();
     expect(requestsTo(fetchMock, 'GET', '/api/tasks')).toHaveLength(1);
     expect(requestsTo(fetchMock, 'GET', '/api/projects')).toHaveLength(1);
+    expect(requestsTo(fetchMock, 'GET', '/api/agents')).toHaveLength(1);
   });
 
   it('shows the current section in the breadcrumb', async () => {

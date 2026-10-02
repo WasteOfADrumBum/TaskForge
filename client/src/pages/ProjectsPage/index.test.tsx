@@ -230,7 +230,7 @@ describe('Projects page', () => {
     fetchMock.mockImplementation(async (url: string) =>
       url.endsWith('/api/projects')
         ? { status: 500, ok: false, json: async () => ({ message: 'Database unavailable' }) }
-        : { status: 200, ok: true, json: async () => ({ tasks: [] }) },
+        : { status: 200, ok: true, json: async () => ({ tasks: [], agents: [] }) },
     );
     renderApp('/work/projects');
     expect(await screen.findByText('Database unavailable')).toBeInTheDocument();

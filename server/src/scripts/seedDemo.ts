@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import bcrypt from 'bcrypt';
 import mongoose from 'mongoose';
+import { Agent } from '../models/agentModel';
 import { Project } from '../models/projectModel';
 import { Task } from '../models/taskModel';
 import { User } from '../models/userModel';
@@ -24,6 +25,7 @@ const seedDemo = async () => {
 
   await Task.deleteMany({ owner: user._id });
   await Project.deleteMany({ owner: user._id });
+  await Agent.deleteMany({ owner: user._id });
 
   const [launch, operations] = await Project.insertMany([
     {
@@ -85,6 +87,28 @@ const seedDemo = async () => {
       priority: 'high',
       dueDate: yesterday,
       project: operations._id,
+      owner: user._id,
+    },
+  ]);
+
+  // Agent definitions only. Nothing runs them.
+  await Agent.insertMany([
+    {
+      name: 'Scout',
+      role: 'Research assistant',
+      description: 'Gathers sources and summarizes findings for a task.',
+      status: 'active',
+      skills: ['research', 'analysis'],
+      permissions: ['task.read', 'project.read', 'artifact.draft'],
+      owner: user._id,
+    },
+    {
+      name: 'Scribe',
+      role: 'Documentation writer',
+      description: 'Drafts release notes and technical documentation for review.',
+      status: 'paused',
+      skills: ['documentation', 'software-development'],
+      permissions: ['task.read', 'artifact.draft'],
       owner: user._id,
     },
   ]);

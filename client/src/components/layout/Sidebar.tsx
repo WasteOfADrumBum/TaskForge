@@ -1,4 +1,4 @@
-import { Badge, Box, Flex, HStack, IconButton, Text, VStack } from '@chakra-ui/react';
+import { Box, Flex, HStack, IconButton, Text, VStack } from '@chakra-ui/react';
 import {
   LuBot,
   LuLayoutDashboard,
@@ -14,7 +14,7 @@ import Brand from './Brand';
 export const navItems = [
   { to: '/home', label: 'Command Center', icon: LuLayoutDashboard },
   { to: '/work', label: 'Work', icon: LuListChecks },
-  { to: '/workforce', label: 'Workforce', icon: LuBot, badge: 'Planned' },
+  { to: '/workforce', label: 'Workforce', icon: LuBot },
   { to: '/settings', label: 'Settings', icon: LuSettings },
 ];
 
@@ -46,7 +46,7 @@ const Sidebar = ({ onNavigate }: SidebarProps) => {
         </Text>
         <Box as="nav" aria-label="Main navigation">
           <VStack as="ul" listStyleType="none" align="stretch" gap={1} m={0} p={0}>
-            {navItems.map(({ to, label, icon: Icon, badge }) => (
+            {navItems.map(({ to, label, icon: Icon }) => (
               <Box as="li" key={to}>
                 <Box
                   asChild
@@ -78,11 +78,6 @@ const Sidebar = ({ onNavigate }: SidebarProps) => {
                     <Text as="span" flex="1">
                       {label}
                     </Text>
-                    {badge && (
-                      <Badge size="sm" variant="outline" colorPalette="purple">
-                        {badge}
-                      </Badge>
-                    )}
                   </NavLink>
                 </Box>
               </Box>
