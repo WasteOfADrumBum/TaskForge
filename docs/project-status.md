@@ -6,14 +6,14 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 
 ## Checkpoint
 
-| Item                      | Value                                                                                                         |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02))   |
-| Current phase             | Phase 2: AI Workforce, starting with the foundation work it depends on                                        |
-| Current branch            | `feat/work-projects-foundation`                                                                               |
-| Current checkpoint        | Work + Projects foundation: user-owned projects, Projects area in Work, Active projects on the Command Center |
-| Last completed checkpoint | Phase 1 closure (PR #8, merged to `main` as `a5661a5`)                                                        |
-| Next recommended          | Phase 2 Agent Registry: owner-scoped agent records only, still with no AI execution                           |
+| Item                      | Value                                                                                                                                                   |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02))                                             |
+| Current phase             | Phase 2: AI Workforce, foundation work (no AI execution yet)                                                                                            |
+| Current branch            | `feat/agent-registry-foundation`                                                                                                                        |
+| Current checkpoint        | Agent Registry foundation: persistent, user-owned agent definitions; Workforce registry and agent detail pages; Workforce summary on the Command Center |
+| Last completed checkpoint | Work + Projects foundation (PR #9, merged to `main` as `493f0c3`)                                                                                       |
+| Next recommended          | Phase 2 provider abstraction (`AIProvider` with a no-provider/demo fallback), or task → agent assignment; still no paid provider                        |
 
 ## Known blockers
 
@@ -40,7 +40,7 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | Area             | Verified                                                                                                                                                              |
 | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Public pages     | Landing page, login, register (new account), signed-out `/work` redirects to `/login`                                                                                 |
-| Shell pages      | Command Center, Work, Workforce placeholder, Settings                                                                                                                 |
+| Shell pages      | Command Center, Work, Workforce placeholder (since replaced by the Agent Registry), Settings                                                                          |
 | Tasks            | Create, edit (due date kept), delete, status To Do → In Progress → Done → To Do, search, priority filter, due-date sort                                               |
 | Due dates        | Due today shows "Due today" and today's date, not Overdue; due yesterday is Overdue; "was due 1 day ago" wording                                                      |
 | Shell actions    | New Task focuses the form; refresh reloads tasks; logout clears the session with no session-expired message                                                           |
@@ -99,16 +99,16 @@ The v2 shell and Command Center UX came from a separate TaskForge v2 prototype b
 
 ## Validation status
 
-Run on `feat/work-projects-foundation` on 2026-10-02 (local, before PR):
+Run on `feat/agent-registry-foundation` on 2026-10-02 (local, before PR):
 
-| Check                  | Result                                                   |
-| ---------------------- | -------------------------------------------------------- |
-| `npm run format:check` | Pass                                                     |
-| `npm run lint`         | Pass (0 warnings)                                        |
-| `npm run typecheck`    | Pass (0 errors)                                          |
-| `npm test`             | Pass: client 170/170 (21 files), server 82/82 (7 suites) |
-| `npm run build`        | Pass (client + server)                                   |
-| `npm audit`            | Pass (0 vulnerabilities)                                 |
-| `git diff --check`     | Pass                                                     |
+| Check                  | Result                                                      |
+| ---------------------- | ----------------------------------------------------------- |
+| `npm run format:check` | Pass                                                        |
+| `npm run lint`         | Pass (0 warnings)                                           |
+| `npm run typecheck`    | Pass (0 errors)                                             |
+| `npm test`             | Pass: client 208/208 (25 files), server 153/153 (11 suites) |
+| `npm run build`        | Pass (client + server)                                      |
+| `npm audit`            | Pass (0 vulnerabilities)                                    |
+| `git diff --check`     | Pass                                                        |
 
 Note: the server suite sometimes prints Jest's `A worker process has failed to exit gracefully` warning. This happened in 2 of 3 runs. All tests still pass, the exit code is 0, and `--detectOpenHandles` reports no open handles. It already existed on `main` before this branch and is tracked as maintenance in the roadmap.

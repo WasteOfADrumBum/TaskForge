@@ -25,21 +25,21 @@ flowchart LR
     API -- "Mongoose" --> DB
 ```
 
-| Piece    | Where         | What it does                                                                                                                                                 |
-| -------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Frontend | `client/`     | React 19 SPA. Renders pages, holds auth, task, and project state in Redux, calls the API.                                                                    |
-| API      | `server/`     | Express 5 REST API. Auth, validation, and owner-scoped task and project CRUD.                                                                                |
-| Database | MongoDB Atlas | Stores `users` (email, bcrypt hash), `projects`, and `tasks`. Projects and tasks carry an `owner` user id; a task may reference one of its owner's projects. |
+| Piece    | Where         | What it does                                                                                                                                                                    |
+| -------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frontend | `client/`     | React 19 SPA. Renders pages, holds auth, task, project, and agent state in Redux, calls the API.                                                                                |
+| API      | `server/`     | Express 5 REST API. Auth, validation, and owner-scoped task, project, and agent CRUD.                                                                                           |
+| Database | MongoDB Atlas | Stores `users` (email, bcrypt hash), `projects`, `tasks`, and `agents`. Projects, tasks, and agents carry an `owner` user id; a task may reference one of its owner's projects. |
 
 ## Frontend
 
 - Built with Vite and served by Vercel as static files. `client/vercel.json` rewrites every path to `index.html` so client-side routes like `/home` work on refresh.
 - Routing (React Router v7) with lazy-loaded pages:
   - Public: `/` (landing), `/login`, `/register`.
-  - Authenticated: `/home` (Command Center), `/work` (tasks), `/work/projects` (projects), `/work/projects/:id` (project detail), `/workforce` (planned-feature placeholder), and `/settings`. All of them sit behind `ProtectedRoute` inside a shared `AppShell` layout.
-- The `AppShell` provides the sidebar (a drawer below the `lg` breakpoint), the top bar, and the skip-to-content link. It loads the user's tasks and projects once per session; the top bar's refresh action reloads both.
-- State (Redux Toolkit): an `auth` slice (token, loading, error), a `tasks` slice (items, loading, error), and a `projects` slice (items, loading, error, loaded). When a project is deleted, the tasks slice unassigns its tasks locally, mirroring the server.
-- API layer (`client/src/api/`): plain `fetch`. Task and project calls go through `authenticatedFetch`, which handles `401` responses and stale requests. Shared helpers live in `api/http.ts`.
+  - Authenticated: `/home` (Command Center), `/work` (tasks), `/work/projects` (projects), `/work/projects/:id` (project detail), `/workforce` (Agent Registry), `/workforce/:id` (agent detail), and `/settings`. All of them sit behind `ProtectedRoute` inside a shared `AppShell` layout.
+- The `AppShell` provides the sidebar (a drawer below the `lg` breakpoint), the top bar, and the skip-to-content link. It loads the user's tasks, projects, and agents once per session; the top bar's refresh action reloads all three.
+- State (Redux Toolkit): an `auth` slice (token, loading, error), a `tasks` slice (items, loading, error), a `projects` slice (items, loading, error, loaded), and an `agents` slice (items, loading, error, loaded). Every data slice resets on logout and on session expiry. When a project is deleted, the tasks slice unassigns its tasks locally, mirroring the server.
+- API layer (`client/src/api/`): plain `fetch`. Task, project, and agent calls go through `authenticatedFetch`, which handles `401` responses and stale requests. Shared helpers live in `api/http.ts`.
 - The API base URL comes from `VITE_API_URL` at build time.
 
 ## API
@@ -57,6 +57,8 @@ flowchart LR
     TaskC -- "project ownership check" --> ProjS
     ProjC --> ProjS["projectService<br/>(every query filtered by owner)"] --> ProjM[(Project model)]
     ProjS -- "unassign tasks on delete" --> TaskM
+    Router -- "/api/agents/*" --> RG[requireAuth] --> AgentC[agentController]
+    AgentC --> AgentS["agentService<br/>(every query filtered by owner)"] --> AgentM[(Agent model)]
 ```
 
 | Endpoint                   | Auth | Purpose                                       |
@@ -75,12 +77,26 @@ flowchart LR
 | `GET /api/projects/:id`    | JWT  | Get one of the user's projects                |
 | `PATCH /api/projects/:id`  | JWT  | Update one of the user's projects             |
 | `DELETE /api/projects/:id` | JWT  | Delete a project; its tasks become unassigned |
+| `GET /api/agents`          | JWT  | List the signed-in user's agents              |
+| `POST /api/agents`         | JWT  | Create an agent definition owned by the user  |
+| `GET /api/agents/:id`      | JWT  | Get one of the user's agents                  |
+| `PATCH /api/agents/:id`    | JWT  | Update one of the user's agents               |
+| `DELETE /api/agents/:id`   | JWT  | Delete an agent; tasks and projects unchanged |
 
 **Projects and tasks:**
 
 - **Model:** `Project` has `name` (required, up to 120 characters), `description` (up to 2000), `status` (`active`, `completed`, or `archived`), `owner`, and timestamps. `Task.project` is optional and defaults to `null`.
 - **Ownership:** every project query filters by `owner`. A task's `project` must be omitted (no change), `null` or `''` (unassign), or the id of a project the same user owns. A malformed id gets `400 Invalid project`. A missing project and another user's project both get `400 Project not found`, so the API never reveals whether another user's project exists. Malformed project ids in URLs get `404`.
 - **Deleting a project never deletes tasks.** The service first unassigns the owner's tasks from the project, then deletes the project. If the delete fails after that, the project still exists with no tasks pointing at it, and the request can be retried. After the delete, a second best-effort unassign catches a task the same user assigned to the project at that exact moment. Without a transaction this narrows that window rather than closing it, so the client also treats a reference to an unknown project as Unassigned. Editing such a task leaves its project untouched unless the user changes the Project field.
+
+**Agents (Agent Registry, Phase 2 foundation):**
+
+- **Definitions only.** An agent is a persistent, user-owned record of an AI worker. Nothing runs an agent, calls an AI model, assigns it work, or enforces its permissions yet.
+- **Model:** `Agent` has `name` and `role` (required, up to 80 characters each), `description` (up to 2000), `status` (`active`, `paused`, or `disabled`), `skills`, `permissions`, `owner`, and timestamps.
+- **Skills** are an array of lowercase slug strings (for example `software-development`), up to 20 per agent and 40 characters each. The controller normalizes input (`Software Development` and `software_development` become `software-development`) and removes duplicates. There is no separate Skill collection.
+- **Permissions** are identifiers from a fixed catalog: `task.read`, `task.update`, `project.read`, `project.update`, `artifact.draft`. Unknown values are rejected. They are stored as metadata for the future permission boundary; nothing checks them yet.
+- **Ownership:** every agent query filters by `owner`. Another user's agent gets the same `404 Agent not found` as a missing one, and malformed ids get `404` without a database query. `owner`, `_id`, and timestamps in a request body are ignored. Tasks have no agent field, so an agent can't be attached to any work yet.
+- **Deleting an agent** removes only that agent. Nothing references agents yet, so tasks and projects are untouched.
 
 A last-resort error handler in `app.ts` keeps every failure in the API's `{ message }` shape: malformed JSON → `400 Malformed JSON body`, an oversized body → `413`, anything else → `500 Server error`. Express's default HTML error page, with its stack trace, is never returned.
 

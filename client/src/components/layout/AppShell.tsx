@@ -10,6 +10,7 @@ import {
 } from '@chakra-ui/react';
 import { Suspense, useState } from 'react';
 import { Outlet } from 'react-router-dom';
+import { useAgentLoader } from '../../hooks/useAgentLoader';
 import { useProjectLoader } from '../../hooks/useProjectLoader';
 import { useTaskLoader } from '../../hooks/useTaskLoader';
 import { useAppSelector } from '../../redux/hooks/typedHooks';
@@ -24,11 +25,15 @@ const AppShell = () => {
   const [navOpen, setNavOpen] = useState(false);
   const refreshTasks = useTaskLoader();
   const refreshProjects = useProjectLoader();
+  const refreshAgents = useAgentLoader();
   const refresh = () => {
     refreshTasks();
     refreshProjects();
+    refreshAgents();
   };
-  const loading = useAppSelector((state) => state.tasks.loading || state.projects.loading);
+  const loading = useAppSelector(
+    (state) => state.tasks.loading || state.projects.loading || state.agents.loading,
+  );
   const closeNav = () => setNavOpen(false);
 
   return (

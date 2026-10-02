@@ -47,14 +47,15 @@ CI (`.github/workflows/ci.yml`, on push/PR to `main`) runs, in order: `npm ci` �
 
 The request flow is `routes → controllers → services → models`:
 
-- `src/app.ts` builds the Express app (CORS, JSON, `/health`, `/api/auth`, `/api/tasks`). It does not connect to Mongo, so tests import it directly with supertest.
+- `src/app.ts` builds the Express app (CORS, JSON, `/health`, `/api/auth`, `/api/tasks`, `/api/projects`, `/api/agents`). It does not connect to Mongo, so tests import it directly with supertest.
 - `src/server.ts` is the entry point: it checks env vars, connects Mongoose, listens on `0.0.0.0`, and handles graceful shutdown.
 - **Controllers** validate input and map results to HTTP status codes. Errors return `{ message }`, and unexpected errors return a generic `500 Server error`.
 - **Services** are thin Mongoose wrappers. Every task query is scoped by `owner`, so a user can only see or change their own tasks. Keep that scoping on any new task query.
-- `middleware/auth` (`requireAuth`) checks the `Authorization: Bearer <jwt>` header and sets `req.userId` (typed in `src/types/express.d.ts`). All `/api/tasks` and `/api/projects` routes use it.
+- `middleware/auth` (`requireAuth`) checks the `Authorization: Bearer <jwt>` header and sets `req.userId` (typed in `src/types/express.d.ts`). All `/api/tasks`, `/api/projects`, and `/api/agents` routes use it.
 - JWTs are signed as `{ id }` and expire in `7d`. Logout is stateless: the server does nothing and the client drops the token.
 - Task enums live in `models/taskModel` (`TASK_STATUSES`, `TASK_PRIORITIES`); project statuses and length limits live in `models/projectModel`. Controllers validate against them.
 - **Projects:** a task's optional `project` must be omitted, `null`/`''` (unassign), or a project the same user owns. Check it through `projectService.ownsProject`, and give a foreign project the same response as a missing one. Validate ids from input with `utils/objectId.ts` (`isObjectIdString`), not `mongoose.isValidObjectId`. `deleteProjectById` unassigns tasks before deleting the project; keep that order.
+- **Agents (Agent Registry):** persistent, user-owned agent definitions only. Nothing runs an agent or enforces its permissions yet; never describe them as executing. Statuses, the permission catalog, and skill limits live in `models/agentModel`. The controller normalizes skills to lowercase slugs and rejects unknown permissions; a foreign agent gets the same `404` as a missing one. Tasks have no agent field yet.
 - Route tests mock the service layer with `jest.mock('../../services/...')`. They do not use a real database.
 - Use `requireEnv(name)` from `config/env.ts` to read required env vars at call time.
 - The `index.ts` barrels in `controllers/`, `services/`, `routes/`, and `utils/` are empty. Import from the specific module folder.
@@ -63,17 +64,18 @@ The request flow is `routes → controllers → services → models`:
 
 - `App.tsx` exports `AppRoutes` and lazy-loads pages from `src/pages/<Name>/index.tsx`.
   - Public: `/` (landing), `/login`, `/register`.
-  - Authenticated, behind `ProtectedRoute` inside `components/layout/AppShell`: `/home` (`CommandCenterPage`), `/work` (`WorkPage`, the task workspace), `/work/projects` (`ProjectsPage`), `/work/projects/:id` (`ProjectDetailPage`), `/workforce` (a placeholder; Phase 2 is not built), and `/settings`. `components/work/WorkTabs` switches between Tasks and Projects.
-- `AppShell` owns the sidebar (`Sidebar`; a drawer below `lg`), `TopBar`, and data loading (`hooks/useTaskLoader`, `hooks/useProjectLoader`). Pages read tasks and projects from Redux; they don't fetch them on mount. Project mutations go through `hooks/useProjectActions`. Project stats and activity come from `utils/projects.ts`, derived from task data.
+  - Authenticated, behind `ProtectedRoute` inside `components/layout/AppShell`: `/home` (`CommandCenterPage`), `/work` (`WorkPage`, the task workspace), `/work/projects` (`ProjectsPage`), `/work/projects/:id` (`ProjectDetailPage`), `/workforce` (`WorkforcePage`, the Agent Registry), `/workforce/:id` (`AgentDetailPage`), and `/settings`. `components/work/WorkTabs` switches between Tasks and Projects.
+- `AppShell` owns the sidebar (`Sidebar`; a drawer below `lg`), `TopBar`, and data loading (`hooks/useTaskLoader`, `hooks/useProjectLoader`, `hooks/useAgentLoader`). Pages read tasks, projects, and agents from Redux; they don't fetch them on mount. Project and agent mutations go through `hooks/useProjectActions` and `hooks/useAgentActions`. Project stats and activity come from `utils/projects.ts`, derived from task data.
 - Command Center insights are pure functions in `utils/commandCenter.ts`. They are rule-based; never present them as AI.
 - Theme: `assets/theme/theme.ts` overrides Chakra's dark semantic tokens (`bg.*`, `fg.*`, `border.*`) with the v2 palette and adds `accent.{teal,orange,violet}` and `shell.*`. Use these tokens, not hex values. Dark is the default color mode.
-- Tests: `src/test/renderApp.tsx` renders `AppRoutes` against `stubTaskApi`, an in-memory stub of the task **and project** APIs (`makeTask`, `makeProject`, and `requestsTo` for counting calls to an endpoint). jsdom applies only base (mobile) styles, so shell tests navigate through the drawer. `findBy*`/`waitFor` use a 3 s timeout (`setupTests.ts`).
-- Redux store (`redux/store.ts`, `rootreducer.ts`) has three slices:
+- Tests: `src/test/renderApp.tsx` renders `AppRoutes` against `stubTaskApi`, an in-memory stub of the task, project, **and agent** APIs (`makeTask`, `makeProject`, `makeAgent`; agents are the third argument, and `requestsTo` for counting calls to an endpoint). jsdom applies only base (mobile) styles, so shell tests navigate through the drawer. `findBy*`/`waitFor` use a 3 s timeout (`setupTests.ts`).
+- Redux store (`redux/store.ts`, `rootreducer.ts`) has four slices:
   - `authSlice`: `token` (seeded from `localStorage.token`), `loading`, `error`.
   - `taskSlice`: `items`, `loading`, `error`. It resets on both `clearAuth` and `sessionExpired`, and unassigns tasks locally on `removeProject`.
   - `projectSlice`: `items`, `loading`, `error`, `loaded` (true once the first load finishes, so pages can tell loading apart from not found). It resets on `clearAuth` and `sessionExpired`.
+  - `agentSlice`: same shape and reset rules as `projectSlice`.
 - Use the typed hooks `useAppDispatch` / `useAppSelector` from `redux/hooks/typedHooks.ts`.
-- The API layer is in `src/api/`. It uses plain `fetch` with no axios. Functions take the token explicitly and throw `Error(message)` with the server's `message`. Task and project calls go through `authenticatedFetch`, which also reads the global `store`; shared helpers live in `api/http.ts`. Component tests that call these APIs must use that store, not a separate `configureStore`.
+- The API layer is in `src/api/`. It uses plain `fetch` with no axios. Functions take the token explicitly and throw `Error(message)` with the server's `message`. Task, project, and agent calls go through `authenticatedFetch`, which also reads the global `store`; shared helpers live in `api/http.ts`. Component tests that call these APIs must use that store, not a separate `configureStore`.
 - **Session expiration:**
   - Authenticated calls go through `api/authenticatedFetch.ts`.
   - On a 401 it calls `expireSession` (`utils/session.ts`), which clears `localStorage` and dispatches `sessionExpired`. It then throws `SessionExpiredError`.
@@ -84,7 +86,7 @@ The request flow is `routes → controllers → services → models`:
 - **Due dates are calendar dates.** The API returns them as UTC midnight (`YYYY-MM-DDT00:00:00.000Z`). Never pass a `dueDate` to `new Date()` to compare or display it, because that shifts the day west of UTC. Use `utils/dates.ts` (`toCalendarDate`, `daysUntilDueDate`, `formatCalendarDate`). In tests, build due dates in that API shape and keep them independent of the time zone.
 - Filtering, sorting, and summary logic lives in `utils/tasks.ts` as pure, tested functions. Keep that logic out of components.
 - UI is Chakra UI v3. `components/ui/*` are Chakra CLI snippets (provider, toaster, color-mode, tooltip). Show user feedback with `toaster`.
-- `client/src/types/task.ts` duplicates the server task types by hand. Update both sides when the task shape changes.
+- `client/src/types/task.ts`, `project.ts`, and `agent.ts` duplicate the server types (and agent limits) by hand. Update both sides when a shape changes.
 - `client/vercel.json` rewrites every path to `index.html` for SPA routing.
 
 ## Conventions

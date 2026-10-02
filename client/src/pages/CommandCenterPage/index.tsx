@@ -27,6 +27,7 @@ import { useToday } from '../../hooks/useToday';
 import { useAppSelector } from '../../redux/hooks/typedHooks';
 import { getProjectId } from '../../types/project';
 import { getTaskId } from '../../types/task';
+import { getAgentSummary } from '../../utils/agents';
 import { getProjectStats, getStatsForProject } from '../../utils/projects';
 import {
   getGreeting,
@@ -71,6 +72,8 @@ const CommandCenterPage = () => {
     [projects],
   );
   const projectStats = useMemo(() => getProjectStats(tasks, now), [tasks, now]);
+  const agents = useAppSelector((state) => state.agents.items);
+  const agentSummary = useMemo(() => getAgentSummary(agents), [agents]);
   const initialLoad = loading && tasks.length === 0;
   const open = summary.todo + summary.inProgress;
   const completion = summary.total ? Math.round((summary.done / summary.total) * 100) : 0;
@@ -287,6 +290,50 @@ const CommandCenterPage = () => {
                   );
                 })}
               </Box>
+            </Box>
+          )}
+
+          {agentSummary.total > 0 && (
+            <Box
+              as="section"
+              aria-labelledby="workforce-heading"
+              bg="bg.panel"
+              borderWidth="1px"
+              borderRadius="lg"
+              p={{ base: 4, md: 5 }}
+            >
+              <SectionHeader
+                id="workforce-heading"
+                title="Workforce"
+                count={agentSummary.total}
+                action={{ label: 'Open Workforce', to: '/workforce' }}
+              />
+              <SimpleGrid as="dl" columns={3} gap={3} textAlign="center">
+                {[
+                  { label: 'Active', value: agentSummary.active },
+                  { label: 'Paused', value: agentSummary.paused },
+                  { label: 'Disabled', value: agentSummary.disabled },
+                ].map((item) => (
+                  <Box
+                    key={item.label}
+                    display="flex"
+                    flexDirection="column-reverse"
+                    bg="bg.muted"
+                    borderRadius="md"
+                    py={3}
+                  >
+                    <Text as="dt" fontSize="xs" color="fg.muted">
+                      {item.label}
+                    </Text>
+                    <Text as="dd" fontSize="xl" fontWeight="semibold" m={0}>
+                      {item.value}
+                    </Text>
+                  </Box>
+                ))}
+              </SimpleGrid>
+              <Text fontSize="xs" color="fg.muted" mt={3}>
+                Agent definitions only. Agents don’t run yet.
+              </Text>
             </Box>
           )}
 

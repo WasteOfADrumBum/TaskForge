@@ -10,6 +10,14 @@ All notable changes to TaskForge are recorded here.
 
 ### Added
 
+- **Agent Registry (Phase 2 foundation).** Persistent, user-owned agent definitions. Agents don't run: there is no AI execution, model call, run, assignment, handoff, or approval yet.
+  - **API:** authenticated CRUD at `/api/agents`. An agent has a name, role, description, status (active, paused, or disabled), skills, and permissions. Every query is scoped to the signed-in user; another user's agent gets the same `404` as a missing one, and `owner` can't be set from a request.
+  - **Skills** are lowercase tags (for example `software-development`); input is normalized and deduplicated. **Permissions** come from a fixed catalog (`task.read`, `task.update`, `project.read`, `project.update`, `artifact.draft`). They are stored as metadata only and are not enforced yet.
+  - **Workforce:** `/workforce` is now the Agent Registry (list, create, edit, delete, with empty, loading, and error states), replacing the planned-concepts placeholder. The sidebar no longer marks Workforce as Planned.
+  - **Agent detail:** `/workforce/:id` shows the agent's skills, permissions, and dates. Assignments, runs, and approvals appear only as labeled "Planned" placeholders with no data.
+  - **Command Center:** a Workforce panel with active, paused, and disabled counts, shown only when agents exist.
+  - **Session handling:** agent requests use the same session-expiry handling as tasks and projects, and agent data is cleared on logout and on session expiry.
+  - **Demo data:** the seed script now also creates two demo agents.
 - **Projects (Work + Projects foundation).**
   - **API:** user-owned projects (name, description, status: active, completed, or archived) with authenticated CRUD at `/api/projects`. Every query is scoped to the signed-in user.
   - **Tasks:** a task can belong to one of its owner's projects, move between projects, or be unassigned. A foreign, missing, or malformed project reference is rejected.

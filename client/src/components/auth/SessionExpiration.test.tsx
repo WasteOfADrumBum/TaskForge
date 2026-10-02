@@ -11,9 +11,22 @@ import CommandCenterPage from '../../pages/CommandCenterPage';
 import { getTasks } from '../../api/tasks';
 import { store } from '../../redux/store';
 import { clearAuth, setError, setToken } from '../../redux/slices/authSlice';
+import { setAgents } from '../../redux/slices/agentSlice';
 import { setTasks } from '../../redux/slices/taskSlice';
 import { SESSION_EXPIRED_MESSAGE } from '../../utils/session';
+import type { Agent } from '../../types/agent';
 import type { Task } from '../../types/task';
+
+const emptyList = { items: [], loading: false, error: null, loaded: false };
+const privateAgent: Agent = {
+  _id: 'private-agent',
+  name: 'Private agent',
+  role: 'Researcher',
+  description: '',
+  status: 'active',
+  skills: [],
+  permissions: [],
+};
 
 const privateTask: Task = {
   _id: 'private-task',
@@ -93,6 +106,7 @@ describe('session expiration flow', () => {
       error: null,
       loaded: false,
     });
+    expect(store.getState().agents).toEqual(emptyList);
   });
 
   it('expires the session when only the projects request gets a 401', async () => {
@@ -107,7 +121,9 @@ describe('session expiration flow', () => {
           Promise.resolve(
             url.endsWith('/api/projects')
               ? { status: 401, ok: false, json: async () => ({}) }
-              : { status: 200, ok: true, json: async () => ({ tasks: [privateTask] }) },
+              : url.endsWith('/api/agents')
+                ? { status: 200, ok: true, json: async () => ({ agents: [privateAgent] }) }
+                : { status: 200, ok: true, json: async () => ({ tasks: [privateTask] }) },
           ),
         ),
     );
@@ -124,6 +140,34 @@ describe('session expiration flow', () => {
       loaded: false,
     });
   });
+  it('expires the session when only the agents request gets a 401, clearing private data', async () => {
+    const token = `header.${btoa(JSON.stringify({ exp: Date.now() / 1000 + 3600 }))}.signature`;
+    store.dispatch(setToken(token));
+    localStorage.setItem('token', token);
+    store.dispatch(setAgents([privateAgent]));
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockImplementation((url: string) =>
+          Promise.resolve(
+            url.endsWith('/api/agents')
+              ? { status: 401, ok: false, json: async () => ({}) }
+              : url.endsWith('/api/projects')
+                ? { status: 200, ok: true, json: async () => ({ projects: [] }) }
+                : { status: 200, ok: true, json: async () => ({ tasks: [privateTask] }) },
+          ),
+        ),
+    );
+    renderSession(true);
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent(SESSION_EXPIRED_MESSAGE),
+    );
+    expect(localStorage.getItem('token')).toBeNull();
+    expect(store.getState().tasks.items).toEqual([]);
+    expect(store.getState().agents).toEqual(emptyList);
+  });
+
   it('does not show other auth errors inline on the login page', () => {
     store.dispatch(setError('Invalid credentials'));
     render(
@@ -155,11 +199,14 @@ describe('session expiration flow', () => {
               }
             : url.endsWith('/api/projects')
               ? { status: 200, ok: true, json: async () => ({ projects: [] }) }
-              : { status: 200, ok: true, json: async () => ({ tasks: [] }) },
+              : url.endsWith('/api/agents')
+                ? { status: 200, ok: true, json: async () => ({ agents: [privateAgent] }) }
+                : { status: 200, ok: true, json: async () => ({ tasks: [] }) },
         ),
       ),
     );
     renderSession(true);
+    await waitFor(() => expect(store.getState().agents.items).toEqual([privateAgent]));
     await userEvent.click(screen.getByRole('button', { name: 'Open navigation' }));
     const nav = within(await screen.findByRole('dialog', { name: 'Navigation' }));
     await userEvent.click(nav.getByRole('button', { name: /log out/i }));
@@ -176,5 +223,6 @@ describe('session expiration flow', () => {
       error: null,
       loaded: false,
     });
+    expect(store.getState().agents).toEqual(emptyList);
   });
 });
