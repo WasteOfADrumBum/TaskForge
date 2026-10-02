@@ -1,6 +1,7 @@
 import request from 'supertest';
 import jwt from 'jsonwebtoken';
 import app from '../../app';
+import { ownsProject } from '../../services/projectService';
 import {
   createTask,
   deleteTaskById,
@@ -14,6 +15,10 @@ jest.mock('../../services/taskService', () => ({
   findTasksByOwner: jest.fn(),
   updateTaskById: jest.fn(),
 }));
+jest.mock('../../services/projectService', () => ({ ownsProject: jest.fn() }));
+
+const mockedOwnsProject = jest.mocked(ownsProject);
+const projectId = '507f1f77bcf86cd799439021';
 
 const mockedCreateTask = jest.mocked(createTask);
 const mockedDeleteTaskById = jest.mocked(deleteTaskById);
@@ -86,6 +91,20 @@ describe('task routes', () => {
     expect(response.body).toEqual({ message: 'Task title is required' });
   });
 
+  it('returns a JSON 400, not a crash, when the request has no body', async () => {
+    const response = await request(app).post('/api/tasks').set(authorization);
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ message: 'Task title is required' });
+  });
+
+  it('treats an update with no body as a no-op instead of crashing', async () => {
+    mockedUpdateTaskById.mockResolvedValue({ id: taskId, title: 'Unchanged' } as never);
+    const response = await request(app)
+      .patch('/api/tasks/' + taskId)
+      .set(authorization);
+    expect(response.status).toBe(200);
+    expect(mockedUpdateTaskById).toHaveBeenCalledWith(userId, taskId, {});
+  });
   it('rejects an invalid task status', async () => {
     const response = await request(app)
       .post('/api/tasks')
@@ -127,6 +146,115 @@ describe('task routes', () => {
       .set(authorization);
     expect(response.status).toBe(204);
     expect(mockedDeleteTaskById).toHaveBeenCalledWith(userId, taskId);
+  });
+
+  describe('project assignment', () => {
+    it('creates a task in a project the user owns', async () => {
+      mockedOwnsProject.mockResolvedValue(true);
+      mockedCreateTask.mockResolvedValue({ id: taskId } as never);
+      const response = await request(app)
+        .post('/api/tasks')
+        .set(authorization)
+        .send({ title: 'In a project', project: projectId });
+      expect(response.status).toBe(201);
+      expect(mockedOwnsProject).toHaveBeenCalledWith(userId, projectId);
+      expect(mockedCreateTask).toHaveBeenCalledWith(
+        userId,
+        expect.objectContaining({ project: projectId }),
+      );
+    });
+
+    it('creates a task without a project and never checks ownership', async () => {
+      mockedCreateTask.mockResolvedValue({ id: taskId } as never);
+      const response = await request(app)
+        .post('/api/tasks')
+        .set(authorization)
+        .send({ title: 'No project' });
+      expect(response.status).toBe(201);
+      expect(mockedOwnsProject).not.toHaveBeenCalled();
+      expect(mockedCreateTask.mock.calls[0][1]).not.toHaveProperty('project');
+    });
+
+    it('rejects a project the user does not own', async () => {
+      mockedOwnsProject.mockResolvedValue(false);
+      const response = await request(app)
+        .post('/api/tasks')
+        .set(authorization)
+        .send({ title: 'Sneaky', project: projectId });
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({ message: 'Project not found' });
+      expect(mockedCreateTask).not.toHaveBeenCalled();
+    });
+
+    it.each([['not-an-id'], [42], [{ $ne: null }], ['507f1f77bcf86cd79943901z']])(
+      'rejects a malformed project reference %j without querying',
+      async (project) => {
+        const response = await request(app)
+          .post('/api/tasks')
+          .set(authorization)
+          .send({ title: 'Bad ref', project });
+        expect(response.status).toBe(400);
+        expect(response.body).toEqual({ message: 'Invalid project' });
+        expect(mockedOwnsProject).not.toHaveBeenCalled();
+      },
+    );
+
+    it('moves a task to another owned project', async () => {
+      mockedOwnsProject.mockResolvedValue(true);
+      mockedUpdateTaskById.mockResolvedValue({ id: taskId, project: projectId } as never);
+      const response = await request(app)
+        .patch('/api/tasks/' + taskId)
+        .set(authorization)
+        .send({ project: projectId });
+      expect(response.status).toBe(200);
+      expect(mockedUpdateTaskById).toHaveBeenCalledWith(userId, taskId, { project: projectId });
+    });
+
+    it.each([[null], ['']])('removes a task from its project with %j', async (project) => {
+      mockedUpdateTaskById.mockResolvedValue({ id: taskId, project: null } as never);
+      const response = await request(app)
+        .patch('/api/tasks/' + taskId)
+        .set(authorization)
+        .send({ project });
+      expect(response.status).toBe(200);
+      expect(mockedUpdateTaskById).toHaveBeenCalledWith(userId, taskId, { project: null });
+      expect(mockedOwnsProject).not.toHaveBeenCalled();
+    });
+
+    it.each([['not-an-id'], [{ $ne: null }]])(
+      'rejects a malformed project reference %j on update without querying',
+      async (project) => {
+        const response = await request(app)
+          .patch('/api/tasks/' + taskId)
+          .set(authorization)
+          .send({ project });
+        expect(response.status).toBe(400);
+        expect(response.body).toEqual({ message: 'Invalid project' });
+        expect(mockedOwnsProject).not.toHaveBeenCalled();
+        expect(mockedUpdateTaskById).not.toHaveBeenCalled();
+      },
+    );
+
+    it('returns a 500 without details when the ownership check fails', async () => {
+      mockedOwnsProject.mockRejectedValue(new Error('connection lost'));
+      const response = await request(app)
+        .post('/api/tasks')
+        .set(authorization)
+        .send({ title: 'x', project: projectId });
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({ message: 'Server error' });
+      expect(mockedCreateTask).not.toHaveBeenCalled();
+    });
+
+    it('rejects moving a task to a project the user does not own', async () => {
+      mockedOwnsProject.mockResolvedValue(false);
+      const response = await request(app)
+        .patch('/api/tasks/' + taskId)
+        .set(authorization)
+        .send({ project: projectId });
+      expect(response.status).toBe(400);
+      expect(mockedUpdateTaskById).not.toHaveBeenCalled();
+    });
   });
 
   it('returns 404 when deleting an unavailable task', async () => {

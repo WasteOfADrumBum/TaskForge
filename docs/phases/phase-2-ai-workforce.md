@@ -1,6 +1,17 @@
 # Phase 2: AI Workforce
 
-**Status: PLANNED.** Nothing in this phase is implemented yet. Item-level status lives in [roadmap.md](../roadmap.md#phase-2-ai-workforce-details).
+**Status: PLANNED.** No AI Workforce capability is implemented yet. The only work so far is the Work + Projects foundation (below), which is a prerequisite and not a Workforce feature. Item-level status lives in [roadmap.md](../roadmap.md#phase-2-ai-workforce-details).
+
+## Foundation: Work + Projects (in progress)
+
+Projects are the first post-Phase-1 domain object (branch `feat/work-projects-foundation`). They give Phase 2 something concrete to build on:
+
+- **Work organization:** tasks can belong to a project, and each project shows its own tasks, progress, and activity.
+- **Agent assignment, later:** agents will be assigned to tasks in a project, and project ownership will bound what an agent can see and change, the same way task ownership does today.
+- **Command Center:** active projects and their progress already appear there.
+- **Knowledge, Career, and Learning, later:** project-level knowledge (Phase 3) and learning or portfolio projects (Phase 6) can attach to the same project records instead of inventing parallel structures.
+
+Nothing here registers agents, runs anything, or calls an AI provider.
 
 ## Objective
 
@@ -82,6 +93,7 @@ interface AIProvider {
 ## Dependencies
 
 - Phase 1 complete: stable auth, ownership scoping, deployment
+- Work + Projects foundation: user-owned projects that tasks (and later, agent assignments) can belong to
 - A local Ollama install for development
 - A decision on how the deployed demo behaves without a hosted model
 

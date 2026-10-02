@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { toaster } from '../../components/ui/toaster';
 import { store } from '../../redux/store';
 import { clearAuth } from '../../redux/slices/authSlice';
-import { makeTask, renderApp, signIn, stubTaskApi } from '../../test/renderApp';
+import { makeProject, makeTask, renderApp, signIn, stubTaskApi } from '../../test/renderApp';
 import { SESSION_EXPIRED_MESSAGE } from '../../utils/session';
 
 vi.mock('../../components/ui/toaster', () => ({ toaster: { create: vi.fn() } }));
@@ -344,5 +344,170 @@ describe('Work page task workspace', () => {
     await userEvent.click(taskCard('Book venue').getByRole('button', { name: 'Edit' }));
     await userEvent.click(screen.getByRole('button', { name: 'New Task' }));
     expect(screen.getByRole('heading', { name: 'Create Task' })).toBeInTheDocument();
+  });
+});
+
+describe('Work page projects', () => {
+  const projects = [
+    makeProject({ _id: 'p1', name: 'Launch' }),
+    makeProject({ _id: 'p2', name: 'Operations' }),
+    makeProject({ _id: 'p3', name: 'Old site', status: 'archived' }),
+  ];
+  const projectTasks = [
+    makeTask({ _id: 'a', title: 'Write release notes', project: 'p1' }),
+    makeTask({ _id: 'b', title: 'Book venue' }),
+  ];
+
+  const renderWithProjects = async () => {
+    signIn();
+    const api = stubTaskApi(projectTasks, projects);
+    renderApp('/work');
+    await screen.findByText('Write release notes');
+    await waitFor(() =>
+      expect(
+        within(screen.getByRole('combobox', { name: 'Project' })).getAllByRole('option'),
+      ).toHaveLength(4),
+    );
+    return api;
+  };
+
+  it('offers Unassigned plus every project, active first, labelling inactive ones', async () => {
+    await renderWithProjects();
+    const select = screen.getByRole('combobox', { name: 'Project' });
+    expect(select).toHaveValue('');
+    expect(
+      within(select)
+        .getAllByRole('option')
+        .map((option) => option.textContent),
+    ).toEqual(['Unassigned', 'Launch', 'Operations', 'Old site (Archived)']);
+  });
+
+  it('creates a task without a project by default', async () => {
+    const { fetchMock } = await renderWithProjects();
+    await userEvent.type(screen.getByRole('textbox', { name: /title/i }), 'No project');
+    await userEvent.click(screen.getByRole('button', { name: 'Create Task' }));
+    await screen.findByRole('heading', { name: 'No project' });
+    expect(JSON.parse(String(requests(fetchMock, 'POST')[0][1]?.body))).toMatchObject({
+      project: null,
+    });
+  });
+
+  it('creates a task in a selected project and links the card to it', async () => {
+    const { fetchMock } = await renderWithProjects();
+    await userEvent.type(screen.getByRole('textbox', { name: /title/i }), 'Plan rollout');
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Project' }), 'p2');
+    await userEvent.click(screen.getByRole('button', { name: 'Create Task' }));
+
+    await screen.findByRole('heading', { name: 'Plan rollout' });
+    expect(JSON.parse(String(requests(fetchMock, 'POST')[0][1]?.body))).toMatchObject({
+      project: 'p2',
+    });
+    const link = taskCard('Plan rollout').getByRole('link', { name: 'Operations' });
+    expect(link).toHaveAttribute('href', '/work/projects/p2');
+  });
+
+  it('moves a task to another project and removes it from a project', async () => {
+    const { fetchMock } = await renderWithProjects();
+
+    await userEvent.click(taskCard('Write release notes').getByRole('button', { name: 'Edit' }));
+    const select = screen.getByRole('combobox', { name: 'Project' });
+    expect(select).toHaveValue('p1');
+    await userEvent.selectOptions(select, 'p2');
+    await userEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
+    await waitFor(() =>
+      expect(
+        taskCard('Write release notes').getByRole('link', { name: 'Operations' }),
+      ).toBeInTheDocument(),
+    );
+
+    await userEvent.click(taskCard('Write release notes').getByRole('button', { name: 'Edit' }));
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Project' }), '');
+    await userEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
+    await waitFor(() =>
+      expect(taskCard('Write release notes').queryByRole('link')).not.toBeInTheDocument(),
+    );
+
+    const bodies = requests(fetchMock, 'PATCH').map(([, options]) =>
+      JSON.parse(String(options?.body)),
+    );
+    expect(bodies.map((body) => body.project)).toEqual(['p2', null]);
+  });
+
+  it('opens the project from the task card', async () => {
+    await renderWithProjects();
+    await userEvent.click(taskCard('Write release notes').getByRole('link', { name: 'Launch' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Launch' })).toBeInTheDocument();
+  });
+
+  it('keeps a reference to a deleted project when editing, without changing it', async () => {
+    signIn();
+    const { fetchMock } = stubTaskApi(
+      [makeTask({ _id: 'x', title: 'Orphan', project: 'gone' })],
+      projects,
+    );
+    renderApp('/work');
+    await screen.findByText('Orphan');
+    await waitFor(() => expect(store.getState().projects.loaded).toBe(true));
+    expect(taskCard('Orphan').queryByRole('link')).not.toBeInTheDocument();
+
+    await userEvent.click(taskCard('Orphan').getByRole('button', { name: 'Edit' }));
+    const select = screen.getByRole('combobox', { name: 'Project' });
+    expect(select).toHaveValue('gone');
+    expect(within(select).getByRole('option', { name: 'Deleted project' })).toBeInTheDocument();
+
+    await userEvent.type(screen.getByRole('textbox', { name: /title/i }), ' (renamed)');
+    await userEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
+    await waitFor(() => expect(requests(fetchMock, 'PATCH')).toHaveLength(1));
+    expect(JSON.parse(String(requests(fetchMock, 'PATCH')[0][1]?.body))).not.toHaveProperty(
+      'project',
+    );
+  });
+
+  it('never unassigns a task on a title-only edit when projects failed to load', async () => {
+    signIn();
+    const { fetchMock } = stubTaskApi(
+      [makeTask({ _id: 'a', title: 'In a project', project: 'p1' })],
+      projects,
+    );
+    const stubbed = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation(async (url: string, options?: RequestInit) =>
+      url.endsWith('/api/projects') && (options?.method ?? 'GET') === 'GET'
+        ? ({
+            status: 500,
+            ok: false,
+            json: async () => ({ message: 'Database unavailable' }),
+          } as never)
+        : stubbed(url, options),
+    );
+    renderApp('/work');
+    await screen.findByText('In a project');
+    await waitFor(() => expect(store.getState().projects.error).toBe('Database unavailable'));
+
+    await userEvent.click(taskCard('In a project').getByRole('button', { name: 'Edit' }));
+    const select = screen.getByRole('combobox', { name: 'Project' });
+    expect(select).toHaveValue('p1');
+    expect(
+      within(select).getByRole('option', { name: 'Projects unavailable' }),
+    ).toBeInTheDocument();
+
+    const title = screen.getByRole('textbox', { name: /title/i });
+    await userEvent.clear(title);
+    await userEvent.type(title, 'Renamed');
+    await userEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
+    await waitFor(() => expect(requests(fetchMock, 'PATCH')).toHaveLength(1));
+    const body = JSON.parse(String(requests(fetchMock, 'PATCH')[0][1]?.body));
+    expect(body).toMatchObject({ title: 'Renamed' });
+    expect(body).not.toHaveProperty('project');
+  });
+
+  it('shows the requested project while projects are still loading', async () => {
+    signIn();
+    const { fetchMock } = stubTaskApi([], projects);
+    const stubbed = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation(async (url: string, options?: RequestInit) =>
+      url.endsWith('/api/projects') ? new Promise(() => {}) : stubbed(url, options),
+    );
+    renderApp('/work/projects/p1');
+    expect(await screen.findByText('Loading project...')).toBeInTheDocument();
   });
 });

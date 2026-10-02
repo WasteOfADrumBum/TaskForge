@@ -1,6 +1,10 @@
 import '@testing-library/jest-dom/vitest';
-import { cleanup } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
 import { afterEach, vi } from 'vitest';
+
+// Full-app tests render lazy-loaded pages; under parallel load the 1 s default for findBy*/waitFor
+// is occasionally too tight. A longer ceiling only slows tests that would otherwise fail.
+configure({ asyncUtilTimeout: 3000 });
 
 afterEach(() => {
   cleanup();

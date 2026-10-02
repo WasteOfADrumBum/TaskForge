@@ -1,15 +1,18 @@
-import { Badge, Box, Button, Heading, HStack, Text, VStack } from '@chakra-ui/react';
+import { Badge, Box, Button, Heading, HStack, Link, Text, VStack } from '@chakra-ui/react';
 import {
   LuArrowDown,
   LuArrowUp,
   LuCalendarDays,
   LuCheck,
+  LuFolderKanban,
   LuMinus,
   LuPencil,
   LuPlay,
   LuRotateCcw,
   LuTrash2,
 } from 'react-icons/lu';
+import { Link as RouterLink } from 'react-router-dom';
+import { getProjectId, type Project } from '../../types/project';
 import type { Task, TaskPriority, TaskStatus } from '../../types/task';
 import { formatCalendarDate } from '../../utils/dates';
 import { isTaskOverdue } from '../../utils/tasks';
@@ -21,6 +24,8 @@ interface TaskCardProps {
   onStatusChange: (task: Task, status: TaskStatus) => void;
   // The current moment for the overdue badge; pass `useToday()` so it rolls over at midnight.
   now?: Date;
+  // The task's project, when it has one. Rendered as a link, so it needs a router.
+  project?: Project;
 }
 
 const statusLabel: Record<TaskStatus, string> = {
@@ -51,7 +56,7 @@ const PriorityIcon = ({ priority }: { priority: TaskPriority }) => {
   return <LuMinus />;
 };
 
-const TaskCard = ({ task, onEdit, onDelete, onStatusChange, now }: TaskCardProps) => {
+const TaskCard = ({ task, onEdit, onDelete, onStatusChange, now, project }: TaskCardProps) => {
   const overdue = isTaskOverdue(task, now);
   const borderColor = overdue ? 'red.400' : statusBorder[task.status];
   return (
@@ -88,10 +93,29 @@ const TaskCard = ({ task, onEdit, onDelete, onStatusChange, now }: TaskCardProps
           <Text color="fg.muted" mt={2}>
             {task.description || 'No description provided.'}
           </Text>
-          {task.dueDate && (
-            <HStack gap={1.5} mt={3} color={overdue ? 'red.500' : 'fg.muted'} fontSize="sm">
-              <LuCalendarDays />
-              <Text>Due {formatCalendarDate(task.dueDate)}</Text>
+          {(task.dueDate || project) && (
+            <HStack gap={4} mt={3} fontSize="sm" flexWrap="wrap">
+              {task.dueDate && (
+                <HStack gap={1.5} color={overdue ? 'red.500' : 'fg.muted'}>
+                  <LuCalendarDays aria-hidden="true" />
+                  <Text>Due {formatCalendarDate(task.dueDate)}</Text>
+                </HStack>
+              )}
+              {project && (
+                <Link
+                  asChild
+                  color="fg.muted"
+                  display="inline-flex"
+                  alignItems="center"
+                  gap={1.5}
+                  _hover={{ color: 'accent.teal' }}
+                >
+                  <RouterLink to={'/work/projects/' + getProjectId(project)}>
+                    <LuFolderKanban aria-hidden="true" />
+                    {project.name}
+                  </RouterLink>
+                </Link>
+              )}
             </HStack>
           )}
         </Box>

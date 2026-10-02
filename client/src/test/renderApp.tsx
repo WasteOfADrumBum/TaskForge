@@ -7,6 +7,7 @@ import { AppRoutes } from '../App';
 import { system } from '../assets/theme/theme';
 import { store } from '../redux/store';
 import { setToken } from '../redux/slices/authSlice';
+import type { Project } from '../types/project';
 import type { Task } from '../types/task';
 import { localCalendarDate } from '../utils/dates';
 
@@ -46,9 +47,21 @@ const json = (status: number, body?: unknown) => ({
   json: async () => structuredClone(body),
 });
 
-// In-memory stand-in for the task API, so tests exercise the real client API layer.
-export const stubTaskApi = (initial: Task[] = []) => {
+export const makeProject = (
+  overrides: Partial<Project> & { _id: string; name: string },
+): Project => ({
+  description: '',
+  status: 'active',
+  createdAt: '2026-01-01T09:00:00.000Z',
+  updatedAt: '2026-01-01T09:00:00.000Z',
+  ...overrides,
+});
+
+// In-memory stand-in for the task and project APIs, so tests exercise the real client API
+// layer. Mirrors the server's behavior, including unassigning tasks when a project is deleted.
+export const stubTaskApi = (initial: Task[] = [], initialProjects: Project[] = []) => {
   const tasks = [...initial];
+  const projects = [...initialProjects];
   let nextId = 1;
   const fetchMock = vi.fn(async (url: string, options: RequestInit = {}) => {
     const method = options.method ?? 'GET';
@@ -59,6 +72,32 @@ export const stubTaskApi = (initial: Task[] = []) => {
     }
     if (url.endsWith('/api/auth/login')) {
       return json(200, { message: 'Logged in successfully', token: validToken() });
+    }
+    const projectMatch = url.match(/\/api\/projects(?:\/([^/]+))?$/);
+    if (projectMatch) {
+      const projectId = projectMatch[1];
+      if (method === 'GET' && !projectId) return json(200, { projects });
+      if (method === 'POST') {
+        const now = new Date().toISOString();
+        const project = makeProject({
+          _id: 'project-' + nextId++,
+          ...body,
+          createdAt: now,
+          updatedAt: now,
+        });
+        projects.unshift(project);
+        return json(201, { project });
+      }
+      const index = projects.findIndex((project) => project._id === projectId);
+      if (index === -1) return json(404, { message: 'Project not found' });
+      if (method === 'GET') return json(200, { project: projects[index] });
+      if (method === 'PATCH') {
+        projects[index] = { ...projects[index], ...body, updatedAt: new Date().toISOString() };
+        return json(200, { project: projects[index] });
+      }
+      for (const task of tasks) if (task.project === projectId) task.project = null;
+      projects.splice(index, 1);
+      return json(204);
     }
     const match = url.match(/\/api\/tasks(?:\/([^/]+))?$/);
     if (!match) return json(404, { message: 'Not found' });
@@ -79,8 +118,18 @@ export const stubTaskApi = (initial: Task[] = []) => {
     return json(204);
   });
   vi.stubGlobal('fetch', fetchMock);
-  return { fetchMock, tasks };
+  return { fetchMock, tasks, projects };
 };
+
+// Calls made to one endpoint and method, for example requestsTo(fetchMock, 'GET', '/api/tasks').
+export const requestsTo = (
+  fetchMock: ReturnType<typeof stubTaskApi>['fetchMock'],
+  method: string,
+  path: string,
+) =>
+  fetchMock.mock.calls.filter(
+    ([url, options]) => (options?.method ?? 'GET') === method && url.endsWith(path),
+  );
 
 export const renderApp = (path: string) =>
   render(

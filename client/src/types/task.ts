@@ -9,6 +9,8 @@ export interface Task {
   status: TaskStatus;
   priority: TaskPriority;
   dueDate: string | null;
+  // Id of the owner's project, or null/absent when the task has no project.
+  project?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -19,6 +21,7 @@ export interface TaskInput {
   status?: TaskStatus;
   priority?: TaskPriority;
   dueDate?: string | null;
+  project?: string | null;
 }
 
 export type TaskUpdate = Partial<TaskInput>;

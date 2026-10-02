@@ -53,8 +53,9 @@ Captured from the live app with sample data. More details are in [docs/images](d
 ## Key features
 
 - **Accounts and authentication.** Register and sign in with email and password. Passwords are hashed with bcrypt; sessions use signed JWTs.
-- **Private, user-owned data.** Every task query on the server is scoped to the signed-in user. One user can never read or change another user's tasks.
+- **Private, user-owned data.** Every task and project query on the server is scoped to the signed-in user. One user can never read or change another user's tasks or projects, or attach a task to another user's project.
 - **Task management.** Create, edit, and delete tasks with a title, description, status (to do / in progress / done), priority (low / medium / high), and due date.
+- **Projects.** Group tasks into private projects (active / completed / archived). Each project has its own page with tasks, progress, and activity. Deleting a project keeps its tasks and simply unassigns them.
 - **Search, filter, and sort.** Search by text, filter by status and priority, and sort by created date, due date, or priority.
 - **Command Center.** A daily brief with open, in-progress, completed, and overdue metrics, plus today's priorities, a completion summary, and recent task changes. Its "Recommended next" suggestions come from fixed rules over your tasks, are labeled "Rule based", and are not AI.
 - **App shell.** A persistent sidebar and top bar (current section, date, refresh, New Task). On phones the sidebar becomes a drawer.

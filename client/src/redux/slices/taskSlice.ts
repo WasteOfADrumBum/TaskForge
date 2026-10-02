@@ -2,6 +2,7 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { Task } from '../../types/task';
 import { getTaskId } from '../../types/task';
 import { clearAuth, sessionExpired } from './authSlice';
+import { removeProject } from './projectSlice';
 
 interface TaskState {
   items: Task[];
@@ -21,6 +22,10 @@ const taskSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(sessionExpired, () => initialState);
     builder.addCase(clearAuth, () => initialState);
+    // Deleting a project unassigns its tasks on the server; mirror that locally.
+    builder.addCase(removeProject, (state, action) => {
+      for (const task of state.items) if (task.project === action.payload) task.project = null;
+    });
   },
   reducers: {
     setTasks(state, action: PayloadAction<Task[]>) {

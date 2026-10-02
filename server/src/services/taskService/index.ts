@@ -6,6 +6,8 @@ export interface TaskInput {
   status?: 'todo' | 'in-progress' | 'done';
   priority?: 'low' | 'medium' | 'high';
   dueDate?: string | null;
+  // A project the owner owns, or null for no project. The controller checks ownership.
+  project?: string | null;
 }
 
 export type TaskUpdate = Partial<TaskInput>;
