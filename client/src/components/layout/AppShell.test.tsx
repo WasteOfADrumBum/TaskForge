@@ -3,7 +3,14 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { store } from '../../redux/store';
 import { clearAuth } from '../../redux/slices/authSlice';
-import { daysFromNow, makeTask, renderApp, signIn, stubTaskApi } from '../../test/renderApp';
+import {
+  daysFromNow,
+  makeTask,
+  renderApp,
+  requestsTo,
+  signIn,
+  stubTaskApi,
+} from '../../test/renderApp';
 
 vi.mock('../ui/toaster', () => ({ toaster: { create: vi.fn() } }));
 
@@ -179,18 +186,20 @@ describe('authenticated app shell', () => {
     await waitFor(() => expect(screen.getByRole('textbox', { name: /title/i })).toHaveFocus());
   });
 
-  it('reloads tasks from the refresh action', async () => {
+  it('reloads tasks and projects from the refresh action', async () => {
     signIn();
     const { fetchMock } = stubTaskApi(sampleTasks);
     renderApp('/home');
     await screen.findByText('Overdue report');
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(requestsTo(fetchMock, 'GET', '/api/tasks')).toHaveLength(1);
+    await waitFor(() => expect(requestsTo(fetchMock, 'GET', '/api/projects')).toHaveLength(1));
 
-    await userEvent.click(screen.getByRole('button', { name: 'Refresh tasks' }));
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    await userEvent.click(screen.getByRole('button', { name: 'Refresh workspace' }));
+    await waitFor(() => expect(requestsTo(fetchMock, 'GET', '/api/tasks')).toHaveLength(2));
+    expect(requestsTo(fetchMock, 'GET', '/api/projects')).toHaveLength(2);
   });
 
-  it('loads tasks once per session, not on every section change', async () => {
+  it('loads tasks and projects once per session, not on every section change', async () => {
     signIn();
     const { fetchMock } = stubTaskApi(sampleTasks);
     renderApp('/home');
@@ -202,7 +211,8 @@ describe('authenticated app shell', () => {
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     }
     expect(await screen.findByText('Overdue report')).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(requestsTo(fetchMock, 'GET', '/api/tasks')).toHaveLength(1);
+    expect(requestsTo(fetchMock, 'GET', '/api/projects')).toHaveLength(1);
   });
 
   it('shows the current section in the breadcrumb', async () => {

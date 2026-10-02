@@ -10,6 +10,16 @@ All notable changes to TaskForge are recorded here.
 
 ### Added
 
+- **Projects (Work + Projects foundation).**
+  - **API:** user-owned projects (name, description, status: active, completed, or archived) with authenticated CRUD at `/api/projects`. Every query is scoped to the signed-in user.
+  - **Tasks:** a task can belong to one of its owner's projects, move between projects, or be unassigned. A foreign, missing, or malformed project reference is rejected.
+  - **Deleting a project keeps its tasks:** they become unassigned first, then the project is deleted.
+  - **Work:** Tasks and Projects tabs; a Projects page (`/work/projects`) to create, edit, and delete projects with open-task counts and progress; and a project detail page (`/work/projects/:id`) with its tasks, details, and activity derived from timestamps.
+  - **Task form:** a Project field (Unassigned by default). Task cards link to their project, and a project can start a new task already assigned to it.
+  - **Command Center:** an Active projects panel with real open-task counts and completion.
+  - **Demo data:** the seed script now also creates two demo projects.
+- The API now answers malformed JSON with `400 { message: 'Malformed JSON body' }`, and unexpected errors with `500 { message: 'Server error' }`, instead of Express's HTML error page. Creating a task with no request body now returns the usual `400` validation message instead of a `500`, and an update with no body is a harmless no-op.
+
 - Session-expiration handling:
   - An authenticated API call that gets a 401 clears the session and task data, then redirects to the login page with a "session expired" message.
   - Stale requests can't sign out a newly logged-in user.

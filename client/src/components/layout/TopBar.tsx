@@ -72,7 +72,7 @@ const TopBar = ({ navOpen, onOpenNav, onRefresh, refreshing }: TopBarProps) => {
           {dateFormat.format(today)}
         </Text>
         <IconButton
-          aria-label="Refresh tasks"
+          aria-label="Refresh workspace"
           variant="outline"
           size="sm"
           onClick={onRefresh}

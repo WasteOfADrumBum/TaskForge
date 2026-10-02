@@ -25,7 +25,9 @@ import SectionHeader from '../../components/common/SectionHeader';
 import PriorityTaskRow from '../../components/tasks/PriorityTaskRow';
 import { useToday } from '../../hooks/useToday';
 import { useAppSelector } from '../../redux/hooks/typedHooks';
+import { getProjectId } from '../../types/project';
 import { getTaskId } from '../../types/task';
+import { getProjectStats, getStatsForProject } from '../../utils/projects';
 import {
   getGreeting,
   getRecentActivity,
@@ -63,6 +65,12 @@ const CommandCenterPage = () => {
   const priorities = allPriorities.slice(0, 5);
   const recommendations = useMemo(() => getRecommendations(tasks, now), [tasks, now]);
   const activity = useMemo(() => getRecentActivity(tasks), [tasks]);
+  const projects = useAppSelector((state) => state.projects.items);
+  const activeProjects = useMemo(
+    () => projects.filter((project) => project.status === 'active'),
+    [projects],
+  );
+  const projectStats = useMemo(() => getProjectStats(tasks, now), [tasks, now]);
   const initialLoad = loading && tasks.length === 0;
   const open = summary.todo + summary.inProgress;
   const completion = summary.total ? Math.round((summary.done / summary.total) * 100) : 0;
@@ -223,6 +231,65 @@ const CommandCenterPage = () => {
         </VStack>
 
         <VStack align="stretch" gap={6} minW="0">
+          {activeProjects.length > 0 && (
+            <Box
+              as="section"
+              aria-labelledby="active-projects-heading"
+              bg="bg.panel"
+              borderWidth="1px"
+              borderRadius="lg"
+              p={{ base: 4, md: 5 }}
+            >
+              <SectionHeader
+                id="active-projects-heading"
+                title="Active projects"
+                count={activeProjects.length}
+                action={{ label: 'All projects', to: '/work/projects' }}
+              />
+              <Box as="ul" listStyleType="none" m={0} p={0}>
+                {activeProjects.slice(0, 4).map((project) => {
+                  const stats = getStatsForProject(projectStats, getProjectId(project));
+                  return (
+                    <Box
+                      as="li"
+                      key={getProjectId(project)}
+                      py={3}
+                      borderTopWidth="1px"
+                      borderColor="border.muted"
+                    >
+                      <HStack justify="space-between" gap={3} mb={1.5}>
+                        <Link
+                          asChild
+                          fontSize="sm"
+                          fontWeight="medium"
+                          color="fg"
+                          minW="0"
+                          _hover={{ color: 'accent.teal' }}
+                        >
+                          <RouterLink to={'/work/projects/' + getProjectId(project)}>
+                            <Text as="span" truncate>
+                              {project.name}
+                            </Text>
+                          </RouterLink>
+                        </Link>
+                        <Text fontSize="xs" color="fg.muted" flexShrink={0}>
+                          {stats.total ? `${stats.open} open` : 'No tasks'}
+                        </Text>
+                      </HStack>
+                      {stats.total > 0 && (
+                        <Progress.Root value={stats.completion} size="xs" colorPalette="teal">
+                          <Progress.Track aria-label={project.name + ' completion'}>
+                            <Progress.Range />
+                          </Progress.Track>
+                        </Progress.Root>
+                      )}
+                    </Box>
+                  );
+                })}
+              </Box>
+            </Box>
+          )}
+
           <Box
             as="section"
             aria-labelledby="summary-heading"

@@ -51,9 +51,10 @@ The request flow is `routes → controllers → services → models`:
 - `src/server.ts` is the entry point: it checks env vars, connects Mongoose, listens on `0.0.0.0`, and handles graceful shutdown.
 - **Controllers** validate input and map results to HTTP status codes. Errors return `{ message }`, and unexpected errors return a generic `500 Server error`.
 - **Services** are thin Mongoose wrappers. Every task query is scoped by `owner`, so a user can only see or change their own tasks. Keep that scoping on any new task query.
-- `middleware/auth` (`requireAuth`) checks the `Authorization: Bearer <jwt>` header and sets `req.userId` (typed in `src/types/express.d.ts`). All `/api/tasks` routes use it.
+- `middleware/auth` (`requireAuth`) checks the `Authorization: Bearer <jwt>` header and sets `req.userId` (typed in `src/types/express.d.ts`). All `/api/tasks` and `/api/projects` routes use it.
 - JWTs are signed as `{ id }` and expire in `7d`. Logout is stateless: the server does nothing and the client drops the token.
-- Task enums live in `models/taskModel` (`TASK_STATUSES`, `TASK_PRIORITIES`). Controllers validate against them.
+- Task enums live in `models/taskModel` (`TASK_STATUSES`, `TASK_PRIORITIES`); project statuses and length limits live in `models/projectModel`. Controllers validate against them.
+- **Projects:** a task's optional `project` must be omitted, `null`/`''` (unassign), or a project the same user owns. Check it through `projectService.ownsProject`, and give a foreign project the same response as a missing one. Validate ids from input with `utils/objectId.ts` (`isObjectIdString`), not `mongoose.isValidObjectId`. `deleteProjectById` unassigns tasks before deleting the project; keep that order.
 - Route tests mock the service layer with `jest.mock('../../services/...')`. They do not use a real database.
 - Use `requireEnv(name)` from `config/env.ts` to read required env vars at call time.
 - The `index.ts` barrels in `controllers/`, `services/`, `routes/`, and `utils/` are empty. Import from the specific module folder.
@@ -62,16 +63,17 @@ The request flow is `routes → controllers → services → models`:
 
 - `App.tsx` exports `AppRoutes` and lazy-loads pages from `src/pages/<Name>/index.tsx`.
   - Public: `/` (landing), `/login`, `/register`.
-  - Authenticated, behind `ProtectedRoute` inside `components/layout/AppShell`: `/home` (`CommandCenterPage`), `/work` (`WorkPage`, the task workspace), `/workforce` (a placeholder; Phase 2 is not built), and `/settings`.
-- `AppShell` owns the sidebar (`Sidebar`; a drawer below `lg`), `TopBar`, and task loading (`hooks/useTaskLoader`). Pages read tasks from Redux; they don't fetch them on mount.
+  - Authenticated, behind `ProtectedRoute` inside `components/layout/AppShell`: `/home` (`CommandCenterPage`), `/work` (`WorkPage`, the task workspace), `/work/projects` (`ProjectsPage`), `/work/projects/:id` (`ProjectDetailPage`), `/workforce` (a placeholder; Phase 2 is not built), and `/settings`. `components/work/WorkTabs` switches between Tasks and Projects.
+- `AppShell` owns the sidebar (`Sidebar`; a drawer below `lg`), `TopBar`, and data loading (`hooks/useTaskLoader`, `hooks/useProjectLoader`). Pages read tasks and projects from Redux; they don't fetch them on mount. Project mutations go through `hooks/useProjectActions`. Project stats and activity come from `utils/projects.ts`, derived from task data.
 - Command Center insights are pure functions in `utils/commandCenter.ts`. They are rule-based; never present them as AI.
 - Theme: `assets/theme/theme.ts` overrides Chakra's dark semantic tokens (`bg.*`, `fg.*`, `border.*`) with the v2 palette and adds `accent.{teal,orange,violet}` and `shell.*`. Use these tokens, not hex values. Dark is the default color mode.
-- Tests: `src/test/renderApp.tsx` renders `AppRoutes` with an in-memory task API stub. jsdom applies only base (mobile) styles, so shell tests navigate through the drawer.
-- Redux store (`redux/store.ts`, `rootreducer.ts`) has two slices:
+- Tests: `src/test/renderApp.tsx` renders `AppRoutes` against `stubTaskApi`, an in-memory stub of the task **and project** APIs (`makeTask`, `makeProject`, and `requestsTo` for counting calls to an endpoint). jsdom applies only base (mobile) styles, so shell tests navigate through the drawer. `findBy*`/`waitFor` use a 3 s timeout (`setupTests.ts`).
+- Redux store (`redux/store.ts`, `rootreducer.ts`) has three slices:
   - `authSlice`: `token` (seeded from `localStorage.token`), `loading`, `error`.
-  - `taskSlice`: `items`, `loading`, `error`. It resets on both `clearAuth` and `sessionExpired`.
+  - `taskSlice`: `items`, `loading`, `error`. It resets on both `clearAuth` and `sessionExpired`, and unassigns tasks locally on `removeProject`.
+  - `projectSlice`: `items`, `loading`, `error`, `loaded` (true once the first load finishes, so pages can tell loading apart from not found). It resets on `clearAuth` and `sessionExpired`.
 - Use the typed hooks `useAppDispatch` / `useAppSelector` from `redux/hooks/typedHooks.ts`.
-- The API layer is in `src/api/`. It uses plain `fetch` with no axios. Functions take the token explicitly and throw `Error(message)` with the server's `message`. Task calls go through `authenticatedFetch`, which also reads the global `store`. Component tests that call the task API must use that store, not a separate `configureStore`.
+- The API layer is in `src/api/`. It uses plain `fetch` with no axios. Functions take the token explicitly and throw `Error(message)` with the server's `message`. Task and project calls go through `authenticatedFetch`, which also reads the global `store`; shared helpers live in `api/http.ts`. Component tests that call these APIs must use that store, not a separate `configureStore`.
 - **Session expiration:**
   - Authenticated calls go through `api/authenticatedFetch.ts`.
   - On a 401 it calls `expireSession` (`utils/session.ts`), which clears `localStorage` and dispatches `sessionExpired`. It then throws `SessionExpiredError`.

@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import bcrypt from 'bcrypt';
 import mongoose from 'mongoose';
+import { Project } from '../models/projectModel';
 import { Task } from '../models/taskModel';
 import { User } from '../models/userModel';
 import { requireEnv } from '../config/env';
@@ -22,6 +23,22 @@ const seedDemo = async () => {
   }
 
   await Task.deleteMany({ owner: user._id });
+  await Project.deleteMany({ owner: user._id });
+
+  const [launch, operations] = await Project.insertMany([
+    {
+      name: 'TaskForge v2 launch',
+      description: 'Ship the v2 command center and verify it in production.',
+      status: 'active',
+      owner: user._id,
+    },
+    {
+      name: 'Platform operations',
+      description: 'Keep the API, database, and integrations healthy.',
+      status: 'active',
+      owner: user._id,
+    },
+  ]);
 
   // Due dates are calendar dates stored as UTC midnight, the same shape the task form
   // produces, so the client shows the intended day in every time zone.
@@ -41,6 +58,7 @@ const seedDemo = async () => {
       status: 'in-progress',
       priority: 'high',
       dueDate: tomorrow,
+      project: launch._id,
       owner: user._id,
     },
     {
@@ -57,6 +75,7 @@ const seedDemo = async () => {
       status: 'done',
       priority: 'low',
       dueDate: null,
+      project: launch._id,
       owner: user._id,
     },
     {
@@ -65,6 +84,7 @@ const seedDemo = async () => {
       status: 'todo',
       priority: 'high',
       dueDate: yesterday,
+      project: operations._id,
       owner: user._id,
     },
   ]);

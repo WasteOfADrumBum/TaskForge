@@ -1,25 +1,6 @@
 import { authenticatedFetch } from './authenticatedFetch';
+import { API_URL, authHeaders, getErrorMessage } from './http';
 import type { Task, TaskInput, TaskUpdate } from '../types/task';
-
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
-
-interface ErrorResponse {
-  message?: string;
-}
-
-const getErrorMessage = async (response: Response, fallback: string) => {
-  try {
-    const body = (await response.json()) as ErrorResponse;
-    return body.message ?? fallback;
-  } catch {
-    return fallback;
-  }
-};
-
-const authHeaders = (token: string) => ({
-  Authorization: 'Bearer ' + token,
-  'Content-Type': 'application/json',
-});
 
 export const getTasks = async (token: string): Promise<Task[]> => {
   const response = await authenticatedFetch(API_URL + '/api/tasks', {

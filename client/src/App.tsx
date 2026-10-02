@@ -10,11 +10,14 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const AppShell = lazy(() => import('./components/layout/AppShell'));
 const CommandCenterPage = lazy(() => import('./pages/CommandCenterPage'));
 const WorkPage = lazy(() => import('./pages/WorkPage'));
+const ProjectsPage = lazy(() => import('./pages/ProjectsPage'));
+const ProjectDetailPage = lazy(() => import('./pages/ProjectDetailPage'));
 const WorkforcePage = lazy(() => import('./pages/WorkforcePage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 
 // Public: `/` (landing), `/login`, `/register`.
-// Authenticated, inside the app shell: `/home` (Command Center), `/work`, `/workforce`, `/settings`.
+// Authenticated, inside the app shell: `/home` (Command Center), `/work` (tasks),
+// `/work/projects`, `/work/projects/:id`, `/workforce`, `/settings`.
 export const AppRoutes = () => (
   <Suspense fallback={<div>Loading...</div>}>
     <Routes>
@@ -25,6 +28,8 @@ export const AppRoutes = () => (
         <Route element={<AppShell />}>
           <Route path="/home" element={<CommandCenterPage />} />
           <Route path="/work" element={<WorkPage />} />
+          <Route path="/work/projects" element={<ProjectsPage />} />
+          <Route path="/work/projects/:id" element={<ProjectDetailPage />} />
           <Route path="/workforce" element={<WorkforcePage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>

@@ -16,7 +16,7 @@ A unified dashboard, today's priorities, tasks, projects, agent activity, calend
 
 ## Implemented so far (foundation)
 
-The Command Center at `/home` uses **task data only**. Everything on it is computed from the signed-in user's tasks in `client/src/utils/commandCenter.ts`, with no AI and no new API endpoints.
+The Command Center at `/home` is computed from the signed-in user's tasks and projects, using `client/src/utils/commandCenter.ts` and `client/src/utils/projects.ts`. It uses no AI.
 
 - **Daily brief:** time-of-day greeting, plus how many tasks need attention today and how many are open.
 - **Metrics:** open tasks, in progress, completed (with completion %), and overdue.
@@ -24,11 +24,12 @@ The Command Center at `/home` uses **task data only**. Everything on it is compu
 - **Task summary:** completion progress, plus counts by status.
 - **Recent task changes:** "created" or "updated", from each task's `createdAt`/`updatedAt`. The API keeps no change history, so this is not a full activity log.
 - **Recommended next:** fixed rules, labeled "Rule based" in the UI. Resolve overdue work, continue or finish in-progress work, start a high-priority task, plan for tasks due soon.
+- **Active projects** (branch `feat/work-projects-foundation`): shown only when the user has active projects. Each shows its name (linking to the project), its open-task count, and a completion bar. There are no project recommendations.
 
 ## Planned capabilities
 
 - Unified home dashboard across all sources
-- Projects
+- Deeper project views (for example, projects at risk based on overdue work)
 - Agent activity
 - Calendar
 - Email highlights
@@ -39,7 +40,7 @@ The Command Center at `/home` uses **task data only**. Everything on it is compu
 
 - Phase 2 (agents)
 - Phase 3 (knowledge)
-- A projects model, which does not exist yet
+- The projects model from the Work + Projects foundation (in progress)
 - Read-only calendar and email integrations
 
 ## Definition of done

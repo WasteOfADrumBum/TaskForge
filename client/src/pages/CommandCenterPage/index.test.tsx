@@ -1,0 +1,70 @@
+import { screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { store } from '../../redux/store';
+import { clearAuth } from '../../redux/slices/authSlice';
+import { makeProject, makeTask, renderApp, signIn, stubTaskApi } from '../../test/renderApp';
+
+vi.mock('../../components/ui/toaster', () => ({ toaster: { create: vi.fn() } }));
+
+afterEach(() => {
+  store.dispatch(clearAuth());
+  localStorage.clear();
+  vi.unstubAllGlobals();
+});
+
+const activeProjects = () => within(screen.getByRole('region', { name: /active projects/i }));
+
+describe('Command Center active projects', () => {
+  it('lists only active projects with real open-task counts', async () => {
+    signIn();
+    stubTaskApi(
+      [
+        makeTask({ _id: 't1', title: 'One', project: 'p1' }),
+        makeTask({ _id: 't2', title: 'Two', project: 'p1', status: 'done' }),
+        makeTask({ _id: 't3', title: 'Three', project: 'p1', status: 'in-progress' }),
+      ],
+      [
+        makeProject({ _id: 'p1', name: 'Launch' }),
+        makeProject({ _id: 'p2', name: 'Empty project' }),
+        makeProject({ _id: 'p3', name: 'Finished', status: 'completed' }),
+        makeProject({ _id: 'p4', name: 'Shelved', status: 'archived' }),
+      ],
+    );
+    renderApp('/home');
+    await screen.findByRole('heading', { level: 1, name: /good/i });
+
+    const panel = await waitFor(() => activeProjects());
+    expect(panel.getByText('2')).toBeInTheDocument();
+    const rows = panel.getAllByRole('listitem').map((row) => within(row));
+    expect(rows).toHaveLength(2);
+    expect(rows[0].getByRole('link', { name: 'Launch' })).toBeInTheDocument();
+    expect(rows[0].getByText('2 open')).toBeInTheDocument();
+    expect(rows[1].getByRole('link', { name: 'Empty project' })).toBeInTheDocument();
+    expect(rows[1].getByText('No tasks')).toBeInTheDocument();
+    expect(panel.queryByText('Finished')).not.toBeInTheDocument();
+    expect(panel.queryByText('Shelved')).not.toBeInTheDocument();
+    expect(panel.getByRole('progressbar', { name: 'Launch completion' })).toHaveAttribute(
+      'aria-valuenow',
+      '33',
+    );
+  });
+
+  it('links to the project and to all projects', async () => {
+    signIn();
+    stubTaskApi([], [makeProject({ _id: 'p1', name: 'Launch' })]);
+    renderApp('/home');
+    const panel = await waitFor(() => activeProjects());
+    await userEvent.click(panel.getByRole('link', { name: 'Launch' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Launch' })).toBeInTheDocument();
+  });
+
+  it('hides the panel when there are no active projects', async () => {
+    signIn();
+    stubTaskApi([], [makeProject({ _id: 'p1', name: 'Done', status: 'completed' })]);
+    renderApp('/home');
+    await screen.findByRole('heading', { level: 1, name: /good/i });
+    await waitFor(() => expect(store.getState().projects.loaded).toBe(true));
+    expect(screen.queryByRole('region', { name: /active projects/i })).not.toBeInTheDocument();
+  });
+});

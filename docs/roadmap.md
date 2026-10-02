@@ -77,7 +77,7 @@ These are known minor polish issues found during PR #7. They were never Phase 1 
 
 **Status: PLANNED.** A `/workforce` placeholder page (merged in PR #6) describes these concepts and labels them as planned. Nothing below is implemented.
 
-- [ ] **PLANNED**: Work + Projects foundation (next checkpoint). Add a projects model and an owner-scoped API, plus a Projects area in Work. This is a prerequisite: Phase 2 agent assignment and Phase 4 Projects both need it.
+- [ ] **IN PROGRESS**: Work + Projects foundation: user-owned projects (model, owner-scoped CRUD API, optional task → project link, delete keeps tasks), a Projects area in Work, and Active projects on the Command Center. Branch `feat/work-projects-foundation`, validated locally, waiting for review and merge. This is a prerequisite only: no agent, worker, or AI feature is implemented.
 - [ ] **PLANNED**: Agent Registry (role, description, skills, permissions, tools, status)
 - [ ] **PLANNED**: Assign TaskForge tasks to agents
 - [ ] **PLANNED**: Shared agent knowledge
@@ -112,10 +112,10 @@ These are known minor polish issues found during PR #7. They were never Phase 1 
 
 **Status: IN PROGRESS** (task-based foundation merged in PR #6)
 
-- [ ] **IN PROGRESS**: Unified home dashboard (Command Center at `/home`; tasks are its only data source so far)
+- [ ] **IN PROGRESS**: Unified home dashboard (Command Center at `/home`; data sources so far are tasks and, on branch `feat/work-projects-foundation`, projects)
 - [ ] **IN PROGRESS**: Today's priorities (derived from tasks: overdue, due today, high priority, due soon)
 - [ ] **IN PROGRESS**: Tasks (open, in-progress, completed, and overdue metrics; completion summary; recent task changes from task timestamps)
-- [ ] **PLANNED**: Projects (no projects model yet)
+- [ ] **IN PROGRESS**: Projects (an Active projects panel with real open-task counts and completion; branch `feat/work-projects-foundation`)
 - [ ] **PLANNED**: Agent activity (depends on Phase 2)
 - [ ] **PLANNED**: Calendar
 - [ ] **PLANNED**: Email highlights

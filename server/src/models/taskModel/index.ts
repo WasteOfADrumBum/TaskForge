@@ -11,6 +11,8 @@ const taskSchema = new Schema(
     priority: { type: String, enum: TASK_PRIORITIES, default: 'medium' },
     dueDate: { type: Date, default: null },
     owner: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    // Optional; tasks can exist without a project. Always a project owned by the same user.
+    project: { type: Schema.Types.ObjectId, ref: 'Project', default: null, index: true },
   },
   { timestamps: true },
 );

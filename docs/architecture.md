@@ -25,21 +25,21 @@ flowchart LR
     API -- "Mongoose" --> DB
 ```
 
-| Piece    | Where         | What it does                                                                    |
-| -------- | ------------- | ------------------------------------------------------------------------------- |
-| Frontend | `client/`     | React 19 SPA. Renders pages, holds auth and task state in Redux, calls the API. |
-| API      | `server/`     | Express 5 REST API. Auth, validation, and owner-scoped task CRUD.               |
-| Database | MongoDB Atlas | Stores `users` (email, bcrypt hash) and `tasks` (with an `owner` user id).      |
+| Piece    | Where         | What it does                                                                                                                                                 |
+| -------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Frontend | `client/`     | React 19 SPA. Renders pages, holds auth, task, and project state in Redux, calls the API.                                                                    |
+| API      | `server/`     | Express 5 REST API. Auth, validation, and owner-scoped task and project CRUD.                                                                                |
+| Database | MongoDB Atlas | Stores `users` (email, bcrypt hash), `projects`, and `tasks`. Projects and tasks carry an `owner` user id; a task may reference one of its owner's projects. |
 
 ## Frontend
 
 - Built with Vite and served by Vercel as static files. `client/vercel.json` rewrites every path to `index.html` so client-side routes like `/home` work on refresh.
 - Routing (React Router v7) with lazy-loaded pages:
   - Public: `/` (landing), `/login`, `/register`.
-  - Authenticated: `/home` (Command Center), `/work` (task workspace), `/workforce` (planned-feature placeholder), and `/settings`. All four sit behind `ProtectedRoute` inside a shared `AppShell` layout.
-- The `AppShell` provides the sidebar (a drawer below the `lg` breakpoint), the top bar, and the skip-to-content link. It loads the user's tasks once per session; the top bar's refresh action reloads them.
-- State (Redux Toolkit): an `auth` slice (token, loading, error) and a `tasks` slice (items, loading, error).
-- API layer (`client/src/api/`): plain `fetch`. Task calls go through `authenticatedFetch`, which handles `401` responses and stale requests.
+  - Authenticated: `/home` (Command Center), `/work` (tasks), `/work/projects` (projects), `/work/projects/:id` (project detail), `/workforce` (planned-feature placeholder), and `/settings`. All of them sit behind `ProtectedRoute` inside a shared `AppShell` layout.
+- The `AppShell` provides the sidebar (a drawer below the `lg` breakpoint), the top bar, and the skip-to-content link. It loads the user's tasks and projects once per session; the top bar's refresh action reloads both.
+- State (Redux Toolkit): an `auth` slice (token, loading, error), a `tasks` slice (items, loading, error), and a `projects` slice (items, loading, error, loaded). When a project is deleted, the tasks slice unassigns its tasks locally, mirroring the server.
+- API layer (`client/src/api/`): plain `fetch`. Task and project calls go through `authenticatedFetch`, which handles `401` responses and stale requests. Shared helpers live in `api/http.ts`.
 - The API base URL comes from `VITE_API_URL` at build time.
 
 ## API
@@ -51,21 +51,38 @@ flowchart LR
     Req[HTTP request] --> CORS[CORS allowlist] --> JSON[JSON body parser] --> Router
     Router -- "/api/auth/*" --> AuthC[authController]
     Router -- "/api/tasks/*" --> RA[requireAuth] --> TaskC[taskController]
+    Router -- "/api/projects/*" --> RP[requireAuth] --> ProjC[projectController]
     AuthC --> AuthS[authService] --> UserM[(User model)]
     TaskC --> TaskS["taskService<br/>(every query filtered by owner)"] --> TaskM[(Task model)]
+    TaskC -- "project ownership check" --> ProjS
+    ProjC --> ProjS["projectService<br/>(every query filtered by owner)"] --> ProjM[(Project model)]
+    ProjS -- "unassign tasks on delete" --> TaskM
 ```
 
-| Endpoint                  | Auth | Purpose                          |
-| ------------------------- | ---- | -------------------------------- |
-| `GET /`                   | No   | Plain-text "API is running" page |
-| `GET /health`             | No   | Liveness check used by Render    |
-| `POST /api/auth/register` | No   | Create an account                |
-| `POST /api/auth/login`    | No   | Verify credentials, return a JWT |
-| `POST /api/auth/logout`   | No   | Stateless acknowledgement        |
-| `GET /api/tasks`          | JWT  | List the signed-in user's tasks  |
-| `POST /api/tasks`         | JWT  | Create a task owned by the user  |
-| `PATCH /api/tasks/:id`    | JWT  | Update one of the user's tasks   |
-| `DELETE /api/tasks/:id`   | JWT  | Delete one of the user's tasks   |
+| Endpoint                   | Auth | Purpose                                       |
+| -------------------------- | ---- | --------------------------------------------- |
+| `GET /`                    | No   | Plain-text "API is running" page              |
+| `GET /health`              | No   | Liveness check used by Render                 |
+| `POST /api/auth/register`  | No   | Create an account                             |
+| `POST /api/auth/login`     | No   | Verify credentials, return a JWT              |
+| `POST /api/auth/logout`    | No   | Stateless acknowledgement                     |
+| `GET /api/tasks`           | JWT  | List the signed-in user's tasks               |
+| `POST /api/tasks`          | JWT  | Create a task owned by the user               |
+| `PATCH /api/tasks/:id`     | JWT  | Update one of the user's tasks                |
+| `DELETE /api/tasks/:id`    | JWT  | Delete one of the user's tasks                |
+| `GET /api/projects`        | JWT  | List the signed-in user's projects            |
+| `POST /api/projects`       | JWT  | Create a project owned by the user            |
+| `GET /api/projects/:id`    | JWT  | Get one of the user's projects                |
+| `PATCH /api/projects/:id`  | JWT  | Update one of the user's projects             |
+| `DELETE /api/projects/:id` | JWT  | Delete a project; its tasks become unassigned |
+
+**Projects and tasks:**
+
+- **Model:** `Project` has `name` (required, up to 120 characters), `description` (up to 2000), `status` (`active`, `completed`, or `archived`), `owner`, and timestamps. `Task.project` is optional and defaults to `null`.
+- **Ownership:** every project query filters by `owner`. A task's `project` must be omitted (no change), `null` or `''` (unassign), or the id of a project the same user owns. A malformed id gets `400 Invalid project`. A missing project and another user's project both get `400 Project not found`, so the API never reveals whether another user's project exists. Malformed project ids in URLs get `404`.
+- **Deleting a project never deletes tasks.** The service first unassigns the owner's tasks from the project, then deletes the project. If the delete fails after that, the project still exists with no tasks pointing at it, and the request can be retried. After the delete, a second best-effort unassign catches a task the same user assigned to the project at that exact moment. Without a transaction this narrows that window rather than closing it, so the client also treats a reference to an unknown project as Unassigned. Editing such a task leaves its project untouched unless the user changes the Project field.
+
+A last-resort error handler in `app.ts` keeps every failure in the API's `{ message }` shape: malformed JSON → `400 Malformed JSON body`, an oversized body → `413`, anything else → `500 Server error`. Express's default HTML error page, with its stack trace, is never returned.
 
 `server/src/server.ts` checks that `MONGO_URI` and `JWT_SECRET` are set, connects to MongoDB, and only then starts listening. If either is missing or the database connection fails, the process exits.
 

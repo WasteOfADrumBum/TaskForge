@@ -10,6 +10,7 @@ import {
 } from '@chakra-ui/react';
 import { Suspense, useState } from 'react';
 import { Outlet } from 'react-router-dom';
+import { useProjectLoader } from '../../hooks/useProjectLoader';
 import { useTaskLoader } from '../../hooks/useTaskLoader';
 import { useAppSelector } from '../../redux/hooks/typedHooks';
 import AppFooter from './AppFooter';
@@ -21,8 +22,13 @@ const SIDEBAR_WIDTH = '248px';
 // Authenticated layout: persistent sidebar on large screens, a drawer below `lg`.
 const AppShell = () => {
   const [navOpen, setNavOpen] = useState(false);
-  const refresh = useTaskLoader();
-  const loading = useAppSelector((state) => state.tasks.loading);
+  const refreshTasks = useTaskLoader();
+  const refreshProjects = useProjectLoader();
+  const refresh = () => {
+    refreshTasks();
+    refreshProjects();
+  };
+  const loading = useAppSelector((state) => state.tasks.loading || state.projects.loading);
   const closeNav = () => setNavOpen(false);
 
   return (

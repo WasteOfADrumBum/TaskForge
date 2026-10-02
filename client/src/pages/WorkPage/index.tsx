@@ -30,8 +30,11 @@ import {
   setTaskError,
   setTaskLoading,
 } from '../../redux/slices/taskSlice';
+import WorkTabs from '../../components/work/WorkTabs';
+import { getProjectId, projectStatusLabel } from '../../types/project';
 import { getTaskId, type Task, type TaskPriority, type TaskStatus } from '../../types/task';
 import { toCalendarDate } from '../../utils/dates';
+import { sortProjects } from '../../utils/projects';
 import { filterAndSortTasks, type TaskSort } from '../../utils/tasks';
 
 const WorkPage = () => {
@@ -41,11 +44,23 @@ const WorkPage = () => {
   const tasks = useAppSelector((state) => state.tasks.items);
   const loading = useAppSelector((state) => state.tasks.loading);
   const error = useAppSelector((state) => state.tasks.error);
+  const projects = useAppSelector((state) => state.projects.items);
+  const projectsLoaded = useAppSelector((state) => state.projects.loaded);
+  const projectsError = useAppSelector((state) => state.projects.error);
+  // Location state from the top bar's New Task (newTask) or a project's "New task in project"
+  // (newTask + projectId).
+  const navState = location.state as { newTask?: number; projectId?: string } | null;
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<TaskPriority>('medium');
   const [dueDate, setDueDate] = useState('');
+  // '' means Unassigned.
+  const [projectId, setProjectId] = useState(navState?.projectId ?? '');
   const [editingId, setEditingId] = useState<string | null>(null);
+  // The edited task's project when editing started. An update only sends `project` when the
+  // user changed it, so a title-only edit can never unassign a task (for example while
+  // projects are still loading or failed to load).
+  const [editingOriginalProject, setEditingOriginalProject] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Task | null>(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
@@ -60,13 +75,20 @@ const WorkPage = () => {
       filterAndSortTasks(tasks, { search, status: statusFilter, priority: priorityFilter, sort }),
     [tasks, search, statusFilter, priorityFilter, sort],
   );
+  const sortedProjects = useMemo(() => sortProjects(projects), [projects]);
+  const projectsById = useMemo(
+    () => new Map(projects.map((project) => [getProjectId(project), project])),
+    [projects],
+  );
 
   const resetForm = () => {
     setTitle('');
     setDescription('');
     setPriority('medium');
     setDueDate('');
+    setProjectId('');
     setEditingId(null);
+    setEditingOriginalProject(null);
   };
   const resetFilters = () => {
     setSearch('');
@@ -77,11 +99,12 @@ const WorkPage = () => {
 
   // The top bar's "New Task" action navigates here with a fresh request id. A new request
   // cancels any in-progress edit (adjusting state during render) and focuses the title field.
-  const newTaskRequest = (location.state as { newTask?: number } | null)?.newTask;
+  const newTaskRequest = navState?.newTask;
   const [handledRequest, setHandledRequest] = useState(newTaskRequest);
   if (newTaskRequest !== handledRequest) {
     setHandledRequest(newTaskRequest);
     resetForm();
+    setProjectId(navState?.projectId ?? '');
   }
   useEffect(() => {
     if (newTaskRequest) titleRef.current?.focus();
@@ -93,9 +116,13 @@ const WorkPage = () => {
     dispatch(setTaskLoading(true));
     dispatch(setTaskError(null));
     const input = { title, description, priority, dueDate: dueDate || null };
+    const project = projectId || null;
     try {
       if (editingId) {
-        const task = await updateTask(token, editingId, input);
+        const task = await updateTask(token, editingId, {
+          ...input,
+          ...(project !== editingOriginalProject && { project }),
+        });
         dispatch(replaceTask(task));
         toaster.create({
           title: 'Task Updated',
@@ -103,7 +130,7 @@ const WorkPage = () => {
           type: 'success',
         });
       } else {
-        const task = await createTask(token, { ...input, status: 'todo' });
+        const task = await createTask(token, { ...input, project, status: 'todo' });
         dispatch(addTask(task));
         toaster.create({
           title: 'Task Created',
@@ -128,6 +155,10 @@ const WorkPage = () => {
     setDescription(task.description ?? '');
     setPriority(task.priority);
     setDueDate(toCalendarDate(task.dueDate) ?? '');
+    // Keep the real reference even if that project isn't in the list (not loaded yet, failed
+    // to load, or deleted); the select shows a labelled placeholder for it.
+    setProjectId(task.project ?? '');
+    setEditingOriginalProject(task.project ?? null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -176,7 +207,7 @@ const WorkPage = () => {
 
   return (
     <Box>
-      <Box mb={{ base: 6, md: 8 }}>
+      <Box mb={{ base: 5, md: 6 }}>
         <Text
           color="accent.teal"
           fontSize="xs"
@@ -193,6 +224,7 @@ const WorkPage = () => {
           Create, prioritize, and move your tasks from to do to done.
         </Text>
       </Box>
+      <WorkTabs />
       <SimpleGrid columns={{ base: 1, xl: 3 }} gap={6} alignItems="start">
         <chakra.form
           aria-labelledby="task-form-heading"
@@ -251,6 +283,35 @@ const WorkPage = () => {
                 value={dueDate}
                 onChange={(event) => setDueDate(event.target.value)}
               />
+            </Field.Root>
+            <Field.Root>
+              <Field.Label>Project</Field.Label>
+              <NativeSelect.Root>
+                <NativeSelect.Field
+                  value={projectId}
+                  onChange={(event) => setProjectId(event.target.value)}
+                >
+                  <option value="">Unassigned</option>
+                  {projectId && !projectsById.has(projectId) && (
+                    <option value={projectId}>
+                      {projectsLoaded
+                        ? 'Deleted project'
+                        : projectsError
+                          ? 'Projects unavailable'
+                          : 'Loading projects...'}
+                    </option>
+                  )}
+                  {sortedProjects.map((project) => (
+                    <option key={getProjectId(project)} value={getProjectId(project)}>
+                      {project.name}
+                      {project.status === 'active'
+                        ? ''
+                        : ' (' + projectStatusLabel[project.status] + ')'}
+                    </option>
+                  ))}
+                </NativeSelect.Field>
+                <NativeSelect.Indicator />
+              </NativeSelect.Root>
             </Field.Root>
             {error && (
               <Box
@@ -395,6 +456,7 @@ const WorkPage = () => {
                 onDelete={setDeleteTarget}
                 onStatusChange={(item, status) => void handleStatusChange(item, status)}
                 now={today}
+                project={task.project ? projectsById.get(task.project) : undefined}
               />
             ))}
           </VStack>

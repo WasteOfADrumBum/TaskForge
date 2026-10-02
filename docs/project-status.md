@@ -6,14 +6,14 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 
 ## Checkpoint
 
-| Item                      | Value                                                                                                       |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02)) |
-| Current phase             | Phase 2: AI Workforce, starting with the foundation work it depends on                                      |
-| Current branch            | `docs/close-phase-1`                                                                                        |
-| Current checkpoint        | Phase 1 closure                                                                                             |
-| Last completed checkpoint | TaskForge v2 production verification (PR #7, merged to `main` as `84c506d`)                                 |
-| Next recommended          | Work + Projects foundation: a projects model and API with owner scoping, plus a Projects area in Work       |
+| Item                      | Value                                                                                                         |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02))   |
+| Current phase             | Phase 2: AI Workforce, starting with the foundation work it depends on                                        |
+| Current branch            | `feat/work-projects-foundation`                                                                               |
+| Current checkpoint        | Work + Projects foundation: user-owned projects, Projects area in Work, Active projects on the Command Center |
+| Last completed checkpoint | Phase 1 closure (PR #8, merged to `main` as `a5661a5`)                                                        |
+| Next recommended          | Phase 2 Agent Registry: owner-scoped agent records only, still with no AI execution                           |
 
 ## Known blockers
 
@@ -99,16 +99,16 @@ The v2 shell and Command Center UX came from a separate TaskForge v2 prototype b
 
 ## Validation status
 
-Run on `docs/close-phase-1` on 2026-10-02 (local, before PR):
+Run on `feat/work-projects-foundation` on 2026-10-02 (local, before PR):
 
 | Check                  | Result                                                   |
 | ---------------------- | -------------------------------------------------------- |
 | `npm run format:check` | Pass                                                     |
 | `npm run lint`         | Pass (0 warnings)                                        |
 | `npm run typecheck`    | Pass (0 errors)                                          |
-| `npm test`             | Pass: client 128/128 (16 files), server 22/22 (4 suites) |
+| `npm test`             | Pass: client 170/170 (21 files), server 82/82 (7 suites) |
 | `npm run build`        | Pass (client + server)                                   |
 | `npm audit`            | Pass (0 vulnerabilities)                                 |
 | `git diff --check`     | Pass                                                     |
 
-Note: the server suite sometimes prints Jest's `A worker process has failed to exit gracefully` warning. This happened in 2 of 3 runs. All 22 tests still pass, the exit code is 0, and `--detectOpenHandles` reports no open handles. It already exists on `main` (this branch changes no code) and is tracked as maintenance in the roadmap.
+Note: the server suite sometimes prints Jest's `A worker process has failed to exit gracefully` warning. This happened in 2 of 3 runs. All tests still pass, the exit code is 0, and `--detectOpenHandles` reports no open handles. It already existed on `main` before this branch and is tracked as maintenance in the roadmap.

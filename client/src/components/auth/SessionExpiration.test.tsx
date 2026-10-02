@@ -87,8 +87,43 @@ describe('session expiration flow', () => {
     expect(screen.getByRole('heading', { name: 'Welcome back' })).toBeInTheDocument();
     expect(localStorage.getItem('token')).toBeNull();
     expect(store.getState().tasks).toEqual({ items: [], loading: false, error: null });
+    expect(store.getState().projects).toEqual({
+      items: [],
+      loading: false,
+      error: null,
+      loaded: false,
+    });
   });
 
+  it('expires the session when only the projects request gets a 401', async () => {
+    const token = `header.${btoa(JSON.stringify({ exp: Date.now() / 1000 + 3600 }))}.signature`;
+    store.dispatch(setToken(token));
+    localStorage.setItem('token', token);
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockImplementation((url: string) =>
+          Promise.resolve(
+            url.endsWith('/api/projects')
+              ? { status: 401, ok: false, json: async () => ({}) }
+              : { status: 200, ok: true, json: async () => ({ tasks: [privateTask] }) },
+          ),
+        ),
+    );
+    renderSession(true);
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent(SESSION_EXPIRED_MESSAGE),
+    );
+    expect(localStorage.getItem('token')).toBeNull();
+    expect(store.getState().tasks.items).toEqual([]);
+    expect(store.getState().projects).toEqual({
+      items: [],
+      loading: false,
+      error: null,
+      loaded: false,
+    });
+  });
   it('does not show other auth errors inline on the login page', () => {
     store.dispatch(setError('Invalid credentials'));
     render(
@@ -118,7 +153,9 @@ describe('session expiration flow', () => {
                 ok: true,
                 json: async () => ({ message: 'Logged out successfully' }),
               }
-            : { status: 200, ok: true, json: async () => ({ tasks: [] }) },
+            : url.endsWith('/api/projects')
+              ? { status: 200, ok: true, json: async () => ({ projects: [] }) }
+              : { status: 200, ok: true, json: async () => ({ tasks: [] }) },
         ),
       ),
     );
@@ -133,5 +170,11 @@ describe('session expiration flow', () => {
     expect(localStorage.getItem('token')).toBeNull();
     expect(store.getState().auth).toEqual({ token: null, loading: false, error: null });
     expect(store.getState().tasks).toEqual({ items: [], loading: false, error: null });
+    expect(store.getState().projects).toEqual({
+      items: [],
+      loading: false,
+      error: null,
+      loaded: false,
+    });
   });
 });
