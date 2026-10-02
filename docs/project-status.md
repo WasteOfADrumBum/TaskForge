@@ -6,14 +6,14 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 
 ## Checkpoint
 
-| Item                      | Value                                                                                                                                                   |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02))                                             |
-| Current phase             | Phase 2: AI Workforce, foundation work (no AI execution yet)                                                                                            |
-| Current branch            | `feat/agent-registry-foundation`                                                                                                                        |
-| Current checkpoint        | Agent Registry foundation: persistent, user-owned agent definitions; Workforce registry and agent detail pages; Workforce summary on the Command Center |
-| Last completed checkpoint | Work + Projects foundation (PR #9, merged to `main` as `493f0c3`)                                                                                       |
-| Next recommended          | Phase 2 provider abstraction (`AIProvider` with a no-provider/demo fallback), or task → agent assignment; still no paid provider                        |
+| Item                      | Value                                                                                                                         |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02))                   |
+| Current phase             | Phase 2: AI Workforce, foundation work (no AI execution yet)                                                                  |
+| Current branch            | Not started (Task → Agent Assignment branch to be created from `main`)                                                        |
+| Current checkpoint        | Task → Agent Assignment: assign TaskForge tasks to agent definitions (assignment only; no agent runs or AI execution)         |
+| Last completed checkpoint | Agent Registry foundation (PR #10, merged to `main` as `3ccb585`); before that, Work + Projects foundation (PR #9, `493f0c3`) |
+| Next recommended          | After assignment: Phase 2 provider abstraction (`AIProvider` with a no-provider/demo fallback); still no paid provider        |
 
 ## Known blockers
 
@@ -99,7 +99,7 @@ The v2 shell and Command Center UX came from a separate TaskForge v2 prototype b
 
 ## Validation status
 
-Run on `feat/agent-registry-foundation` on 2026-10-02 (local, before PR):
+Run on `feat/agent-registry-foundation` on 2026-10-02 (local, before PR #10). The PR #10 CI `quality` check also passed before the merge to `main` (`3ccb585`).
 
 | Check                  | Result                                                      |
 | ---------------------- | ----------------------------------------------------------- |

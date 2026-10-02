@@ -1,6 +1,6 @@
 # Phase 2: AI Workforce
 
-**Status: IN PROGRESS (foundation only).** No AI capability exists: nothing runs an agent or calls a model. Work + Projects is merged, and the Agent Registry (persistent agent definitions) is on a branch. Item-level status lives in [roadmap.md](../roadmap.md#phase-2-ai-workforce-details).
+**Status: IN PROGRESS (foundation only).** No AI capability exists: nothing runs an agent or calls a model. The Work + Projects foundation (PR #9), the Agent Registry (persistent agent definitions), and the Workforce summary (PR #10) are complete and merged. Task → Agent Assignment is the next planned checkpoint. AI execution, agent runs, permission enforcement, the provider abstraction, handoffs, and approvals are still planned. Item-level status lives in [roadmap.md](../roadmap.md#phase-2-ai-workforce-details).
 
 ## Foundation: Work + Projects (complete)
 
@@ -13,9 +13,9 @@ Projects are the first post-Phase-1 domain object (PR #9, merged). They give Pha
 
 Nothing here registers agents, runs anything, or calls an AI provider.
 
-## Foundation: Agent Registry (in progress)
+## Foundation: Agent Registry (complete)
 
-Branch `feat/agent-registry-foundation` makes agents a persistent, user-owned domain object. **It stores agent definitions only.**
+The Agent Registry (PR #10, merged) makes agents a persistent, user-owned domain object. **It stores agent definitions only.**
 
 - **Built:** an `Agent` model (name, role, description, status `active`/`paused`/`disabled`, skills, permissions, owner, timestamps); owner-scoped CRUD at `/api/agents`; the Workforce page as a real registry (list, create, edit, delete); an agent detail page at `/workforce/:id`; and a Workforce summary on the Command Center.
 - **Skills:** lowercase slug strings on the agent (for example `research`, `software-development`). No separate Skill collection; that can come later if matching needs more than tags.
@@ -110,7 +110,7 @@ interface AIProvider {
 
 ## Definition of done
 
-- [ ] Agents can be registered, edited, and disabled. Every agent is scoped to its owner. (In progress on `feat/agent-registry-foundation`.)
+- [x] Agents can be registered, edited, and disabled. Every agent is scoped to its owner. (Agent Registry, PR #10.)
 - [ ] A task can be assigned to an agent, and the run moves through every state.
 - [ ] Handoffs create linked child runs.
 - [ ] Every agent result needs human approval. Rejections are recorded.

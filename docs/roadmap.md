@@ -75,10 +75,10 @@ These are known minor polish issues found during PR #7. They were never Phase 1 
 
 ## Phase 2: AI Workforce ([details](phases/phase-2-ai-workforce.md))
 
-**Status: IN PROGRESS** (foundation only). Work + Projects is merged, and the Agent Registry is on a branch. Agents are saved definitions only: no AI execution, model calls, runs, assignments, handoffs, or approvals exist.
+**Status: IN PROGRESS** (foundation only). Work + Projects (PR #9) and the Agent Registry (PR #10) are merged. Agents are saved definitions only: no AI execution, model calls, runs, assignments, handoffs, approvals, or permission enforcement exist.
 
 - [x] **COMPLETE**: Work + Projects foundation: user-owned projects (model, owner-scoped CRUD API, optional task → project link, delete keeps tasks), a Projects area in Work, and Active projects on the Command Center (PR #9, merged to `main` as `493f0c3`). A prerequisite only: no agent or AI feature.
-- [ ] **IN PROGRESS**: Agent Registry: persistent, user-owned agent definitions (name, role, description, status active/paused/disabled, skills, permission identifiers) with owner-scoped CRUD at `/api/agents`, the Workforce registry page (`/workforce`), an agent detail page (`/workforce/:id`), and a Workforce summary on the Command Center. Branch `feat/agent-registry-foundation`, validated locally, waiting for review and merge. Definitions only: nothing runs an agent or enforces its permissions. A `tools` field is deferred until there are tools to describe.
+- [x] **COMPLETE**: Agent Registry: persistent, user-owned agent definitions (name, role, description, status active/paused/disabled, skills, permission identifiers) with owner-scoped CRUD at `/api/agents`, the Workforce registry page (`/workforce`), an agent detail page (`/workforce/:id`), and a Workforce summary on the Command Center. PR #10, CI green, merged to `main` as `3ccb585`. Definitions only: nothing runs an agent or enforces its permissions. A `tools` field is deferred until there are tools to describe.
 - [ ] **PLANNED**: Assign TaskForge tasks to agents
 - [ ] **PLANNED**: Shared agent knowledge
 - [ ] **PLANNED**: Agent run model (input, context, result, status)
@@ -112,11 +112,11 @@ These are known minor polish issues found during PR #7. They were never Phase 1 
 
 **Status: IN PROGRESS** (task-based foundation merged in PR #6)
 
-- [ ] **IN PROGRESS**: Unified home dashboard (Command Center at `/home`; data sources so far are tasks, projects, and, on branch `feat/agent-registry-foundation`, agent definitions)
+- [ ] **IN PROGRESS**: Unified home dashboard (Command Center at `/home`; data sources so far are tasks, projects, and agent definitions)
 - [ ] **IN PROGRESS**: Today's priorities (derived from tasks: overdue, due today, high priority, due soon)
 - [ ] **IN PROGRESS**: Tasks (open, in-progress, completed, and overdue metrics; completion summary; recent task changes from task timestamps)
 - [x] **COMPLETE**: Projects (an Active projects panel with real open-task counts and completion; merged in PR #9)
-- [ ] **IN PROGRESS**: Workforce summary (active, paused, and disabled agent counts, shown only when agents exist; branch `feat/agent-registry-foundation`)
+- [x] **COMPLETE**: Workforce summary (active, paused, and disabled agent counts, shown only when agents exist; merged in PR #10)
 - [ ] **PLANNED**: Agent activity (depends on agent runs in Phase 2)
 - [ ] **PLANNED**: Calendar
 - [ ] **PLANNED**: Email highlights
