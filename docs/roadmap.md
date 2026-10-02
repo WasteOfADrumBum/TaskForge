@@ -24,7 +24,7 @@ AI features go through a provider abstraction and are never hard-wired to one pa
 
 ## Phase 1: Stabilize TaskForge ([details](phases/phase-1-stabilize.md))
 
-**Status: IN PROGRESS**
+**Status: COMPLETE** (closed 2026-10-02; see the [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02))
 
 - [x] **COMPLETE**: Modernize repository/tooling (npm workspaces, ESLint 9 flat config, Prettier, TypeScript)
 - [x] **COMPLETE**: Modernize testing (client Vitest + Testing Library, server Jest + supertest)
@@ -52,18 +52,32 @@ AI features go through a provider abstraction and are never hard-wired to one pa
 - [x] **COMPLETE**: TaskForge v2 authenticated shell (persistent sidebar, top bar, mobile drawer, dark v2 theme; task workspace at `/work`; PR #6 merged and verified in production on 2026-10-01)
 - [x] **COMPLETE**: Production verification (2026-10-01: 62/62 automated checks against the live app in Edge with the New York time zone, covering every page, register, login, task create/edit/delete, status progression, due today/overdue, filters and sort, refresh, theme modes, 390/768/1440px layouts, the mobile drawer, logout, and both expired-session paths; throwaway `smoke-test-*@example.com` accounts were used and their tasks deleted; production demo data was not touched)
 - [x] **COMPLETE**: Screenshots (6 real captures from production in `docs/images/`, shown in the README)
-- [ ] **IN PROGRESS**: Production visual polish (TaskForge app icons and favicon, cropped and smaller logos, self-hosted Figtree, no white flash before the dark theme, client typecheck in CI; branch `chore/v2-production-verification`, validated locally, waiting for review and merge)
-- [ ] **PLANNED**: Recapture screenshots after the visual polish deploys (the current set shows the old, smaller logos)
-- [ ] **PLANNED**: Remove the two smoke-test accounts (`smoke-test-*@example.com`, 0 tasks each) in Atlas; there is no delete-account API
-- [ ] **IN PROGRESS**: MongoDB Atlas (production database per project owner; the live API is running, which requires a working database connection; record the cluster name and free tier from the Atlas dashboard to close this item. Not verifiable from the repo or a terminal.)
-- [ ] **IN PROGRESS**: Render Blueprint sync (`render.yaml` defines the service; confirm in the Render dashboard that the live service is synced to it. Not verifiable from the repo or a terminal.)
-- [ ] **IN PROGRESS**: Documentation cleanup (stale README and manifest names fixed; CHANGELOG backfill for work before PR #4 still open)
-- [ ] **PLANNED**: Demo reliability (Render free-tier cold starts, demo account always seeded)
+- [x] **COMPLETE**: Production visual polish (TaskForge app icons and favicon, cropped and smaller logos, self-hosted Figtree, no white flash before the dark theme, midnight rollover, client typecheck in CI; PR #7 merged, CI green, and verified live on 2026-10-02: the new favicon, logo, font, and theme script are served from production)
+- [x] **COMPLETE**: MongoDB Atlas (verified in the Atlas dashboard by the project owner on 2026-10-02: cluster `Cluster0`, database `taskforge`, Free tier, AWS N. Virginia `us-east-1`; production connectivity working)
+- [x] **COMPLETE**: Render Blueprint sync (verified in the Render dashboard by the project owner on 2026-10-02: the TaskForge Blueprint is connected to `WasteOfADrumBum/TaskForge` on `main`, the latest sync succeeded, and `taskforge-api` is synced to `main`)
+- [x] **COMPLETE**: Smoke-test account cleanup (the two `smoke-test-*@example.com` accounts were removed in Atlas by the project owner on 2026-10-02; the users collection holds only the intended real accounts)
+- [x] **COMPLETE**: Phase 1 infrastructure verification (Vercel app and Render API live, Atlas and Render Blueprint confirmed, CI green on `main`, and the API recovers from a free-tier cold start: after 20 minutes idle on 2026-10-02, a failed-login probe with a non-existent email took 32.9 s (a cold start) and returned the correct `401 Invalid credentials`, which requires a successful Atlas lookup. The next request took 0.43 s.)
+- [x] **COMPLETE**: Documentation cleanup for current docs (stale README, manifest names, and phase/status docs corrected; the CHANGELOG backfill for work before PR #4 is deferred to maintenance below)
+
+### Phase 1 maintenance (deferred; does not block Phase 1)
+
+Decided at Phase 1 closure (2026-10-02). These are tracked as ongoing maintenance, not Phase 1 scope.
+
+- [ ] **PLANNED**: Demo reliability. Show a clear "waking up the server" state during Render cold starts, and keep the demo account seeded. The API's recovery from a cold start was verified at closure; this item is about the waiting experience.
+- [ ] **PLANNED**: Recapture README screenshots. The current set is accurate except that it shows the older, smaller logos from before PR #7.
+- [ ] **PLANNED**: CHANGELOG backfill for work before PR #4. Build it from git history; never invent entries.
+
+These are known minor polish issues found during PR #7. They were never Phase 1 items:
+
+- [ ] **PLANNED**: Greeting refresh. The Command Center greeting (morning/afternoon/evening) only updates when the day changes.
+- [ ] **PLANNED**: Server test teardown. Jest sometimes warns that a worker `failed to exit gracefully`. This happened in 2 of 3 runs on 2026-10-02. All tests pass, and `--detectOpenHandles` finds no open handles, so it doesn't fail CI.
+- [ ] **PLANNED**: Hero logo contrast. The dark "Task" wordmark in `taskforge-logo.png` is hard to read on the dark background.
 
 ## Phase 2: AI Workforce ([details](phases/phase-2-ai-workforce.md))
 
 **Status: PLANNED.** A `/workforce` placeholder page (merged in PR #6) describes these concepts and labels them as planned. Nothing below is implemented.
 
+- [ ] **PLANNED**: Work + Projects foundation (next checkpoint). Add a projects model and an owner-scoped API, plus a Projects area in Work. This is a prerequisite: Phase 2 agent assignment and Phase 4 Projects both need it.
 - [ ] **PLANNED**: Agent Registry (role, description, skills, permissions, tools, status)
 - [ ] **PLANNED**: Assign TaskForge tasks to agents
 - [ ] **PLANNED**: Shared agent knowledge

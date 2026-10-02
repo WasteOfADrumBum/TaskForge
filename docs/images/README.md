@@ -4,7 +4,7 @@ README screenshots live in this folder. They are real captures from the producti
 
 ## Current set
 
-Captured 2026-10-01 from production, using a throwaway `smoke-test-*@example.com` account with realistic sample tasks.
+Captured 2026-10-01 from production, using a throwaway `smoke-test-*@example.com` account with realistic sample tasks. That account was removed from production on 2026-10-02.
 
 - **Browser:** Microsoft Edge (Playwright), 1440×900, dark mode, America/New_York time zone.
 - **Account:** the sample tasks were deleted after capture. The demo account was not used.
@@ -18,7 +18,7 @@ Captured 2026-10-01 from production, using a throwaway `smoke-test-*@example.com
 | `workforce.png`      | `/workforce` | Planned AI Workforce concepts, each labeled "Planned"                                      | Captured |
 | `settings.png`       | `/settings`  | Appearance (light / dark / system) inside the app shell                                    | Captured |
 
-**Known gap:** these were captured before the logo crop in `chore/v2-production-verification`. The sidebar and header logos in the images are the old, smaller ones. Recapture after that branch deploys.
+**Known gap:** these were captured before the logo crop in PR #7, so the sidebar and header logos in the images are the older, smaller ones. Everything else matches production. Recapturing is a [Phase 1 maintenance item](../roadmap.md#phase-1-maintenance-deferred-does-not-block-phase-1) and does not block anything.
 
 ## Recapturing
 

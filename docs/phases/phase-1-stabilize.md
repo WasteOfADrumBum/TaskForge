@@ -1,6 +1,39 @@
 # Phase 1: Stabilize TaskForge
 
-**Status: IN PROGRESS.** Item-level status lives in [roadmap.md](../roadmap.md#phase-1-stabilize-taskforge-details).
+**Status: COMPLETE** (closed 2026-10-02). Item-level status lives in [roadmap.md](../roadmap.md#phase-1-stabilize-taskforge-details).
+
+## Closure summary (2026-10-02)
+
+Every check below was done on production or on `main` before closing. Checks marked **(owner)** were confirmed by the project owner in a dashboard. The rest were checked directly against production, CI, or the repo.
+
+- **Production app live:** https://taskforge-alpha-six.vercel.app is served by Vercel, and the PR #7 assets on it match `main`.
+- **Production API live:** https://taskforge-api-rp2m.onrender.com, with `/health` returning `{"status":"ok"}`.
+- **Database (owner):** MongoDB Atlas `Cluster0`, database `taskforge`, Free tier, AWS `us-east-1`, with production connectivity working.
+- **Render (owner):** the Blueprint is synced to `main`. The TaskForge Blueprint is connected to `WasteOfADrumBum/TaskForge`, the latest sync succeeded, and `taskforge-api` follows `main`.
+- **Vercel production deployment:** working. The PR #7 assets (favicon, logos, self-hosted font, pre-paint theme script) are served live.
+- **CI:** green on `main` (PR #7 merge, `84c506d`).
+- **Cold start:** the API recovers from a free-tier cold start through the auth and database path. After 20 minutes idle on 2026-10-02, a failed-login probe with a non-existent email took 32.9 s (a cold start) and returned the correct `401 Invalid credentials`, which requires a successful Atlas lookup. The next request took 0.43 s.
+- **Production smoke test passed:** 62/62 automated checks on 2026-10-01. Details are in [project-status.md](../project-status.md#production-verification-2026-10-01).
+- **Session handling verified live:** logout, a server-rejected token, and an expired token each behave correctly.
+- **Responsive verification complete:** no horizontal overflow at 390, 768, or 1440px, and the mobile drawer's focus and Escape handling work.
+- **Screenshots captured:** 6 real production captures in the README.
+- **Quality gates clean:** format, lint, typecheck, test, build, and `npm audit` (0 vulnerabilities).
+- **Production data hygiene (owner):** the smoke-test accounts were removed from Atlas, and the users collection holds only the intended real accounts.
+
+### Deferred maintenance (does not block Phase 1)
+
+These three Phase 1 items were moved to maintenance at closure:
+
+- **Demo reliability:** show a clear "waking up the server" state during Render cold starts, and keep the demo account seeded.
+- **Screenshot recapture:** the current README screenshots are accurate except for the older, smaller logos from before PR #7.
+- **CHANGELOG backfill:** work before PR #4, built from git history.
+
+These are known minor polish issues from PR #7. They were never Phase 1 items:
+
+- **Greeting refresh:** the Command Center greeting only updates when the day changes.
+- **Hero logo contrast:** the dark "Task" wordmark is hard to read on the dark background.
+
+All five are tracked in the [roadmap](../roadmap.md#phase-1-maintenance-deferred-does-not-block-phase-1).
 
 ## Objective
 
@@ -37,23 +70,14 @@ Every later phase (agents, knowledge, command center) builds on this base of aut
   - due dates treated as calendar dates.
 - Production verification (2026-10-01): 62/62 live checks. Details are in [project-status.md](../project-status.md#production-verification-2026-10-01).
 - Screenshots: 6 real production captures in `docs/images/`, shown in the README.
-
-### In progress
-
-- **Production visual polish** (`chore/v2-production-verification`, waiting for merge):
-  - TaskForge app icons and favicon replace the React defaults.
-  - Logos are cropped to their content; the hero is 818 → 139 KB and the alt logo 410 → 48 KB.
-  - Figtree is self-hosted, and body text now uses it (it was limited to headings before).
-  - The theme is applied before first paint, so there's no white flash.
-  - The Command Center, Work page Overdue badges, and top bar date roll over at midnight.
-  - The client typecheck is clean and now runs in CI.
-- **MongoDB Atlas:** confirm the cluster and free tier in the Atlas dashboard.
-- **Render Blueprint:** confirm the live service is synced to `render.yaml` in the Render dashboard.
-- **Documentation cleanup:** backfill CHANGELOG entries for work before PR #4.
-
-### Remaining
-
-- Demo reliability: handle Render cold starts gracefully, keep the demo account seeded, and show a clear loading state
+- Production visual polish (PR #7):
+  - TaskForge icons and favicon;
+  - logos cropped to their content (hero 818 → 139 KB, alt logo 410 → 48 KB);
+  - self-hosted Figtree, now used for body text;
+  - no white flash before the dark theme;
+  - midnight rollover of the Command Center, the Work page Overdue badges, and the top bar date;
+  - client typecheck clean and in CI.
+- Infrastructure verified: MongoDB Atlas, the Render Blueprint, and a cold-start recovery. See the closure summary above.
 
 ## Dependencies
 
@@ -62,11 +86,13 @@ Every later phase (agents, knowledge, command center) builds on this base of aut
 
 ## Definition of done
 
-- [ ] Every Phase 1 roadmap item is COMPLETE.
-- [ ] CI is green on `main`.
-- [ ] The live client and API are reachable, and the demo login works after a cold start.
-- [ ] The README describes only real features and includes screenshots, an architecture diagram, and a live link.
-- [ ] `docs/project-status.md` has the real production URLs.
+Amended at closure (2026-10-02). See the closure decision under [Notes/decisions](#notesdecisions).
+
+- [x] Every Phase 1 roadmap item is COMPLETE. Items explicitly deferred to the maintenance list at closure are excluded.
+- [x] CI is green on `main`.
+- [x] The live client and API are reachable, and the login path works after a cold start. This was verified with a failed-login probe against a cold API, so no account was needed. Logging in with the demo account itself was not tested.
+- [x] The README describes only real features and includes screenshots, an architecture diagram, and a live link.
+- [x] `docs/project-status.md` has the real production URLs.
 
 ## Portfolio/career value
 
@@ -77,6 +103,10 @@ Shows end-to-end ownership: auth and security boundaries, testing, CI/CD, cloud 
 $0. Every service stays on its free tier. Accept free-tier limits such as cold starts and design around them instead of upgrading.
 
 ## Notes/decisions
+
+- **Closure decision (2026-10-02, project owner):** Phase 1 closes with three items moved to maintenance: demo reliability, screenshot recapture, and the CHANGELOG backfill. None of them affects whether the app is live, correct, or secure.
+  - The original criterion "the demo login works after a cold start" became "the login path works after a cold start". It was verified with a failed-login probe, so no account had to be created on the cleaned production database.
+  - The demo-account experience during a cold start is the "demo reliability" maintenance item.
 
 - JWTs are stored in `localStorage` and logout is stateless. This is acceptable for portfolio scope; revisit if refresh tokens are added.
 - The session-expiry check on the client is UI-only. The server stays the authority on signature and expiry.
