@@ -4,6 +4,10 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+### Milestones
+
+- **Phase 1 (Stabilize TaskForge) closed on 2026-10-02.** The production app and API are live, MongoDB Atlas (free tier) and the Render Blueprint (synced to `main`) are confirmed, CI is green, and the production smoke test passed 62/62. Demo reliability, a screenshot recapture, and a CHANGELOG backfill were moved to maintenance. See the [Phase 1 closure summary](docs/phases/phase-1-stabilize.md#closure-summary-2026-10-02).
+
 ### Added
 
 - Session-expiration handling:
@@ -34,7 +38,7 @@ All notable changes to TaskForge are recorded here.
 
 - Login tokens (JWTs) now last 7 days instead of 1 hour. Tokens stay in `localStorage` and logout is stateless, so a leaked token stays valid until it expires.
 - README rewritten for portfolio readers: live demo, CI badge, features, stack, architecture, auth/session behavior, testing, deployment, local setup, and environment variables. Replaces the outdated idea brainstorm.
-- Web app manifest now names the app "TaskForge" instead of the Create React App sample name. (The PWA icons `logo192.png`/`logo512.png` are still the stock React logo; tracked as a follow-up.)
+- Web app manifest now names the app "TaskForge" instead of the Create React App sample name. (The stock React PWA icons were later replaced with TaskForge icons; see below.)
 - The task workspace moved from `/home` to `/work`. Create, edit, delete, status changes, search, filters, sorting, and session handling work as before. Its summary metric cards moved to the Command Center (the "Total" count is no longer shown), and Settings and Log out moved to the sidebar.
 - Tasks now load once for the whole signed-in session, with a refresh button in the top bar, instead of on every visit to the task page.
 - New dark "v2" visual theme with teal, orange, and violet accents. The default color mode is now dark (previously it followed the system); light and system modes are still available in Settings.

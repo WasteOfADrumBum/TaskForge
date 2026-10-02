@@ -186,7 +186,7 @@ Future AI features will go through a provider abstraction (chat, embeddings, str
 - [Project status](docs/project-status.md): the current checkpoint, production URLs, and latest validation results.
 - [Changelog](CHANGELOG.md): notable changes.
 
-Current focus: **Phase 1 — Stabilize TaskForge** (production polish, documentation, verification). Next: **Phase 2 — AI Workforce** (agent registry, runs, human approval, provider abstraction).
+**Phase 1 — Stabilize TaskForge** is complete: the app is live, verified in production, and on free-tier infrastructure. Current focus: the foundation for **Phase 2 — AI Workforce** (agent registry, runs, human approval, provider abstraction). It starts with Work + Projects. Nothing in Phase 2 is built yet.
 
 ## About this project
 

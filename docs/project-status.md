@@ -2,31 +2,40 @@
 
 A short, living snapshot of where TaskForge is right now. For the full plan, see [roadmap.md](roadmap.md).
 
-**Last updated:** 2026-10-01
+**Last updated:** 2026-10-02
 
 ## Checkpoint
 
-| Item                      | Value                                                                                       |
-| ------------------------- | ------------------------------------------------------------------------------------------- |
-| Current phase             | Phase 1: Stabilize TaskForge (Phase 4 Command Center foundation started)                    |
-| Current branch            | `chore/v2-production-verification`                                                          |
-| Current checkpoint        | Production verification of the v2 shell, screenshots, and small production polish           |
-| Last completed checkpoint | TaskForge v2 shell + due-date calendar fix (PR #6, merged to `main` as `5c67c99`)           |
-| Next recommended          | Confirm Atlas and Render in their dashboards, then close Phase 1 and start Phase 2 planning |
+| Item                      | Value                                                                                                       |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02)) |
+| Current phase             | Phase 2: AI Workforce, starting with the foundation work it depends on                                      |
+| Current branch            | `docs/close-phase-1`                                                                                        |
+| Current checkpoint        | Phase 1 closure                                                                                             |
+| Last completed checkpoint | TaskForge v2 production verification (PR #7, merged to `main` as `84c506d`)                                 |
+| Next recommended          | Work + Projects foundation: a projects model and API with owner scoping, plus a Projects area in Work       |
 
 ## Known blockers
 
-- None in the code.
-- These two need a person with dashboard access:
-  - **MongoDB Atlas:** record the production cluster name and confirm the free tier.
-  - **Render:** confirm the `taskforge-api` service is synced to the `render.yaml` Blueprint.
+- None.
+
+## Infrastructure verification (2026-10-02)
+
+| Check             | Status   | Evidence                                                                                                                                                                                                                                   |
+| ----------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| MongoDB Atlas     | Complete | Atlas dashboard (project owner): cluster `Cluster0`, database `taskforge`, Free tier, AWS N. Virginia `us-east-1`, connectivity working                                                                                                    |
+| Render Blueprint  | Complete | Render dashboard (project owner): TaskForge Blueprint connected to `WasteOfADrumBum/TaskForge` on `main`, latest sync succeeded, `taskforge-api` synced to `main`                                                                          |
+| Vercel production | Complete | The PR #7 favicon, logo, self-hosted font, and pre-paint theme script are served by the live app                                                                                                                                           |
+| CI on `main`      | Complete | GitHub Actions green on the PR #7 merge (`84c506d`)                                                                                                                                                                                        |
+| API cold start    | Complete | After 20 minutes idle on 2026-10-02, a failed-login probe with a non-existent email took 32.9 s (a cold start) and returned the correct `401 Invalid credentials`, which requires a successful Atlas lookup. The next request took 0.43 s. |
+| Production data   | Complete | Smoke-test accounts removed in Atlas (project owner); the users collection holds only the intended real accounts                                                                                                                           |
 
 ## Production verification (2026-10-01)
 
 **Result:** 62/62 automated checks passed against the live app.
 
 - **Browser:** Microsoft Edge driven by Playwright, set to the America/New_York time zone.
-- **Accounts:** throwaway `smoke-test-*@example.com` accounts (two, because the first run's password wasn't kept); their tasks were deleted afterwards. The demo account and its data were not touched, and `seed:demo` was not run.
+- **Accounts:** throwaway `smoke-test-*@example.com` accounts (two, because the first run's password wasn't kept). Their tasks were deleted after the run, and the accounts were removed from Atlas on 2026-10-02. The demo account and its data were not touched, and `seed:demo` was not run.
 
 | Area             | Verified                                                                                                                                                              |
 | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -40,11 +49,9 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | Responsive       | No horizontal overflow at 390, 768, and 1440px on 6 pages; drawer focus moves in, Escape closes and returns focus, navigating closes it; persistent sidebar at 1440px |
 | Errors           | No uncaught page errors                                                                                                                                               |
 
-Two throwaway accounts named `smoke-test-<timestamp>@example.com` now exist in production, each with 0 tasks. There is no delete-account API, so they stay unless removed in Atlas.
-
 ## Production URLs
 
-Verified 2026-10-01: both URLs return HTTP 200, the API health check returns `{"status":"ok"}`, the live client bundle calls the Render API, and the API's CORS allows the Vercel origin. The v2 smoke test above re-confirmed both URLs on the same day.
+Verified 2026-10-01: both URLs return HTTP 200, the API health check returns `{"status":"ok"}`, the live client bundle calls the Render API, and the API's CORS allows the Vercel origin. Re-confirmed live on 2026-10-02.
 
 | Service      | URL                                            |
 | ------------ | ---------------------------------------------- |
@@ -54,14 +61,29 @@ Verified 2026-10-01: both URLs return HTTP 200, the API health check returns `{"
 
 ## Infrastructure
 
-| Service        | Role                                    | Tier | Config                     |
-| -------------- | --------------------------------------- | ---- | -------------------------- |
-| Vercel         | Hosts the client SPA                    | Free | `client/vercel.json`       |
-| Render         | Hosts the Express API (`taskforge-api`) | Free | `render.yaml`              |
-| MongoDB Atlas  | Database (`MONGO_URI`)                  | Free | Render env var             |
-| GitHub Actions | CI on push/PR to `main`                 | Free | `.github/workflows/ci.yml` |
+| Service        | Role                                    | Tier | Config                                               |
+| -------------- | --------------------------------------- | ---- | ---------------------------------------------------- |
+| Vercel         | Hosts the client SPA                    | Free | `client/vercel.json`                                 |
+| Render         | Hosts the Express API (`taskforge-api`) | Free | `render.yaml` Blueprint, synced to `main`            |
+| MongoDB Atlas  | Database `taskforge` on `Cluster0`      | Free | AWS `us-east-1`; `MONGO_URI` set as a Render env var |
+| GitHub Actions | CI on push/PR to `main`                 | Free | `.github/workflows/ci.yml`                           |
 
-Free-tier note: Render free services sleep when idle, so the first request after a sleep is slow (cold start). This is tracked under "demo reliability". Full details: [architecture.md](architecture.md).
+Free-tier note: Render free services sleep when idle, so the first request after a sleep is slow. The API recovers correctly. A clearer waiting experience is tracked as "demo reliability" maintenance. Full details: [architecture.md](architecture.md).
+
+## Deferred maintenance (non-blocking)
+
+All five are tracked in the [roadmap](roadmap.md#phase-1-maintenance-deferred-does-not-block-phase-1).
+
+These three Phase 1 items were moved to maintenance at closure:
+
+- **Demo reliability:** a waking-up state during cold starts, and keeping the demo account seeded.
+- **Screenshot recapture:** the current set shows the older, smaller logos from before PR #7.
+- **CHANGELOG backfill:** work before PR #4.
+
+These are known minor polish issues from PR #7. They were never Phase 1 items:
+
+- **Greeting refresh:** the Command Center greeting only updates when the day changes.
+- **Hero logo contrast:** the dark "Task" wordmark is hard to read on the dark background.
 
 ## Design reference
 
@@ -69,22 +91,24 @@ The v2 shell and Command Center UX came from a separate TaskForge v2 prototype b
 
 ## Documentation
 
-| Item             | Status                                                                                                                           |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| README           | Portfolio README with real production screenshots                                                                                |
-| Architecture doc | Done: [architecture.md](architecture.md), with Mermaid diagrams                                                                  |
-| Screenshots      | 6 captured from production ([images/README.md](images/README.md)); recapture after this branch deploys to show the cropped logos |
+| Item             | Status                                                                                                                              |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| README           | Portfolio README with real production screenshots                                                                                   |
+| Architecture doc | Done: [architecture.md](architecture.md), with Mermaid diagrams                                                                     |
+| Screenshots      | 6 captured from production ([images/README.md](images/README.md)); recapture is a maintenance item, needed only for the newer logos |
 
 ## Validation status
 
-Run on `chore/v2-production-verification` on 2026-10-01 (local, before PR):
+Run on `docs/close-phase-1` on 2026-10-02 (local, before PR):
 
 | Check                  | Result                                                   |
 | ---------------------- | -------------------------------------------------------- |
 | `npm run format:check` | Pass                                                     |
 | `npm run lint`         | Pass (0 warnings)                                        |
-| `npm run typecheck`    | Pass (client `tsc --noEmit`, 0 errors; now also in CI)   |
+| `npm run typecheck`    | Pass (0 errors)                                          |
 | `npm test`             | Pass: client 128/128 (16 files), server 22/22 (4 suites) |
 | `npm run build`        | Pass (client + server)                                   |
 | `npm audit`            | Pass (0 vulnerabilities)                                 |
 | `git diff --check`     | Pass                                                     |
+
+Note: the server suite sometimes prints Jest's `A worker process has failed to exit gracefully` warning. This happened in 2 of 3 runs. All 22 tests still pass, the exit code is 0, and `--detectOpenHandles` reports no open handles. It already exists on `main` (this branch changes no code) and is tracked as maintenance in the roadmap.
