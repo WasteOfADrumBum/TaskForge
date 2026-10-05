@@ -1,7 +1,7 @@
 import type { Agent, AgentInput, AgentStatus, AgentUpdate } from '../types/agent';
 
 // Pure agent-registry helpers. Everything comes from the stored agent definitions; there is no
-// run, assignment, or activity data yet.
+// run or activity data yet. Task-assignment helpers live in utils/assignees.ts.
 
 // Agents sorted for lists: active first, then paused, then disabled, alphabetically within
 // each status.

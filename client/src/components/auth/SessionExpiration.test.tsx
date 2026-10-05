@@ -99,7 +99,12 @@ describe('session expiration flow', () => {
     );
     expect(screen.getByRole('heading', { name: 'Welcome back' })).toBeInTheDocument();
     expect(localStorage.getItem('token')).toBeNull();
-    expect(store.getState().tasks).toEqual({ items: [], loading: false, error: null });
+    expect(store.getState().tasks).toEqual({
+      items: [],
+      loading: false,
+      error: null,
+      loaded: false,
+    });
     expect(store.getState().projects).toEqual({
       items: [],
       loading: false,
@@ -216,7 +221,12 @@ describe('session expiration flow', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(localStorage.getItem('token')).toBeNull();
     expect(store.getState().auth).toEqual({ token: null, loading: false, error: null });
-    expect(store.getState().tasks).toEqual({ items: [], loading: false, error: null });
+    expect(store.getState().tasks).toEqual({
+      items: [],
+      loading: false,
+      error: null,
+      loaded: false,
+    });
     expect(store.getState().projects).toEqual({
       items: [],
       loading: false,

@@ -9,8 +9,8 @@ import {
   Text,
   VStack,
 } from '@chakra-ui/react';
-import { useState, type ReactNode } from 'react';
-import { LuArrowLeft, LuBotOff, LuPencil, LuTrash2 } from 'react-icons/lu';
+import { useMemo, useState, type ReactNode } from 'react';
+import { LuArrowLeft, LuBotOff, LuListChecks, LuPencil, LuPlus, LuTrash2 } from 'react-icons/lu';
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
 import AgentForm from '../../components/agents/AgentForm';
 import AgentStatusBadge from '../../components/agents/AgentStatusBadge';
@@ -18,9 +18,13 @@ import DeleteAgentDialog from '../../components/agents/DeleteAgentDialog';
 import SkillTags from '../../components/agents/SkillTags';
 import EmptyState from '../../components/common/EmptyState';
 import SectionHeader from '../../components/common/SectionHeader';
+import PriorityTaskRow from '../../components/tasks/PriorityTaskRow';
 import { useAgentActions } from '../../hooks/useAgentActions';
 import { useAppSelector } from '../../redux/hooks/typedHooks';
 import { AGENT_PERMISSIONS, getAgentId, type Agent } from '../../types/agent';
+import { getProjectId } from '../../types/project';
+import { getTaskId } from '../../types/task';
+import { getTasksForAgent } from '../../utils/assignees';
 
 const dateFormat = new Intl.DateTimeFormat('en-US', {
   month: 'short',
@@ -30,9 +34,11 @@ const dateFormat = new Intl.DateTimeFormat('en-US', {
   minute: '2-digit',
 });
 
+// Assigned tasks: in progress first, then to do, then done.
+const statusOrder = { 'in-progress': 0, todo: 1, done: 2 } as const;
+
 // Future sections, shown so the page's direction is clear. None of them has data yet.
 const plannedSections = [
-  { title: 'Assignments', text: 'Tasks handed to this agent.' },
   { title: 'Runs', text: 'Each attempt, with its input, result, and status.' },
   { title: 'Approvals', text: 'Your approve or reject decision on every result.' },
 ];
@@ -61,11 +67,28 @@ const AgentDetailPage = () => {
   const agents = useAppSelector((state) => state.agents.items);
   const loaded = useAppSelector((state) => state.agents.loaded);
   const loadError = useAppSelector((state) => state.agents.error);
+  const {
+    items: tasks,
+    loaded: tasksLoaded,
+    loading: tasksLoading,
+    error: tasksError,
+  } = useAppSelector((state) => state.tasks);
+  const tasksReady = tasksLoaded && !tasksLoading && !tasksError;
+  const projects = useAppSelector((state) => state.projects.items);
   const { save, remove, saving, error, clearError } = useAgentActions();
   const [editing, setEditing] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Agent | null>(null);
 
   const agent = agents.find((item) => getAgentId(item) === id);
+  const assignedTasks = useMemo(
+    () => getTasksForAgent(tasks, id).sort((a, b) => statusOrder[a.status] - statusOrder[b.status]),
+    [tasks, id],
+  );
+  const openAssigned = assignedTasks.filter((task) => task.status !== 'done').length;
+  const projectsById = useMemo(
+    () => new Map(projects.map((project) => [getProjectId(project), project])),
+    [projects],
+  );
 
   // Loading, load-error, and not-found states share the page layout: back link and heading.
   const statePage = (heading: string, body: ReactNode) => (
@@ -150,6 +173,16 @@ const AgentDetailPage = () => {
             <LuPencil />
             Edit agent
           </Button>
+          {agent.status === 'active' && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigate('/work', { state: { newTask: Date.now(), agentId: id } })}
+            >
+              <LuPlus />
+              Assign a new task
+            </Button>
+          )}
           <Button
             size="sm"
             variant="ghost"
@@ -179,6 +212,52 @@ const AgentDetailPage = () => {
 
       <SimpleGrid columns={{ base: 1, xl: 3 }} gap={6} alignItems="start">
         <VStack align="stretch" gap={6} gridColumn={{ xl: 'span 2' }} minW="0">
+          <Box {...panelProps} aria-labelledby="agent-assignments-heading">
+            <SectionHeader
+              id="agent-assignments-heading"
+              title="Assigned tasks"
+              count={tasksReady ? assignedTasks.length : undefined}
+              action={{ label: 'Open Work', to: '/work' }}
+            />
+            {agent.status !== 'active' && (
+              <Text fontSize="sm" color="fg.muted" mb={3}>
+                This agent is {agent.status}. It keeps existing assignments but can’t take new ones.
+              </Text>
+            )}
+            {!tasksReady ? (
+              <Box>
+                <Text color={tasksError ? 'fg.error' : 'fg.muted'}>
+                  {tasksError ? 'Assigned tasks unavailable.' : 'Loading assigned tasks...'}
+                </Text>
+                {tasksError && (
+                  <Text color="fg.error" fontSize="sm" mt={1}>
+                    {tasksError}
+                  </Text>
+                )}
+              </Box>
+            ) : assignedTasks.length ? (
+              <Box as="ul" listStyleType="none" m={0} p={0} aria-label="Assigned tasks">
+                {assignedTasks.map((task) => (
+                  <PriorityTaskRow
+                    key={getTaskId(task)}
+                    task={task}
+                    project={task.project ? projectsById.get(task.project) : undefined}
+                  />
+                ))}
+              </Box>
+            ) : (
+              <EmptyState
+                icon={<LuListChecks size={24} />}
+                title="No assigned tasks"
+                description={
+                  agent.status === 'active'
+                    ? 'Assign a task from Work, or use “Assign a new task”. Assigning records who owns the work; the agent doesn’t run it.'
+                    : 'Only active agents can take new tasks.'
+                }
+              />
+            )}
+          </Box>
+
           <Box {...panelProps} aria-labelledby="agent-skills-heading">
             <SectionHeader id="agent-skills-heading" title="Skills" count={agent.skills.length} />
             <SkillTags skills={agent.skills} />
@@ -240,14 +319,14 @@ const AgentDetailPage = () => {
               }
             />
             <Text fontSize="sm" color="fg.muted" mb={3}>
-              These are planned and not built. This agent has no assignments, runs, or activity.
+              These are planned and not built. This agent has no runs or activity.
             </Text>
             <SimpleGrid
               as="ul"
               listStyleType="none"
               m={0}
               p={0}
-              columns={{ base: 1, md: 3 }}
+              columns={{ base: 1, md: 2 }}
               gap={3}
             >
               {plannedSections.map((section) => (
@@ -270,6 +349,14 @@ const AgentDetailPage = () => {
             {[
               ['Status', <AgentStatusBadge key="status" status={agent.status} />],
               ['Role', agent.role],
+              [
+                'Assigned tasks',
+                tasksReady
+                  ? `${assignedTasks.length} (${openAssigned} open)`
+                  : tasksError
+                    ? 'Unavailable'
+                    : 'Loading...',
+              ],
               ['Created', agent.createdAt ? dateFormat.format(new Date(agent.createdAt)) : '—'],
               ['Updated', agent.updatedAt ? dateFormat.format(new Date(agent.updatedAt)) : '—'],
             ].map(([label, value]) => (
@@ -288,6 +375,7 @@ const AgentDetailPage = () => {
 
       <DeleteAgentDialog
         agent={deleteTarget}
+        assignedCount={tasksReady ? assignedTasks.length : null}
         loading={saving}
         onOpenChange={(open) => {
           if (!open) setDeleteTarget(null);

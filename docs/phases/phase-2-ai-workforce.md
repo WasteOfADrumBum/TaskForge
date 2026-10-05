@@ -1,13 +1,13 @@
 # Phase 2: AI Workforce
 
-**Status: IN PROGRESS (foundation only).** No AI capability exists: nothing runs an agent or calls a model. The Work + Projects foundation (PR #9), the Agent Registry (persistent agent definitions), and the Workforce summary (PR #10) are complete and merged. Task → Agent Assignment is the next planned checkpoint. AI execution, agent runs, permission enforcement, the provider abstraction, handoffs, and approvals are still planned. Item-level status lives in [roadmap.md](../roadmap.md#phase-2-ai-workforce-details).
+**Status: IN PROGRESS (foundation only).** No AI capability exists: nothing runs an agent or calls a model. The Work + Projects foundation (PR #9), the Agent Registry (persistent agent definitions), and the Workforce summary (PR #10) are complete and merged. Task → Agent Assignment is in progress on `codex/KAN-2-agent-task-assignment` (not merged): it records who owns a task, and nothing runs. AI execution, agent runs, permission enforcement, the provider abstraction, handoffs, and approvals are still planned. Item-level status lives in [roadmap.md](../roadmap.md#phase-2-ai-workforce-details).
 
 ## Foundation: Work + Projects (complete)
 
 Projects are the first post-Phase-1 domain object (PR #9, merged). They give Phase 2 something concrete to build on:
 
 - **Work organization:** tasks can belong to a project, and each project shows its own tasks, progress, and activity.
-- **Agent assignment, later:** agents will be assigned to tasks in a project, and project ownership will bound what an agent can see and change, the same way task ownership does today.
+- **Agent assignment:** tasks can now be assigned to an agent (see below). Later, project ownership will bound what an agent can see and change, the same way task ownership does today.
 - **Command Center:** active projects and their progress already appear there.
 - **Knowledge, Career, and Learning, later:** project-level knowledge (Phase 3) and learning or portfolio projects (Phase 6) can attach to the same project records instead of inventing parallel structures.
 
@@ -21,8 +21,18 @@ The Agent Registry (PR #10, merged) makes agents a persistent, user-owned domain
 - **Skills:** lowercase slug strings on the agent (for example `research`, `software-development`). No separate Skill collection; that can come later if matching needs more than tags.
 - **Permissions:** identifiers from a fixed catalog (`task.read`, `task.update`, `project.read`, `project.update`, `artifact.draft`). They are metadata for the future permission boundary. **Nothing enforces them yet**, because nothing executes.
 - **Privacy:** the same rules as Projects. Another user's agent looks exactly like a missing one (`404`), and `owner` can't be set from a request.
-- **Not built (still planned):** AI execution, model calls, the provider abstraction, agent runs, task assignment, handoffs, approvals, the audit trail, and permission enforcement. The agent detail page lists Assignments, Runs, and Approvals only as labeled "Planned" placeholders, with no data.
+- **Not built (still planned):** AI execution, model calls, the provider abstraction, agent runs, handoffs, approvals, the audit trail, and permission enforcement. The agent detail page lists Runs and Approvals only as labeled "Planned" placeholders, with no data. (Task assignment came next; see below.)
 - **Deferred:** a `tools` field. It will be added when there are real tools to describe.
+
+## Foundation: Task → Agent Assignment (in progress)
+
+Built on `codex/KAN-2-agent-task-assignment`, not merged yet. **An assignment is a record of who owns a task. Nothing runs the agent, and no run is created.**
+
+- **Model:** `Task.assigneeType` is `user`, `agent`, or `null` (Unassigned), and `Task.assigneeAgent` holds the agent id when the type is `agent`. `user` always means the task's owner; there is no way to assign a task to another user.
+- **Rules:** a task can be assigned to its owner, to one of the owner's own agents, or to nobody. Another user's agent gets the same `400 Agent not found` as a missing one. Only an **active** agent can take a new task. A paused or disabled agent keeps the tasks it already has, and they stay visible with the agent's status.
+- **Deleting an agent** keeps its tasks: they become unassigned first, then the agent is deleted with post-write agent-existence reconciliation to close the normal concurrent-assignment window. Database failure can still leave a stale reference; see the architecture notes.
+- **UI:** an Assignee field on the task form (Unassigned, Me, or an active agent), the assignee on every task card, an assignee filter on Work, the agent's assigned tasks on its detail page, assigned and open counts on each Workforce card, and open-assignment counts in the Command Center Workforce panel. All counts are derived from the task list; they are workload counts, not performance. Pending or failed task loads show unknown assignment state instead of zero.
+- **Not built:** agent runs, AI execution, permission enforcement, handoffs, and approvals.
 
 ## Objective
 
@@ -46,7 +56,7 @@ Each agent has a `role`, `description`, `skills`, `permissions`, `tools`, and `s
 
 ### Task assignment
 
-A TaskForge task can be assigned to an agent. Assigning it creates an agent run.
+A TaskForge task can be assigned to an agent. The assignment itself is in progress (see above) and only records ownership. **Planned:** starting work on an assigned task creates an agent run.
 
 ### Agent run model
 
@@ -111,7 +121,7 @@ interface AIProvider {
 ## Definition of done
 
 - [x] Agents can be registered, edited, and disabled. Every agent is scoped to its owner. (Agent Registry, PR #10.)
-- [ ] A task can be assigned to an agent, and the run moves through every state.
+- [ ] A task can be assigned to an agent (in progress on `codex/KAN-2-agent-task-assignment`), and the run moves through every state (planned).
 - [ ] Handoffs create linked child runs.
 - [ ] Every agent result needs human approval. Rejections are recorded.
 - [ ] `AIProvider` exists with a working local provider and a no-provider/demo fallback.

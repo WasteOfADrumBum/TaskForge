@@ -9,6 +9,7 @@ import { useAgentActions } from '../../hooks/useAgentActions';
 import { useAppSelector } from '../../redux/hooks/typedHooks';
 import { getAgentId, type Agent } from '../../types/agent';
 import { getAgentSummary, sortAgents } from '../../utils/agents';
+import { getAgentWorkloads, getWorkloadFor } from '../../utils/assignees';
 
 const phase2Url =
   'https://github.com/WasteOfADrumBum/TaskForge/blob/main/docs/phases/phase-2-ai-workforce.md';
@@ -19,12 +20,21 @@ const WorkforcePage = () => {
   const loading = useAppSelector((state) => state.agents.loading);
   const loaded = useAppSelector((state) => state.agents.loaded);
   const loadError = useAppSelector((state) => state.agents.error);
+  const {
+    items: tasks,
+    loaded: tasksLoaded,
+    loading: tasksLoading,
+    error: tasksError,
+  } = useAppSelector((state) => state.tasks);
+  const tasksReady = tasksLoaded && !tasksLoading && !tasksError;
   const { save, remove, saving, error, clearError } = useAgentActions();
   const [editing, setEditing] = useState<Agent | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Agent | null>(null);
 
   const sorted = useMemo(() => sortAgents(agents), [agents]);
   const summary = useMemo(() => getAgentSummary(agents), [agents]);
+  // Derived from the tasks already loaded by the shell; no extra request.
+  const workloads = useMemo(() => getAgentWorkloads(tasks), [tasks]);
 
   const startEdit = (agent: Agent) => {
     clearError();
@@ -72,8 +82,8 @@ const WorkforcePage = () => {
         <Alert.Content>
           <Alert.Title>Agents are saved definitions only.</Alert.Title>
           <Alert.Description>
-            Agents don’t run, call any AI model, or take tasks yet. Assignments, runs, and approvals
-            are planned. Read the{' '}
+            You can assign tasks to active agents to plan who owns what, but agents don’t run or
+            call any AI model yet. Runs and approvals are planned. Read the{' '}
             <Link href={phase2Url} target="_blank" rel="noreferrer" textDecoration="underline">
               Phase 2 plan
             </Link>
@@ -126,7 +136,7 @@ const WorkforcePage = () => {
               <EmptyState
                 icon={<LuBot size={24} />}
                 title="No agents yet"
-                description="Create an agent to record its role, skills, and permissions. It won’t run anything yet."
+                description="Create an agent to record its role, skills, and permissions, then assign it tasks. It won’t run anything yet."
               />
             </Box>
           )}
@@ -143,6 +153,10 @@ const WorkforcePage = () => {
                 <AgentCard
                   key={getAgentId(agent)}
                   agent={agent}
+                  workload={tasksReady ? getWorkloadFor(workloads, getAgentId(agent)) : null}
+                  workloadMessage={
+                    tasksError ? 'Assigned tasks unavailable.' : 'Loading assigned tasks...'
+                  }
                   onEdit={startEdit}
                   onDelete={setDeleteTarget}
                 />
@@ -153,6 +167,11 @@ const WorkforcePage = () => {
       </SimpleGrid>
       <DeleteAgentDialog
         agent={deleteTarget}
+        assignedCount={
+          tasksReady && deleteTarget
+            ? getWorkloadFor(workloads, getAgentId(deleteTarget)).total
+            : null
+        }
         loading={saving}
         onOpenChange={(open) => {
           if (!open) setDeleteTarget(null);

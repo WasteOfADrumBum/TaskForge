@@ -4,12 +4,20 @@ import type { Agent } from '../../types/agent';
 
 interface DeleteAgentDialogProps {
   agent: Agent | null;
+  // How many tasks are assigned to the agent. They are kept and become unassigned.
+  assignedCount: number | null;
   loading: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
 }
 
-const DeleteAgentDialog = ({ agent, loading, onOpenChange, onConfirm }: DeleteAgentDialogProps) => (
+const DeleteAgentDialog = ({
+  agent,
+  assignedCount,
+  loading,
+  onOpenChange,
+  onConfirm,
+}: DeleteAgentDialogProps) => (
   <Dialog.Root
     open={Boolean(agent)}
     onOpenChange={(details) => onOpenChange(details.open)}
@@ -24,8 +32,12 @@ const DeleteAgentDialog = ({ agent, loading, onOpenChange, onConfirm }: DeleteAg
           </Dialog.Header>
           <Dialog.Body>
             <Text color="fg.muted">
-              {(agent?.name ?? 'This agent') +
-                ' will be permanently deleted. Your tasks and projects are not affected.'}
+              {(agent?.name ?? 'This agent') + ' will be permanently deleted. '}
+              {assignedCount === null
+                ? 'Any assigned tasks become unassigned. No tasks or projects are deleted.'
+                : assignedCount
+                  ? `Its ${assignedCount} assigned ${assignedCount === 1 ? 'task becomes' : 'tasks become'} unassigned. No tasks or projects are deleted.`
+                  : 'Your tasks and projects are not affected.'}
             </Text>
           </Dialog.Body>
           <Dialog.Footer>

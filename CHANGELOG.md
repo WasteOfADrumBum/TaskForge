@@ -16,6 +16,15 @@ All notable changes to TaskForge are recorded here.
 
 ### Added
 
+- **KAN-2 — Task → Agent Assignment (Phase 2 foundation).** A task can be assigned to you, to one of your agents, or to nobody. An assignment only records who owns the task: agents still don't run, and no agent run is created.
+  - **API:** tasks gain `assigneeType` (`user`, `agent`, or `null`) and `assigneeAgent`. You can assign only to yourself or your own agents; another user's agent gets the same `400 Agent not found` as a missing one, and malformed values are rejected. Leaving both fields out of an update keeps the current assignee.
+  - **Agent status:** only active agents can take a new task. A paused or disabled agent keeps the tasks it already has, and they show its status.
+  - **Deleting an agent keeps its tasks:** they become unassigned first, then the agent is deleted. The delete dialog shows a known count or safe unknown-count wording while tasks load or fail.
+  - **Work:** an Assignee field on the task form (Unassigned, Me, or an active agent), the assignee on every task card (linked to the agent), and an assignee filter. Editing other fields preserves assignment input, even while agents are loading or failed to load; the server reconciles and clears a deleted-agent reference on every task write.
+  - **Workforce:** each agent card shows its assigned and open task counts after a successful task load, and the agent detail page lists its assigned tasks (status, priority, project, due date) in place of the "Planned" Assignments placeholder, with an "Assign a new task" shortcut for active agents.
+  - **Command Center:** the Workforce panel adds agents with open tasks, open tasks on agents, open tasks on you, and unassigned open tasks. These are fixed counts from task data, not AI.
+  - **Demo data:** the seed script assigns demo tasks to the demo user and to both demo agents.
+
 - **KAN-5 — project workflow:** restore Codex project guidance and the Jira-to-deployment branch template; correct current architecture, session, CI, and destructive seed documentation without presenting local assignment as shipped.
 
 - **Agent Registry (Phase 2 foundation).** Persistent, user-owned agent definitions. Agents don't run: there is no AI execution, model call, run, assignment, handoff, or approval yet.

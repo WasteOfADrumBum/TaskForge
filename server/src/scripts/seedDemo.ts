@@ -53,46 +53,8 @@ const seedDemo = async () => {
   const nextWeek = dueInDays(7);
   const yesterday = dueInDays(-1);
 
-  await Task.insertMany([
-    {
-      title: 'Review product roadmap',
-      description: 'Prioritize the next TaskForge milestone and capture follow-up work.',
-      status: 'in-progress',
-      priority: 'high',
-      dueDate: tomorrow,
-      project: launch._id,
-      owner: user._id,
-    },
-    {
-      title: 'Prepare sprint planning notes',
-      description: 'Turn open work into an actionable plan for the next sprint.',
-      status: 'todo',
-      priority: 'medium',
-      dueDate: nextWeek,
-      owner: user._id,
-    },
-    {
-      title: 'Close completed launch checklist',
-      description: 'Verify completed items and archive anything no longer needed.',
-      status: 'done',
-      priority: 'low',
-      dueDate: null,
-      project: launch._id,
-      owner: user._id,
-    },
-    {
-      title: 'Resolve overdue API follow-up',
-      description: 'Review the outstanding API integration issue and document the resolution.',
-      status: 'todo',
-      priority: 'high',
-      dueDate: yesterday,
-      project: operations._id,
-      owner: user._id,
-    },
-  ]);
-
-  // Agent definitions only. Nothing runs them.
-  await Agent.insertMany([
+  // Agent definitions only. Nothing runs them; tasks below are only assigned to them.
+  const [scout, scribe] = await Agent.insertMany([
     {
       name: 'Scout',
       role: 'Research assistant',
@@ -109,6 +71,49 @@ const seedDemo = async () => {
       status: 'paused',
       skills: ['documentation', 'software-development'],
       permissions: ['task.read', 'artifact.draft'],
+      owner: user._id,
+    },
+  ]);
+
+  await Task.insertMany([
+    {
+      title: 'Review product roadmap',
+      description: 'Prioritize the next TaskForge milestone and capture follow-up work.',
+      status: 'in-progress',
+      priority: 'high',
+      dueDate: tomorrow,
+      project: launch._id,
+      assigneeType: 'user',
+      owner: user._id,
+    },
+    {
+      title: 'Prepare sprint planning notes',
+      description: 'Turn open work into an actionable plan for the next sprint.',
+      status: 'todo',
+      priority: 'medium',
+      dueDate: nextWeek,
+      assigneeType: 'agent',
+      assigneeAgent: scout._id,
+      owner: user._id,
+    },
+    {
+      title: 'Close completed launch checklist',
+      description: 'Verify completed items and archive anything no longer needed.',
+      status: 'done',
+      priority: 'low',
+      dueDate: null,
+      project: launch._id,
+      assigneeType: 'agent',
+      assigneeAgent: scribe._id,
+      owner: user._id,
+    },
+    {
+      title: 'Resolve overdue API follow-up',
+      description: 'Review the outstanding API integration issue and document the resolution.',
+      status: 'todo',
+      priority: 'high',
+      dueDate: yesterday,
+      project: operations._id,
       owner: user._id,
     },
   ]);

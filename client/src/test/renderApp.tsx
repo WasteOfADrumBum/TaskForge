@@ -70,7 +70,8 @@ export const makeAgent = (overrides: Partial<Agent> & { _id: string; name: strin
 });
 
 // In-memory stand-in for the task, project, and agent APIs, so tests exercise the real client API
-// layer. Mirrors the server's behavior, including unassigning tasks when a project is deleted.
+// layer. Mirrors the server's behavior, including unassigning tasks when a project or an agent
+// is deleted.
 export const stubTaskApi = (
   initial: Task[] = [],
   initialProjects: Project[] = [],
@@ -111,6 +112,10 @@ export const stubTaskApi = (
       if (method === 'PATCH') {
         agents[index] = { ...agents[index], ...body, updatedAt: new Date().toISOString() };
         return json(200, { agent: agents[index] });
+      }
+      for (const task of tasks) {
+        if (task.assigneeAgent === agentId)
+          Object.assign(task, { assigneeType: null, assigneeAgent: null });
       }
       agents.splice(index, 1);
       return json(204);

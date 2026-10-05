@@ -1,5 +1,13 @@
-import { Badge, Box, HStack, Text } from '@chakra-ui/react';
-import { LuCalendarDays, LuCircle, LuCircleCheck, LuLoaderCircle } from 'react-icons/lu';
+import { Badge, Box, HStack, Link, Text } from '@chakra-ui/react';
+import {
+  LuCalendarDays,
+  LuCircle,
+  LuCircleCheck,
+  LuFolderKanban,
+  LuLoaderCircle,
+} from 'react-icons/lu';
+import { Link as RouterLink } from 'react-router-dom';
+import { getProjectId, type Project } from '../../types/project';
 import type { Task, TaskStatus } from '../../types/task';
 import type { PriorityReason } from '../../utils/commandCenter';
 import { formatCalendarDate } from '../../utils/dates';
@@ -31,9 +39,11 @@ const StatusIcon = ({ status }: { status: TaskStatus }) => {
 interface PriorityTaskRowProps {
   task: Task;
   reason?: PriorityReason;
+  // The task's project, shown as a link when given. Needs a router.
+  project?: Project;
 }
 
-const PriorityTaskRow = ({ task, reason }: PriorityTaskRowProps) => (
+const PriorityTaskRow = ({ task, reason, project }: PriorityTaskRowProps) => (
   <HStack
     as="li"
     gap={3}
@@ -57,6 +67,21 @@ const PriorityTaskRow = ({ task, reason }: PriorityTaskRowProps) => (
             <LuCalendarDays aria-hidden="true" />
             <Text>Due {formatCalendarDate(task.dueDate)}</Text>
           </HStack>
+        )}
+        {project && (
+          <Link
+            asChild
+            color="fg.muted"
+            display="inline-flex"
+            alignItems="center"
+            gap={1}
+            _hover={{ color: 'accent.teal' }}
+          >
+            <RouterLink to={'/work/projects/' + getProjectId(project)}>
+              <LuFolderKanban aria-hidden="true" />
+              {project.name}
+            </RouterLink>
+          </Link>
         )}
       </HStack>
     </Box>

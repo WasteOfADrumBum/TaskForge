@@ -1,7 +1,8 @@
 import { Box, Button, Heading, HStack, Link, Text } from '@chakra-ui/react';
-import { LuKeyRound, LuPencil, LuTrash2 } from 'react-icons/lu';
+import { LuKeyRound, LuListChecks, LuPencil, LuTrash2 } from 'react-icons/lu';
 import { Link as RouterLink } from 'react-router-dom';
 import { getAgentId, permissionLabel, type Agent } from '../../types/agent';
+import type { AgentWorkload } from '../../utils/assignees';
 import AgentStatusBadge from './AgentStatusBadge';
 import SkillTags from './SkillTags';
 
@@ -13,11 +14,14 @@ const dateFormat = new Intl.DateTimeFormat('en-US', {
 
 interface AgentCardProps {
   agent: Agent;
+  // Tasks assigned to this agent. A count only, not a measure of performance.
+  workload: AgentWorkload | null;
+  workloadMessage?: string;
   onEdit: (agent: Agent) => void;
   onDelete: (agent: Agent) => void;
 }
 
-const AgentCard = ({ agent, onEdit, onDelete }: AgentCardProps) => (
+const AgentCard = ({ agent, workload, workloadMessage, onEdit, onDelete }: AgentCardProps) => (
   <Box
     as="li"
     bg="bg.panel"
@@ -54,6 +58,16 @@ const AgentCard = ({ agent, onEdit, onDelete }: AgentCardProps) => (
         {agent.permissions.length
           ? agent.permissions.map(permissionLabel).join(', ')
           : 'No permissions'}
+      </Text>
+    </HStack>
+    <HStack mt={1.5} gap={1.5} fontSize="xs" color="fg.muted">
+      <LuListChecks aria-hidden="true" />
+      <Text>
+        {workload === null
+          ? (workloadMessage ?? 'Assigned tasks unavailable.')
+          : workload.total
+            ? `${workload.total} assigned ${workload.total === 1 ? 'task' : 'tasks'} · ${workload.open} open`
+            : 'No assigned tasks'}
       </Text>
     </HStack>
     <HStack justify="space-between" mt={4} gap={2} flexWrap="wrap">

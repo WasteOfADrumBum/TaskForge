@@ -25,11 +25,11 @@ flowchart LR
     API -- "Mongoose" --> DB
 ```
 
-| Piece    | Where         | What it does                                                                                                                                                                    |
-| -------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Frontend | `client/`     | React 19 SPA. Renders pages, holds auth, task, project, and agent state in Redux, calls the API.                                                                                |
-| API      | `server/`     | Express 5 REST API. Auth, validation, and owner-scoped task, project, and agent CRUD.                                                                                           |
-| Database | MongoDB Atlas | Stores `users` (email, bcrypt hash), `projects`, `tasks`, and `agents`. Projects, tasks, and agents carry an `owner` user id; a task may reference one of its owner's projects. |
+| Piece    | Where         | What it does                                                                                                                                                                                                  |
+| -------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frontend | `client/`     | React 19 SPA. Renders pages, holds auth, task, project, and agent state in Redux, calls the API.                                                                                                              |
+| API      | `server/`     | Express 5 REST API. Auth, validation, and owner-scoped task, project, and agent CRUD.                                                                                                                         |
+| Database | MongoDB Atlas | Stores `users` (email, bcrypt hash), `projects`, `tasks`, and `agents`. Projects, tasks, and agents carry an `owner` user id; a task may reference one of its owner's projects and one of its owner's agents. |
 
 ## Frontend
 
@@ -38,7 +38,7 @@ flowchart LR
   - Public: `/` (landing), `/login`, `/register`.
   - Authenticated: `/home` (Command Center), `/work` (tasks), `/work/projects` (projects), `/work/projects/:id` (project detail), `/workforce` (Agent Registry), `/workforce/:id` (agent detail), and `/settings`. All of them sit behind `ProtectedRoute` inside a shared `AppShell` layout.
 - The `AppShell` provides the sidebar (a drawer below the `lg` breakpoint), the top bar, and the skip-to-content link. It loads the user's tasks, projects, and agents once per session; the top bar's refresh action reloads all three.
-- State (Redux Toolkit): an `auth` slice (token, loading, error), a `tasks` slice (items, loading, error), a `projects` slice (items, loading, error, loaded), and an `agents` slice (items, loading, error, loaded). Every data slice resets on logout and on session expiry. When a project is deleted, the tasks slice unassigns its tasks locally, mirroring the server.
+- State (Redux Toolkit): an `auth` slice (token, loading, error), a `tasks` slice (items, loading, error, loaded), a `projects` slice (items, loading, error, loaded), and an `agents` slice (items, loading, error, loaded). Every data slice resets on logout and on session expiry. When a project or an agent is deleted, the tasks slice unassigns its tasks locally, mirroring the server. Agent workload counts are derived from the tasks slice; there is no separate endpoint. Counts and empty states appear only after a successful task load; pending or failed loads show unknown assignment state and safe deletion wording.
 - API layer (`client/src/api/`): plain `fetch`. Task, project, and agent calls go through `authenticatedFetch`, which handles `401` responses and stale requests. Shared helpers live in `api/http.ts`.
 - The API base URL comes from `VITE_API_URL` at build time.
 
@@ -55,10 +55,12 @@ flowchart LR
     AuthC --> AuthS[authService] --> UserM[(User model)]
     TaskC --> TaskS["taskService<br/>(every query filtered by owner)"] --> TaskM[(Task model)]
     TaskC -- "project ownership check" --> ProjS
+    TaskC -- "agent ownership + status check" --> AgentS
     ProjC --> ProjS["projectService<br/>(every query filtered by owner)"] --> ProjM[(Project model)]
     ProjS -- "unassign tasks on delete" --> TaskM
     Router -- "/api/agents/*" --> RG[requireAuth] --> AgentC[agentController]
     AgentC --> AgentS["agentService<br/>(every query filtered by owner)"] --> AgentM[(Agent model)]
+    AgentS -- "unassign tasks on delete" --> TaskM
 ```
 
 | Endpoint                   | Auth | Purpose                                       |
@@ -81,7 +83,7 @@ flowchart LR
 | `POST /api/agents`         | JWT  | Create an agent definition owned by the user  |
 | `GET /api/agents/:id`      | JWT  | Get one of the user's agents                  |
 | `PATCH /api/agents/:id`    | JWT  | Update one of the user's agents               |
-| `DELETE /api/agents/:id`   | JWT  | Delete an agent; tasks and projects unchanged |
+| `DELETE /api/agents/:id`   | JWT  | Delete an agent; its tasks become unassigned  |
 
 **Projects and tasks:**
 
@@ -91,12 +93,19 @@ flowchart LR
 
 **Agents (Agent Registry, Phase 2 foundation):**
 
-- **Definitions only.** An agent is a persistent, user-owned record of an AI worker. Nothing runs an agent, calls an AI model, assigns it work, or enforces its permissions yet.
+- **Definitions only.** An agent is a persistent, user-owned record of an AI worker. Tasks can be assigned to it (below), but nothing runs an agent, calls an AI model, or enforces its permissions yet.
 - **Model:** `Agent` has `name` and `role` (required, up to 80 characters each), `description` (up to 2000), `status` (`active`, `paused`, or `disabled`), `skills`, `permissions`, `owner`, and timestamps.
 - **Skills** are an array of lowercase slug strings (for example `software-development`), up to 20 per agent and 40 characters each. The controller normalizes input (`Software Development` and `software_development` become `software-development`) and removes duplicates. There is no separate Skill collection.
 - **Permissions** are identifiers from a fixed catalog: `task.read`, `task.update`, `project.read`, `project.update`, `artifact.draft`. Unknown values are rejected. They are stored as metadata for the future permission boundary; nothing checks them yet.
-- **Ownership:** every agent query filters by `owner`. Another user's agent gets the same `404 Agent not found` as a missing one, and malformed ids get `404` without a database query. `owner`, `_id`, and timestamps in a request body are ignored. Tasks have no agent field, so an agent can't be attached to any work yet.
-- **Deleting an agent** removes only that agent. Nothing references agents yet, so tasks and projects are untouched.
+- **Ownership:** every agent query filters by `owner`. Another user's agent gets the same `404 Agent not found` as a missing one, and malformed ids get `404` without a database query. `owner`, `_id`, and timestamps in a request body are ignored.
+- **Deleting an agent never deletes tasks.** Same order as deleting a project: unassign the owner's tasks from the agent, delete the agent, then a best-effort second unassign. Task writes also recheck agent existence after persistence and conditionally clear a deleted reference without overwriting a concurrent reassignment. Cleanup remains nontransactional: a database failure can leave a stale reference, which the client labels as deleted. The client preserves assignment input during unrelated edits; the server rechecks the reference on every task write and clears it when the agent no longer exists. A task deleted during create reconciliation returns `404 Task not found`, never a successful null task.
+
+**Task assignment (KAN-2, implemented on `codex/KAN-2-agent-task-assignment`; delivery validation pending):**
+
+- **Model:** `Task.assigneeType` is `user`, `agent`, or `null` (default, Unassigned). `Task.assigneeAgent` is the agent id when the type is `agent`, otherwise `null`. `user` always means the task's owner.
+- **Validation** (task create and update, in `taskController`): both fields omitted leaves the assignment unchanged. `assigneeType` is required whenever `assigneeAgent` is sent. `null`, `''`, and `user` must not carry an agent id (`400 Invalid assignee`). For `agent`, a malformed id gets `400 Invalid agent`, and a missing agent and another user's agent both get `400 Agent not found`. Both fields are always written together, so a reassignment fully replaces the previous assignee.
+- **Agent status:** only an `active` agent can take a new assignment (`400 Only active agents can take new tasks`). A task already assigned to a paused or disabled agent keeps it: an update that re-sends the task's current agent is accepted. Pausing or disabling an agent never changes its tasks. The status check and the write are separate queries, so an agent paused in that same moment can still receive the task.
+- **Assignment is a record only.** Nothing runs, and no agent run exists yet.
 
 A last-resort error handler in `app.ts` keeps every failure in the API's `{ message }` shape: malformed JSON → `400 Malformed JSON body`, an oversized body → `413`, anything else → `500 Server error`. Express's default HTML error page, with its stack trace, is never returned.
 
