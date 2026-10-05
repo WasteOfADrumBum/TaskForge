@@ -40,6 +40,7 @@ describe('task API', () => {
     const tasks = await getTasks(token);
     expect(fetchMock).toHaveBeenCalledWith('http://localhost:5000/api/tasks', {
       headers: { Authorization: 'Bearer jwt-token', 'Content-Type': 'application/json' },
+      signal: expect.any(AbortSignal),
     });
     expect(tasks).toHaveLength(1);
   });

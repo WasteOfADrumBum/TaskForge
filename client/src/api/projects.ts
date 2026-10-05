@@ -1,3 +1,4 @@
+import { finishApiResponse } from './request';
 import { authenticatedFetch, readAuthenticatedJson } from './authenticatedFetch';
 import { API_URL, authHeaders, getErrorMessage } from './http';
 import type { Project, ProjectInput, ProjectUpdate } from '../types/project';
@@ -5,8 +6,9 @@ import type { Project, ProjectInput, ProjectUpdate } from '../types/project';
 // Same contract as api/tasks.ts: errors throw Error(serverMessage), and a 401 expires the
 // session through authenticatedFetch.
 
-export const getProjects = async (token: string): Promise<Project[]> => {
+export const getProjects = async (token: string, signal?: AbortSignal): Promise<Project[]> => {
   const response = await authenticatedFetch(API_URL + '/api/projects', {
+    signal,
     headers: authHeaders(token),
   });
   if (!response.ok) {
@@ -54,4 +56,5 @@ export const deleteProject = async (token: string, projectId: string): Promise<v
   if (!response.ok) {
     throw new Error(await getErrorMessage(response, 'Unable to delete project', token));
   }
+  finishApiResponse(response);
 };

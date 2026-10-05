@@ -1,3 +1,4 @@
+import { finishApiResponse } from './request';
 import { authenticatedFetch, readAuthenticatedJson } from './authenticatedFetch';
 import { API_URL, authHeaders, getErrorMessage } from './http';
 import type { Agent, AgentInput, AgentUpdate } from '../types/agent';
@@ -5,8 +6,9 @@ import type { Agent, AgentInput, AgentUpdate } from '../types/agent';
 // Same contract as api/projects.ts: errors throw Error(serverMessage), and a 401 expires the
 // session through authenticatedFetch.
 
-export const getAgents = async (token: string): Promise<Agent[]> => {
+export const getAgents = async (token: string, signal?: AbortSignal): Promise<Agent[]> => {
   const response = await authenticatedFetch(API_URL + '/api/agents', {
+    signal,
     headers: authHeaders(token),
   });
   if (!response.ok) {
@@ -54,4 +56,5 @@ export const deleteAgent = async (token: string, agentId: string): Promise<void>
   if (!response.ok) {
     throw new Error(await getErrorMessage(response, 'Unable to delete agent', token));
   }
+  finishApiResponse(response);
 };
