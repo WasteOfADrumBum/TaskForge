@@ -67,7 +67,8 @@ AI features go through a provider abstraction and are never hard-wired to one pa
 - [x] **COMPLETE**: [KAN-5](https://taskforgejms.atlassian.net/browse/KAN-5): reconcile current docs and restore project guidance/branch workflow. PR #14 merged as `fc00e80`; documentation checks, independent review, PR/main CI, deployment status, and live health passed.
 
 - [x] **COMPLETE**: [KAN-11](https://taskforgejms.atlassian.net/browse/KAN-11): bounded DB readiness, build-derived release identity, preview isolation and free-tier recovery runbook. PR #16 merged as `f727b69`; 491 tests, independent review, PR/main CI and deployment status passed. Live client/API commits matched the merge; readiness returned 200.
-- [ ] **IN PROGRESS**: [KAN-6](https://taskforgejms.atlassian.net/browse/KAN-6): authentication input validation and registration feedback. Local 579 tests and required checks passed; independent review passed. PR/CI/deployment verification remain delivery gates.
+- [x] **COMPLETE**: [KAN-6](https://taskforgejms.atlassian.net/browse/KAN-6): authentication input validation and registration feedback. PR #17 merged as `bf888c6`; 579 tests, all checks, independent review, responsive/accessibility QA, PR/main CI and deployments passed. Live client/API identity matched; health/readiness and rejected malformed-input responses verified.
+- [ ] **IN PROGRESS**: [KAN-7](https://taskforgejms.atlassian.net/browse/KAN-7): bounded authentication abuse protection. [Branch task](tasks/KAN-7-auth-abuse-protection.md) records account/capacity limiting, proxy boundaries and test acceptance; implementation is in progress.
 
 ### Phase 1 maintenance (deferred; does not block Phase 1)
 

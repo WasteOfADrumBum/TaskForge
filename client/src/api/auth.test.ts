@@ -57,6 +57,22 @@ describe('auth API', () => {
     expect(result.user.email).toBe('test@example.com');
   });
 
+  it.each([
+    ['login', login],
+    ['register', register],
+  ])('surfaces %s throttling feedback without retrying', async (_name, action) => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ message: 'Too many attempts. Try again later.' }), {
+        status: 429,
+        headers: { 'Content-Type': 'application/json', 'Retry-After': '60' },
+      }),
+    );
+
+    await expect(
+      action({ email: 'test@example.com', password: 'Password123!long' }),
+    ).rejects.toThrow('Too many attempts. Try again later.');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
   it('logs out through the API', async () => {
     fetchMock.mockResolvedValue({ ok: true, json: vi.fn() } as unknown as Response);
 
