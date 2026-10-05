@@ -16,6 +16,8 @@ All notable changes to TaskForge are recorded here.
 
 ### Added
 
+- **KAN-5 — project workflow:** restore Codex project guidance and the Jira-to-deployment branch template; correct current architecture, session, CI, and destructive seed documentation without presenting local assignment as shipped.
+
 - **Agent Registry (Phase 2 foundation).** Persistent, user-owned agent definitions. Agents don't run: there is no AI execution, model call, run, assignment, handoff, or approval yet.
   - **API:** authenticated CRUD at `/api/agents`. An agent has a name, role, description, status (active, paused, or disabled), skills, and permissions. Every query is scoped to the signed-in user; another user's agent gets the same `404` as a missing one, and `owner` can't be set from a request.
   - **Skills** are lowercase tags (for example `software-development`); input is normalized and deduplicated. **Permissions** come from a fixed catalog (`task.read`, `task.update`, `project.read`, `project.update`, `artifact.draft`). They are stored as metadata only and are not enforced yet.

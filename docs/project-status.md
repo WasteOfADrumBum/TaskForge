@@ -6,23 +6,23 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 
 ## Checkpoint
 
-| Item                      | Value                                                                                                                         |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02))                   |
-| Current phase             | Phase 2: AI Workforce, foundation work (no AI execution yet)                                                                  |
-| Current branch            | `feat/agent-task-assignment` (local work in progress; not merged)                                                             |
-| Current checkpoint        | Task → Agent Assignment: assign TaskForge tasks to agent definitions (assignment only; no agent runs or AI execution)         |
-| Last completed checkpoint | Agent Registry foundation (PR #10, merged to `main` as `3ccb585`); before that, Work + Projects foundation (PR #9, `493f0c3`) |
-| Next recommended          | After assignment: Phase 2 provider abstraction (`AIProvider` with a no-provider/demo fallback); still no paid provider        |
+| Item                      | Value                                                                                                                                              |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02))                                        |
+| Current phase             | Phase 2: AI Workforce, foundation work (no AI execution yet)                                                                                       |
+| Current branch            | `codex/KAN-5-docs-workflow` (docs reconciliation); assignment WIP preserved on `feat/agent-task-assignment`                                        |
+| Current checkpoint        | Release/delivery readiness followed by task → agent assignment and bounded Phase 2                                                                 |
+| Last completed checkpoint | Delivery gates (PR #13, `882e134`); audit recovery (PR #12, `48aae59`)                                                                             |
+| Next recommended          | Finish KAN-5 documentation, then validate and ship preserved assignment under KAN-2 before security/reliability readiness and bounded AI execution |
 
-## Known blockers
+## Known verification gaps
 
-- None.
+- Exact Render API source identity remains to be confirmed under KAN-11; successful provider deployment status and healthy routes do not establish a served commit.
 
 ## Delivery pipeline stabilization (2026-10-05)
 
 - **KAN-1 complete:** PR #12 merged as `48aae59`; 361 tests, audit, final-head/main CI, successful deployment status, and live availability/auth guards passed. Evidence is recorded in [KAN-1](https://taskforgejms.atlassian.net/browse/KAN-1).
-- **KAN-4 in progress:** main now requires PRs, current quality CI, resolved conversations, and administrator enforcement. Force pushes/deletions are blocked; the policy PR remains under validation. See [delivery policy](delivery.md).
+- **KAN-4 complete:** PR #13 merged as `882e134`; required PR/main CI, effective protection, deployment status, and live health passed. Main requires PRs/current quality CI/resolved conversations, including administrators; force pushes/deletions are blocked. See [delivery policy](delivery.md).
 - The existing task-assignment work is preserved separately on `feat/agent-task-assignment` and tracked in [KAN-2](https://taskforgejms.atlassian.net/browse/KAN-2); it is not shipped by this tooling branch.
 - Josh approved autonomous delivery through release readiness and bounded Phase 2. Normal scoped tickets may merge after validation and independent review. New scope, paid cost, major architecture/core security changes, risky data operations, and Phases 3–8 require a decision.
 
@@ -94,7 +94,7 @@ These are known minor polish issues from PR #7. They were never Phase 1 items:
 
 ## Design reference
 
-The v2 shell and Command Center UX came from a separate TaskForge v2 prototype built on the Sites platform. The production app keeps its existing architecture: React + Vite + Chakra UI, Express + MongoDB, JWT auth, Vercel + Render.
+The v2 shell and Command Center UX originally came from a separate TaskForge v2 prototype built on the Sites platform. The authoritative [TaskForge Figma file](https://www.figma.com/design/2l4DJJigN7aa4Fk6S5zu8M/TaskForge) was inspected on 2026-10-05: one empty page, no design nodes. This establishes no design parity; reconcile future applicable designs with the existing intended UX. The production app keeps its existing architecture: React + Vite + Chakra UI, Express + MongoDB, JWT auth, Vercel + Render.
 
 ## Documentation
 
