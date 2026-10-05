@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { toaster } from '../../components/ui/toaster';
@@ -58,5 +58,45 @@ describe('RegisterPage', () => {
       ),
     );
     expect(screen.getByRole('heading', { name: 'Create your workspace' })).toBeInTheDocument();
+  });
+});
+
+describe('registration password policy feedback', () => {
+  it.each([
+    ['short password', 'a'.repeat(14), 'Use at least 15 characters for your password.'],
+    [
+      'multibyte overflow',
+      '\u{1f600}'.repeat(19),
+      'Password is too long. Use fewer characters, especially emoji or accented letters.',
+    ],
+  ])(
+    'blocks %s locally, focuses the password, and allows correction',
+    async (_label, password, message) => {
+      const { fetchMock } = stubTaskApi();
+      renderApp('/register');
+      await userEvent.type(await screen.findByLabelText(/email/i), 'new@example.com');
+      const input = screen.getByLabelText(/password/i);
+      fireEvent.change(input, { target: { value: password } });
+      await userEvent.click(screen.getByRole('button', { name: 'Create account' }));
+      expect(await screen.findByText(message)).toBeVisible();
+      expect(input).toHaveFocus();
+      expect(input).toHaveAttribute('aria-invalid', 'true');
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(store.getState().auth.loading).toBe(false);
+      await userEvent.clear(input);
+      await userEvent.type(input, 'a-valid-password-long');
+      expect(screen.queryByText(message)).not.toBeInTheDocument();
+      await userEvent.click(screen.getByRole('button', { name: 'Create account' }));
+      expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeInTheDocument();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it('explains the password policy before submission', async () => {
+    stubTaskApi();
+    renderApp('/register');
+    expect(await screen.findByText(/use 15.*72 characters/i)).toHaveTextContent(
+      'Emoji and accented letters may reach the limit sooner.',
+    );
   });
 });

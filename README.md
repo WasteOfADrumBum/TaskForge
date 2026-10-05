@@ -62,7 +62,7 @@ Captured from the live app with sample data. More details are in [docs/images](d
 - **Session-expiration handling.** Expired or rejected sessions sign the user out cleanly and explain why (see below).
 - **Dark-first theme.** A dark command-center look with teal, orange, and violet accents. Light and system modes are available on the Settings page.
 - **Polished UI.** Landing page, auth pages, and workspace built with Chakra UI v3; routes are lazy-loaded.
-- **Agent Registry (Workforce).** Define private AI workers with a role, description, status (active / paused / disabled), skill tags, and permission identifiers, each with its own detail page. Task assignment merged in PR #15 (backend release verification pending under KAN-11). You can assign tasks to yourself or to an active agent, and see each agent's assigned and open tasks. Assignments only record who owns the work: agents don't run or call any AI model yet, and the app says so.
+- **Agent Registry (Workforce).** Define private AI workers with a role, description, status (active / paused / disabled), skill tags, and permission identifiers, each with its own detail page. Task assignment shipped in PR #15, with matching client/API source identity verified under KAN-11. You can assign tasks to yourself or to an active agent, and see each agent's assigned and open tasks. Assignments only record who owns the work: agents don't run or call any AI model yet, and the app says so.
 
 ## Tech stack
 
@@ -188,7 +188,7 @@ Future AI features will go through a provider abstraction (chat, embeddings, str
 - [Project status](docs/project-status.md): the current checkpoint, production URLs, and latest validation results.
 - [Changelog](CHANGELOG.md): notable changes.
 
-**Phase 1 — Stabilize TaskForge** is complete: the app is live, verified in production, and on free-tier infrastructure. Current focus: the foundation for **Phase 2 — AI Workforce** (agent registry, runs, human approval, provider abstraction). Work + Projects is done, the Agent Registry stores agent definitions, and task assignment merged in PR #15 with backend release verification pending under KAN-11. No AI execution, runs, or approvals are built yet.
+**Phase 1 — Stabilize TaskForge** is complete: the app is live, verified in production, and on free-tier infrastructure. Current focus: the foundation for **Phase 2 — AI Workforce** (agent registry, runs, human approval, provider abstraction). Work + Projects is done, the Agent Registry stores agent definitions, and task assignment shipped in PR #15 with client/API release identity verified under KAN-11. No AI execution, runs, or approvals are built yet.
 
 ## About this project
 
