@@ -147,6 +147,8 @@ Notes:
 - The server is the only authority on whether a token is valid. The client's expiry check in `ProtectedRoute` only avoids rendering a page that is bound to fail.
 - A response to a request sent with an older token is discarded, so it can never sign out a newer session.
 - Logout is stateless (the client drops the token). There are no refresh tokens and no server-side revocation.
+- Login and registration use layered process capacity and normalized-account throttles before their controllers. Login allows 10 failed attempts/account in 15 minutes (successful responses refund that account quota), with 120 requests/minute process capacity. Registration allows 5 attempts/account/hour and 20 requests/15 minutes process capacity. Keys hash normalized email; malformed email shares an invalid bucket. Forwarded headers do not choose keys and proxy trust remains disabled. Blocked requests return 429, Retry-After and a clear message shown by the existing form error feedback.
+- These in-memory limits reset at process restart and do not coordinate multiple instances. Shared capacity can temporarily affect other users under attack; targeted attempts can temporarily exhaust an account quota. No verified per-client IP guarantee or distributed abuse protection is claimed. See the [KAN-7 policy and delivery record](tasks/KAN-7-auth-abuse-protection.md).
 
 ## Deployment flow
 

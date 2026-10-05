@@ -10,10 +10,10 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02)) |
 | Current phase             | Phase 2: AI Workforce, foundation work (no AI execution yet)                                                |
-| Current branch            | `codex/KAN-6-auth-input-validation`; original assignment WIP preserved on `feat/agent-task-assignment`      |
+| Current branch            | `codex/KAN-7-auth-abuse-protection`; original assignment WIP preserved on `feat/agent-task-assignment`      |
 | Current checkpoint        | Release/delivery readiness followed by task → agent assignment and bounded Phase 2                          |
-| Last completed checkpoint | Release readiness (PR #16, `f727b69`); assignment (PR #15, `16628b0`)                                       |
-| Next recommended          | Finish KAN-6 authentication validation; then KAN-7 abuse protection and remaining approved readiness work   |
+| Last completed checkpoint | Auth validation (PR #17, `bf888c6`); release readiness (PR #16); assignment (PR #15)                        |
+| Next recommended          | Resolve KAN-7 proxy identity and implement bounded abuse protection; then KAN-8 task validation             |
 
 ## Known verification gaps
 
@@ -126,7 +126,11 @@ Run on `feat/agent-registry-foundation` on 2026-10-02 (local, before PR #10). Th
 
 Note: the server suite sometimes prints Jest's `A worker process has failed to exit gracefully` warning. This happened in 2 of 3 runs. All tests still pass, the exit code is 0, and `--detectOpenHandles` reports no open handles. It already existed on `main` before this branch and is tracked as maintenance in the roadmap.
 
-## Authentication validation (KAN-6, active)
+## Authentication validation (KAN-6, complete)
 
-- Malformed input rejection, email normalization, duplicate-race handling, and Unicode-aware registration limits are implemented. Existing account login remains compatible. Local 579 tests, format/lint/types/build/audit and independent review passed; PR/CI/deployment validation is pending.
+- Malformed input rejection, email normalization, duplicate-race handling, and Unicode-aware registration limits are implemented. Existing account login remains compatible. PR #17 merged as `bf888c6`. Local 579 tests, format/lint/types/build/audit, independent review, PR/main CI and deployments passed. Live client/API source matched the merge; health/readiness and malformed query-object rejection passed.
 - The existing registration layout is retained. A [source-matched Figma reference](https://www.figma.com/design/2l4DJJigN7aa4Fk6S5zu8M/TaskForge?node-id=14-71) records default, too-short and too-long password states.
+
+## Authentication abuse protection (KAN-7, active)
+
+- Clean branch created from verified merged main. The [branch task](tasks/KAN-7-auth-abuse-protection.md) records account/capacity limiting and Render proxy boundaries. Middleware is implemented; 593 tests and local checks passed, with independent review finding no blockers. PR/CI/deployment checks remain pending; proxy trust stays disabled. No per-client IP guarantee or deployed abuse protection is claimed.

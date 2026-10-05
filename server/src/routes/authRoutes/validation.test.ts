@@ -1,3 +1,8 @@
+// Controller/input tests isolate their behavior; rate limits have real HTTP coverage separately.
+jest.mock('../../middleware/authRateLimit', () => ({
+  createAuthRateLimiters: () => ({ login: [], register: [] }),
+}));
+
 import request from 'supertest';
 import bcrypt from 'bcrypt';
 import jwt, { type JwtPayload } from 'jsonwebtoken';
