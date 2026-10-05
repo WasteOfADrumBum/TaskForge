@@ -68,7 +68,7 @@ The request flow is `routes → controllers → services → models`:
 - Theme: `assets/theme/theme.ts` overrides Chakra's dark semantic tokens (`bg.*`, `fg.*`, `border.*`) with the v2 palette and adds `accent.{teal,orange,violet}` and `shell.*`. Use these tokens, not hex values. Dark is the default color mode.
 - Tests: `src/test/renderApp.tsx` renders `AppRoutes` with in-memory task, project, and agent API stubs. jsdom applies only base (mobile) styles, so shell tests navigate through the drawer.
 - Redux store (`redux/store.ts`, `rootreducer.ts`) has four slices:
-  - `authSlice`: `token` (seeded from `localStorage.token`), `loading`, `error`.
+  - `authSlice`: `token` (seeded from `localStorage.token`), `sessionVersion`, `loading`, `error`. The in-memory version increments on login, logout, and expiration; request and consumer guards compare both token and captured version, including when JWT strings repeat.
   - `taskSlice`: `items`, `loading`, `error`, `loaded`. Assignment counts require successfully loaded task data; pending/failed loads are unknown.
   - `projectSlice` and `agentSlice`: `items`, `loading`, `error`, `loaded`.
   - All resource slices reset on `clearAuth` and `sessionExpired`.

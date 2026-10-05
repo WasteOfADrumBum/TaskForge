@@ -1,3 +1,4 @@
+import { isCurrentSession } from '../api/authenticatedFetch';
 import { useState } from 'react';
 import { createProject, deleteProject, updateProject } from '../api/projects';
 import { toaster } from '../components/ui/toaster';
@@ -11,11 +12,17 @@ import { SessionExpiredError } from '../utils/session';
 export const useProjectActions = () => {
   const dispatch = useAppDispatch();
   const token = useAppSelector((state) => state.auth.token);
+  const sessionVersion = useAppSelector((state) => state.auth.sessionVersion);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fail = (failure: unknown, fallback: string, title: string) => {
-    if (failure instanceof SessionExpiredError) return;
+    if (
+      failure instanceof SessionExpiredError ||
+      !token ||
+      !isCurrentSession(token, sessionVersion)
+    )
+      return;
     const message = failure instanceof Error ? failure.message : fallback;
     setError(message);
     toaster.create({ title, description: message, type: 'error' });
@@ -25,7 +32,7 @@ export const useProjectActions = () => {
   // changed. An edit with no changes sends nothing, so it can't bump `updatedAt` or add a
   // misleading "updated" entry to the project's activity.
   const save = async (input: ProjectInput, existing?: Project): Promise<Project | null> => {
-    if (!token) return null;
+    if (!token || !isCurrentSession(token, sessionVersion)) return null;
     const projectId = existing ? getProjectId(existing) : undefined;
     const changes: Partial<ProjectInput> = {};
     if (existing) {
@@ -41,6 +48,7 @@ export const useProjectActions = () => {
       const project = projectId
         ? await updateProject(token, projectId, changes)
         : await createProject(token, input);
+      if (!isCurrentSession(token, sessionVersion)) return null;
       dispatch(projectId ? replaceProject(project) : addProject(project));
       toaster.create({
         title: projectId ? 'Project Updated' : 'Project Created',
@@ -52,17 +60,18 @@ export const useProjectActions = () => {
       fail(saveError, 'Unable to save project', 'Project Error');
       return null;
     } finally {
-      setSaving(false);
+      if (isCurrentSession(token, sessionVersion)) setSaving(false);
     }
   };
 
   const remove = async (project: Project): Promise<boolean> => {
-    if (!token) return false;
+    if (!token || !isCurrentSession(token, sessionVersion)) return false;
     const projectId = getProjectId(project);
     setSaving(true);
     setError(null);
     try {
       await deleteProject(token, projectId);
+      if (!isCurrentSession(token, sessionVersion)) return false;
       dispatch(removeProject(projectId));
       toaster.create({ title: 'Project Deleted', description: project.name, type: 'success' });
       return true;
@@ -70,7 +79,7 @@ export const useProjectActions = () => {
       fail(deleteError, 'Unable to delete project', 'Delete Failed');
       return false;
     } finally {
-      setSaving(false);
+      if (isCurrentSession(token, sessionVersion)) setSaving(false);
     }
   };
 

@@ -1,4 +1,4 @@
-import { authenticatedFetch } from './authenticatedFetch';
+import { authenticatedFetch, readAuthenticatedJson } from './authenticatedFetch';
 import { API_URL, authHeaders, getErrorMessage } from './http';
 import type { Task, TaskInput, TaskUpdate } from '../types/task';
 
@@ -8,10 +8,10 @@ export const getTasks = async (token: string): Promise<Task[]> => {
   });
 
   if (!response.ok) {
-    throw new Error(await getErrorMessage(response, 'Unable to load tasks'));
+    throw new Error(await getErrorMessage(response, 'Unable to load tasks', token));
   }
 
-  const data = (await response.json()) as { tasks: Task[] };
+  const data = await readAuthenticatedJson<{ tasks: Task[] }>(response, token);
   return data.tasks;
 };
 
@@ -23,10 +23,10 @@ export const createTask = async (token: string, input: TaskInput): Promise<Task>
   });
 
   if (!response.ok) {
-    throw new Error(await getErrorMessage(response, 'Unable to create task'));
+    throw new Error(await getErrorMessage(response, 'Unable to create task', token));
   }
 
-  const data = (await response.json()) as { task: Task };
+  const data = await readAuthenticatedJson<{ task: Task }>(response, token);
   return data.task;
 };
 
@@ -42,10 +42,10 @@ export const updateTask = async (
   });
 
   if (!response.ok) {
-    throw new Error(await getErrorMessage(response, 'Unable to update task'));
+    throw new Error(await getErrorMessage(response, 'Unable to update task', token));
   }
 
-  const data = (await response.json()) as { task: Task };
+  const data = await readAuthenticatedJson<{ task: Task }>(response, token);
   return data.task;
 };
 
@@ -56,6 +56,6 @@ export const deleteTask = async (token: string, taskId: string): Promise<void> =
   });
 
   if (!response.ok) {
-    throw new Error(await getErrorMessage(response, 'Unable to delete task'));
+    throw new Error(await getErrorMessage(response, 'Unable to delete task', token));
   }
 };

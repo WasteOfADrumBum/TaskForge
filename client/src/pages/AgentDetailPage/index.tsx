@@ -1,3 +1,4 @@
+import { isCurrentSession } from '../../api/authenticatedFetch';
 import {
   Badge,
   Box,
@@ -62,6 +63,8 @@ const panelProps = {
 } as const;
 
 const AgentDetailPage = () => {
+  const token = useAppSelector((state) => state.auth.token);
+  const sessionVersion = useAppSelector((state) => state.auth.sessionVersion);
   const { id = '' } = useParams();
   const navigate = useNavigate();
   const agents = useAppSelector((state) => state.agents.items);
@@ -130,13 +133,16 @@ const AgentDetailPage = () => {
   }
 
   const handleSubmit = async (input: Parameters<typeof save>[0]) => {
+    if (!token || !isCurrentSession(token, sessionVersion)) return false;
     const saved = await save(input, agent);
+    if (!isCurrentSession(token, sessionVersion)) return false;
     if (saved) setEditing(false);
     return Boolean(saved);
   };
   const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    if (await remove(deleteTarget)) {
+    if (!token || !isCurrentSession(token, sessionVersion) || !deleteTarget) return;
+    const deleted = await remove(deleteTarget);
+    if (isCurrentSession(token, sessionVersion) && deleted) {
       setDeleteTarget(null);
       navigate('/workforce');
     }

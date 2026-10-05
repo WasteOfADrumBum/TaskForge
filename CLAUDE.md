@@ -70,7 +70,7 @@ The request flow is `routes → controllers → services → models`:
 - Theme: `assets/theme/theme.ts` overrides Chakra's dark semantic tokens (`bg.*`, `fg.*`, `border.*`) with the v2 palette and adds `accent.{teal,orange,violet}` and `shell.*`. Use these tokens, not hex values. Dark is the default color mode.
 - Tests: `src/test/renderApp.tsx` renders `AppRoutes` against `stubTaskApi`, an in-memory stub of the task, project, **and agent** APIs (`makeTask`, `makeProject`, `makeAgent`; agents are the third argument, and `requestsTo` for counting calls to an endpoint). jsdom applies only base (mobile) styles, so shell tests navigate through the drawer. `findBy*`/`waitFor` use a 3 s timeout (`setupTests.ts`).
 - Redux store (`redux/store.ts`, `rootreducer.ts`) has four slices:
-  - `authSlice`: `token` (seeded from `localStorage.token`), `loading`, `error`.
+  - `authSlice`: `token` (seeded from `localStorage.token`), `sessionVersion`, `loading`, `error`. The in-memory version increments on login, logout, and expiration; request and consumer guards compare both token and captured version, including when JWT strings repeat.
   - `taskSlice`: `items`, `loading`, `error`. It resets on both `clearAuth` and `sessionExpired`, and unassigns tasks locally on `removeProject`.
   - `projectSlice`: `items`, `loading`, `error`, `loaded` (true once the first load finishes, so pages can tell loading apart from not found). It resets on `clearAuth` and `sessionExpired`.
   - `agentSlice`: same shape and reset rules as `projectSlice`.

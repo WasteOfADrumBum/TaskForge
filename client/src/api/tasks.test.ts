@@ -88,6 +88,7 @@ describe('task API', () => {
     store.dispatch(setTasks([{ _id: 'task-1', title: 'Private task' }] as never));
     store.dispatch(setTaskLoading(true));
     store.dispatch(setTaskError('Previous error'));
+    const sessionVersion = store.getState().auth.sessionVersion;
     fetchMock.mockResolvedValue({ status: 401, ok: false } as Response);
     await expect(request()).rejects.toThrow(SESSION_EXPIRED_MESSAGE);
     expect(localStorage.getItem('token')).toBeNull();
@@ -95,6 +96,7 @@ describe('task API', () => {
       token: null,
       loading: false,
       error: SESSION_EXPIRED_MESSAGE,
+      sessionVersion: sessionVersion + 1,
     });
     expect(store.getState().tasks).toEqual({
       items: [],

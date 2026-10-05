@@ -1,3 +1,4 @@
+import { isCurrentSession } from '../../api/authenticatedFetch';
 import { Box, Heading, SimpleGrid, Text } from '@chakra-ui/react';
 import { useMemo, useState } from 'react';
 import { LuFolderKanban } from 'react-icons/lu';
@@ -13,6 +14,8 @@ import { getProjectId, type Project } from '../../types/project';
 import { getProjectStats, getStatsForProject, sortProjects } from '../../utils/projects';
 
 const ProjectsPage = () => {
+  const token = useAppSelector((state) => state.auth.token);
+  const sessionVersion = useAppSelector((state) => state.auth.sessionVersion);
   const projects = useAppSelector((state) => state.projects.items);
   const loading = useAppSelector((state) => state.projects.loading);
   const loaded = useAppSelector((state) => state.projects.loaded);
@@ -36,14 +39,16 @@ const ProjectsPage = () => {
     setEditing(null);
   };
   const handleSubmit = async (input: Parameters<typeof save>[0]) => {
+    if (!token || !isCurrentSession(token, sessionVersion)) return false;
     const saved = await save(input, editing ?? undefined);
+    if (!isCurrentSession(token, sessionVersion)) return false;
     if (saved && editing) setEditing(null);
     return Boolean(saved);
   };
   const confirmDelete = async () => {
-    if (!deleteTarget) return;
+    if (!token || !isCurrentSession(token, sessionVersion) || !deleteTarget) return;
     const deleted = await remove(deleteTarget);
-    if (!deleted) return;
+    if (!isCurrentSession(token, sessionVersion) || !deleted) return;
     if (editing && getProjectId(editing) === getProjectId(deleteTarget)) setEditing(null);
     setDeleteTarget(null);
   };

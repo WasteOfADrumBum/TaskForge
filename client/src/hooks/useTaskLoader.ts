@@ -1,3 +1,4 @@
+import { isCurrentSession } from '../api/authenticatedFetch';
 import { useCallback, useEffect, useState } from 'react';
 import { getTasks } from '../api/tasks';
 import { useAppDispatch, useAppSelector } from '../redux/hooks/typedHooks';
@@ -9,6 +10,7 @@ import { SessionExpiredError } from '../utils/session';
 export const useTaskLoader = () => {
   const dispatch = useAppDispatch();
   const token = useAppSelector((state) => state.auth.token);
+  const sessionVersion = useAppSelector((state) => state.auth.sessionVersion);
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
@@ -19,20 +21,21 @@ export const useTaskLoader = () => {
       dispatch(setTaskError(null));
       try {
         const loadedTasks = await getTasks(token);
-        if (active) dispatch(setTasks(loadedTasks));
+        if (active && isCurrentSession(token, sessionVersion)) dispatch(setTasks(loadedTasks));
       } catch (loadError) {
-        if (loadError instanceof SessionExpiredError) return;
+        if (loadError instanceof SessionExpiredError || !isCurrentSession(token, sessionVersion))
+          return;
         const message = loadError instanceof Error ? loadError.message : 'Unable to load tasks';
-        if (active) dispatch(setTaskError(message));
+        if (active && isCurrentSession(token, sessionVersion)) dispatch(setTaskError(message));
       } finally {
-        if (active) dispatch(setTaskLoading(false));
+        if (active && isCurrentSession(token, sessionVersion)) dispatch(setTaskLoading(false));
       }
     };
     void loadTasks();
     return () => {
       active = false;
     };
-  }, [dispatch, token, reloadKey]);
+  }, [dispatch, token, sessionVersion, reloadKey]);
 
   return useCallback(() => setReloadKey((key) => key + 1), []);
 };

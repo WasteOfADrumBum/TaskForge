@@ -1,4 +1,6 @@
-// Shared helpers for the authenticated resource APIs (tasks, projects).
+// Shared helpers for the authenticated resource APIs (tasks, projects, agents).
+import { readAuthenticatedJson } from './authenticatedFetch';
+import { SessionExpiredError } from '../utils/session';
 
 export const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
 
@@ -6,11 +8,12 @@ interface ErrorResponse {
   message?: string;
 }
 
-export const getErrorMessage = async (response: Response, fallback: string) => {
+export const getErrorMessage = async (response: Response, fallback: string, token: string) => {
   try {
-    const body = (await response.json()) as ErrorResponse;
+    const body = await readAuthenticatedJson<ErrorResponse>(response, token);
     return body.message ?? fallback;
-  } catch {
+  } catch (error) {
+    if (error instanceof SessionExpiredError) throw error;
     return fallback;
   }
 };

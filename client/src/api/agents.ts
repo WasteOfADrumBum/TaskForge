@@ -1,4 +1,4 @@
-import { authenticatedFetch } from './authenticatedFetch';
+import { authenticatedFetch, readAuthenticatedJson } from './authenticatedFetch';
 import { API_URL, authHeaders, getErrorMessage } from './http';
 import type { Agent, AgentInput, AgentUpdate } from '../types/agent';
 
@@ -10,9 +10,9 @@ export const getAgents = async (token: string): Promise<Agent[]> => {
     headers: authHeaders(token),
   });
   if (!response.ok) {
-    throw new Error(await getErrorMessage(response, 'Unable to load agents'));
+    throw new Error(await getErrorMessage(response, 'Unable to load agents', token));
   }
-  const data = (await response.json()) as { agents: Agent[] };
+  const data = await readAuthenticatedJson<{ agents: Agent[] }>(response, token);
   return data.agents;
 };
 
@@ -23,9 +23,9 @@ export const createAgent = async (token: string, input: AgentInput): Promise<Age
     body: JSON.stringify(input),
   });
   if (!response.ok) {
-    throw new Error(await getErrorMessage(response, 'Unable to create agent'));
+    throw new Error(await getErrorMessage(response, 'Unable to create agent', token));
   }
-  const data = (await response.json()) as { agent: Agent };
+  const data = await readAuthenticatedJson<{ agent: Agent }>(response, token);
   return data.agent;
 };
 
@@ -40,9 +40,9 @@ export const updateAgent = async (
     body: JSON.stringify(updates),
   });
   if (!response.ok) {
-    throw new Error(await getErrorMessage(response, 'Unable to update agent'));
+    throw new Error(await getErrorMessage(response, 'Unable to update agent', token));
   }
-  const data = (await response.json()) as { agent: Agent };
+  const data = await readAuthenticatedJson<{ agent: Agent }>(response, token);
   return data.agent;
 };
 
@@ -52,6 +52,6 @@ export const deleteAgent = async (token: string, agentId: string): Promise<void>
     headers: authHeaders(token),
   });
   if (!response.ok) {
-    throw new Error(await getErrorMessage(response, 'Unable to delete agent'));
+    throw new Error(await getErrorMessage(response, 'Unable to delete agent', token));
   }
 };
