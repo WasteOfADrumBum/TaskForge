@@ -47,3 +47,7 @@ Implementation and test work are in progress. No PR, merge, deployment, or compl
 - Format, lint, client/server types, both builds, full audit (0 vulnerabilities) and whitespace checks passed.
 - Independent review found no blockers. Local synthetic 429 browser QA verifies retry feedback and a usable form; no production load or account writes.
 - Final-head PR CI, main CI, deployment status and live commit/availability checks remain delivery gates.
+
+## Delivery verified
+
+PR [#18](https://github.com/WasteOfADrumBum/TaskForge/pull/18) merged as `0275740`. PR CI 37377586131 and main CI 37377896847 passed; Vercel 6870036907 and Render 6870031839 succeeded. Live client/API release identity matched the merge, health/readiness passed, and one rejected malformed login carried both expected limiter policy headers. No production limit exhaustion, account creation or database writes. Jira is Done.

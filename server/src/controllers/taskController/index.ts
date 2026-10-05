@@ -1,5 +1,11 @@
 import type { Request, Response } from 'express';
-import { TASK_PRIORITIES, TASK_STATUSES } from '../../models/taskModel';
+import {
+  TASK_DESCRIPTION_MAX,
+  TASK_PRIORITIES,
+  TASK_STATUSES,
+  TASK_TITLE_MAX,
+} from '../../models/taskModel';
+import { normalizeCalendarDate } from '../../utils/calendarDate';
 import { findAgentStatus } from '../../services/agentService';
 import { ownsProject } from '../../services/projectService';
 import {
@@ -82,6 +88,12 @@ export const listTasks = async (req: Request, res: Response) => {
 };
 
 export const createTaskHandler = async (req: Request, res: Response) => {
+  if (
+    req.body !== undefined &&
+    (!req.body || typeof req.body !== 'object' || Array.isArray(req.body))
+  ) {
+    return res.status(400).json({ message: 'Invalid task data' });
+  }
   // Express 5 leaves req.body undefined when no JSON body is sent.
   const { title, description, status, priority, dueDate, project, assigneeType, assigneeAgent } =
     req.body ?? {};
@@ -90,12 +102,31 @@ export const createTaskHandler = async (req: Request, res: Response) => {
     return res.status(400).json({ message: 'Task title is required' });
   }
 
-  if (status && !TASK_STATUSES.includes(status)) {
+  if (status !== undefined && !TASK_STATUSES.includes(status)) {
     return res.status(400).json({ message: 'Invalid task status' });
   }
 
-  if (priority && !TASK_PRIORITIES.includes(priority)) {
+  if (priority !== undefined && !TASK_PRIORITIES.includes(priority)) {
     return res.status(400).json({ message: 'Invalid task priority' });
+  }
+
+  if (title !== undefined && title.trim().length > TASK_TITLE_MAX) {
+    return res
+      .status(400)
+      .json({ message: `Task title must be at most ${TASK_TITLE_MAX} characters` });
+  }
+  if (description !== undefined && typeof description !== 'string') {
+    return res.status(400).json({ message: 'Invalid task description' });
+  }
+  if (description !== undefined && description.trim().length > TASK_DESCRIPTION_MAX) {
+    return res
+      .status(400)
+      .json({ message: `Task description must be at most ${TASK_DESCRIPTION_MAX} characters` });
+  }
+  const normalizedDueDate =
+    dueDate === null || dueDate === undefined ? dueDate : normalizeCalendarDate(dueDate);
+  if (dueDate !== undefined && dueDate !== null && normalizedDueDate === null) {
+    return res.status(400).json({ message: 'Invalid due date' });
   }
 
   try {
@@ -106,10 +137,10 @@ export const createTaskHandler = async (req: Request, res: Response) => {
 
     const task = await createTask(getUserId(req), {
       title: title.trim(),
-      description,
+      description: description?.trim(),
       status,
       priority,
-      dueDate,
+      dueDate: normalizedDueDate,
       ...(resolved.value !== undefined && { project: resolved.value }),
       ...assignee.value,
     });
@@ -124,6 +155,13 @@ export const createTaskHandler = async (req: Request, res: Response) => {
 };
 
 export const updateTaskHandler = async (req: Request<TaskParams>, res: Response) => {
+  if (!isObjectIdString(req.params.id)) return res.status(404).json({ message: 'Task not found' });
+  if (
+    req.body !== undefined &&
+    (!req.body || typeof req.body !== 'object' || Array.isArray(req.body))
+  ) {
+    return res.status(400).json({ message: 'Invalid task data' });
+  }
   // Express 5 leaves req.body undefined when no JSON body is sent.
   const { title, description, status, priority, dueDate, project, assigneeType, assigneeAgent } =
     req.body ?? {};
@@ -140,12 +178,31 @@ export const updateTaskHandler = async (req: Request<TaskParams>, res: Response)
     return res.status(400).json({ message: 'Invalid task priority' });
   }
 
+  if (title !== undefined && title.trim().length > TASK_TITLE_MAX) {
+    return res
+      .status(400)
+      .json({ message: `Task title must be at most ${TASK_TITLE_MAX} characters` });
+  }
+  if (description !== undefined && typeof description !== 'string') {
+    return res.status(400).json({ message: 'Invalid task description' });
+  }
+  if (description !== undefined && description.trim().length > TASK_DESCRIPTION_MAX) {
+    return res
+      .status(400)
+      .json({ message: `Task description must be at most ${TASK_DESCRIPTION_MAX} characters` });
+  }
+  const normalizedDueDate =
+    dueDate === null || dueDate === undefined ? dueDate : normalizeCalendarDate(dueDate);
+  if (dueDate !== undefined && dueDate !== null && normalizedDueDate === null) {
+    return res.status(400).json({ message: 'Invalid due date' });
+  }
+
   const updates: TaskUpdate = {};
   if (title !== undefined) updates.title = title.trim();
-  if (description !== undefined) updates.description = description;
+  if (description !== undefined) updates.description = description.trim();
   if (status !== undefined) updates.status = status;
   if (priority !== undefined) updates.priority = priority;
-  if (dueDate !== undefined) updates.dueDate = dueDate;
+  if (dueDate !== undefined) updates.dueDate = normalizedDueDate;
 
   try {
     const resolved = await resolveProject(getUserId(req), project);
@@ -173,6 +230,7 @@ export const updateTaskHandler = async (req: Request<TaskParams>, res: Response)
 };
 
 export const deleteTaskHandler = async (req: Request<TaskParams>, res: Response) => {
+  if (!isObjectIdString(req.params.id)) return res.status(404).json({ message: 'Task not found' });
   try {
     const task = await deleteTaskById(getUserId(req), req.params.id);
 

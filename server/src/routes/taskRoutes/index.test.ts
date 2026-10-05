@@ -415,8 +415,9 @@ describe('task routes', () => {
         .patch('/api/tasks/not-a-task-id')
         .set(authorization)
         .send({ assigneeType: 'agent', assigneeAgent: agentId });
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(404);
       expect(mockedIsTaskAssignedToAgent).not.toHaveBeenCalled();
+      expect(mockedFindAgentStatus).not.toHaveBeenCalled();
     });
 
     it('returns a 500 without details when the agent check fails', async () => {

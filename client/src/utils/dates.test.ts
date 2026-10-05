@@ -57,3 +57,14 @@ describe('formatCalendarDate', () => {
     expect(formatCalendarDate('2026-10-15')).toBe(new Date(2026, 9, 15).toLocaleDateString());
   });
 });
+
+it('keeps years below 100 in the correct century for arithmetic and display', () => {
+  const now = new Date(2000, 0, 1, 12);
+  now.setFullYear(100);
+  expect(daysUntilDueDate(due('0099-12-31'), now)).toBe(-1);
+  expect(daysUntilDueDate(due('0100-01-02'), now)).toBe(1);
+  const ancientDate = new Date('0099-12-31T00:00:00.000Z');
+  const expected = ancientDate.toLocaleDateString(undefined, { timeZone: 'UTC' });
+  expect(formatCalendarDate(due('0099-12-31'))).toBe(expected);
+  expect(formatCalendarDate(due('0099-12-31'))).not.toBe(formatCalendarDate(due('1999-12-31')));
+});

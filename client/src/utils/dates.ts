@@ -25,7 +25,11 @@ export const localCalendarDate = (date: Date = new Date()): string =>
 // Whole-day arithmetic in UTC, so neither the time zone nor daylight saving can skew it.
 const calendarDayNumber = (calendarDate: string) => {
   const [year, month, day] = calendarDate.split('-').map(Number);
-  return Date.UTC(year, month - 1, day) / DAY_MS;
+  const date = new Date(0);
+  date.setUTCHours(0, 0, 0, 0);
+  // Date.UTC maps years 0–99 into 1900–1999; preserve the calendar year.
+  date.setUTCFullYear(year, month - 1, day);
+  return date.getTime() / DAY_MS;
 };
 
 /** Days from the local calendar date of `now` until the due date: 0 = today, -1 = yesterday. */
