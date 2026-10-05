@@ -4,6 +4,8 @@ import agentRoutes from './routes/agentRoutes';
 import authRoutes from './routes/authRoutes';
 import projectRoutes from './routes/projectRoutes';
 import taskRoutes from './routes/taskRoutes';
+import { checkReadiness } from './utils/readiness';
+import { getReleaseCommit } from './utils/release';
 
 const app = express();
 
@@ -18,6 +20,20 @@ app.get('/health', (_req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
+app.get('/release', (_req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.status(200).json({ commit: getReleaseCommit() });
+});
+
+app.get('/ready', async (_req, res) => {
+  res.set('Cache-Control', 'no-store');
+  try {
+    const ready = await checkReadiness();
+    res.status(ready ? 200 : 503).json({ status: ready ? 'ready' : 'unavailable' });
+  } catch {
+    res.status(503).json({ status: 'unavailable' });
+  }
+});
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/projects', projectRoutes);
