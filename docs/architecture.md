@@ -183,6 +183,12 @@ Defined in `.github/workflows/ci.yml` (Node 24, Ubuntu). Current PR CI is enforc
 - The client only knows the API URL (`VITE_API_URL`); it holds no secrets.
 - If a preview deployment points at the production API, its requests only succeed when the preview origin is in `CLIENT_ORIGIN`; otherwise the browser blocks them.
 
+## Operational verification (KAN-11 delivery branch)
+
+`/health` remains liveness. `/ready` performs a bounded, shared database ping and reports 200 ready or 503 unavailable without internal details. `/release` reports the commit embedded from the actual build checkout, independently of Render's deployment metadata. Client builds emit `/release.json` with their checkout commit and effective public API URL. These endpoints and the asset use no-store headers; release identity does not prove database readiness or authenticated feature behavior.
+
+The [release runbook](release-runbook.md) covers source verification, preview API isolation, long-idle recovery, and backup boundaries. Render can wake automatically after sleep; a fully paused Atlas Free cluster requires manual recovery. The current free-tier stack does not guarantee unattended availability after months. No scheduler, cluster administration, production restore, or paid upgrade is introduced.
+
 ## Free-tier constraints
 
 TaskForge must add **$0 in recurring cost** unless explicitly approved. The free tiers shape the design:

@@ -16,6 +16,8 @@ All notable changes to TaskForge are recorded here.
 
 ### Added
 
+- **KAN-11 — release readiness:** separate bounded database readiness and build-derived API release identity from the existing liveness check. Client builds publish their commit and public API target in `release.json`. Document read-only deployment verification, preview boundaries, and free-tier idle/backup recovery; no production data operations or hosting changes.
+
 - **KAN-2 — Task → Agent Assignment (Phase 2 foundation).** A task can be assigned to you, to one of your agents, or to nobody. An assignment only records who owns the task: agents still don't run, and no agent run is created.
   - **API:** tasks gain `assigneeType` (`user`, `agent`, or `null`) and `assigneeAgent`. You can assign only to yourself or your own agents; another user's agent gets the same `400 Agent not found` as a missing one, and malformed values are rejected. Leaving both fields out of an update keeps the current assignee.
   - **Agent status:** only active agents can take a new task. A paused or disabled agent keeps the tasks it already has, and they show its status.

@@ -1,6 +1,6 @@
 # Phase 2: AI Workforce
 
-**Status: IN PROGRESS (foundation only).** No AI capability exists: nothing runs an agent or calls a model. The Work + Projects foundation (PR #9), the Agent Registry (persistent agent definitions), and the Workforce summary (PR #10) are complete and merged. Task → Agent Assignment is in progress on `codex/KAN-2-agent-task-assignment` (not merged): it records who owns a task, and nothing runs. AI execution, agent runs, permission enforcement, the provider abstraction, handoffs, and approvals are still planned. Item-level status lives in [roadmap.md](../roadmap.md#phase-2-ai-workforce-details).
+**Status: IN PROGRESS (foundation only).** No AI capability exists: nothing runs an agent or calls a model. The Work + Projects foundation (PR #9), the Agent Registry (persistent agent definitions), and the Workforce summary (PR #10) are complete and merged. Task → Agent Assignment merged in PR #15 as `16628b0` (backend release verification pending under KAN-11): it records who owns a task, and nothing runs. AI execution, agent runs, permission enforcement, the provider abstraction, handoffs, and approvals are still planned. Item-level status lives in [roadmap.md](../roadmap.md#phase-2-ai-workforce-details).
 
 ## Foundation: Work + Projects (complete)
 
@@ -26,7 +26,7 @@ The Agent Registry (PR #10, merged) makes agents a persistent, user-owned domain
 
 ## Foundation: Task → Agent Assignment (in progress)
 
-Built on `codex/KAN-2-agent-task-assignment`, not merged yet. **An assignment is a record of who owns a task. Nothing runs the agent, and no run is created.**
+Merged in PR #15 as `16628b0`; exact backend release verification remains pending under KAN-11. **An assignment is a record of who owns a task. Nothing runs the agent, and no run is created.**
 
 - **Model:** `Task.assigneeType` is `user`, `agent`, or `null` (Unassigned), and `Task.assigneeAgent` holds the agent id when the type is `agent`. `user` always means the task's owner; there is no way to assign a task to another user.
 - **Rules:** a task can be assigned to its owner, to one of the owner's own agents, or to nobody. Another user's agent gets the same `400 Agent not found` as a missing one. Only an **active** agent can take a new task. A paused or disabled agent keeps the tasks it already has, and they stay visible with the agent's status.

@@ -6,14 +6,14 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 
 ## Checkpoint
 
-| Item                      | Value                                                                                                                          |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02))                    |
-| Current phase             | Phase 2: AI Workforce, foundation work (no AI execution yet)                                                                   |
-| Current branch            | `codex/KAN-2-agent-task-assignment`; original WIP preserved on `feat/agent-task-assignment`                                    |
-| Current checkpoint        | Release/delivery readiness followed by task → agent assignment and bounded Phase 2                                             |
-| Last completed checkpoint | Docs/workflow (PR #14, `fc00e80`); delivery gates (PR #13); audit recovery (PR #12)                                            |
-| Next recommended          | Finish KAN-2 assignment QA, independent review, PR/CI/deployment; then security/reliability readiness and bounded AI execution |
+| Item                      | Value                                                                                                                           |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02))                     |
+| Current phase             | Phase 2: AI Workforce, foundation work (no AI execution yet)                                                                    |
+| Current branch            | `codex/KAN-11-release-readiness`; original assignment WIP preserved on `feat/agent-task-assignment`                             |
+| Current checkpoint        | Release/delivery readiness followed by task → agent assignment and bounded Phase 2                                              |
+| Last completed checkpoint | Docs/workflow (PR #14, `fc00e80`); delivery gates (PR #13); audit recovery (PR #12)                                             |
+| Next recommended          | Resolve KAN-11 release/readiness proof for merged KAN-2; then remaining security/reliability readiness and bounded AI execution |
 
 ## Known verification gaps
 
@@ -24,8 +24,13 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 - **KAN-1 complete:** PR #12 merged as `48aae59`; 361 tests, audit, final-head/main CI, successful deployment status, and live availability/auth guards passed. Evidence is recorded in [KAN-1](https://taskforgejms.atlassian.net/browse/KAN-1).
 - **KAN-4 complete:** PR #13 merged as `882e134`; required PR/main CI, effective protection, deployment status, and live health passed. Main requires PRs/current quality CI/resolved conversations, including administrators; force pushes/deletions are blocked. See [delivery policy](delivery.md).
 - **KAN-5 complete:** PR #14 merged as `fc00e80`; docs/link checks, independent review, required PR/main CI, deployment status, and live health passed.
-- The existing task-assignment work is preserved separately on `feat/agent-task-assignment` and tracked in [KAN-2](https://taskforgejms.atlassian.net/browse/KAN-2); its preserved implementation is being validated on the active KAN-2 delivery branch, with PR/CI/deployment pending.
+- The existing task-assignment work is preserved separately on `feat/agent-task-assignment` and tracked in [KAN-2](https://taskforgejms.atlassian.net/browse/KAN-2); PR #15 merged as `16628b0`, with 471 tests, independent review and PR/main CI passed. Provider deployment success and live health passed; exact API source proof remains pending under KAN-11.
 - Josh approved autonomous delivery through release readiness and bounded Phase 2. Normal scoped tickets may merge after validation and independent review. New scope, paid cost, major architecture/core security changes, risky data operations, and Phases 3–8 require a decision.
+
+## Release readiness (KAN-11, in progress)
+
+- Separate liveness, bounded DB readiness and build-derived release identity are being implemented. See the [release/idle recovery runbook](release-runbook.md). No hosting changes, production data operations, paid service or automatic cluster administration.
+- Free-tier manual recovery is documented; an actual private backup/isolated Mongo restore is not yet verified. Simulated outage/recovery tests do not establish production restore readiness.
 
 ## Infrastructure verification (2026-10-02)
 
