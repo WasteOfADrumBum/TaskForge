@@ -4,6 +4,10 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+### Changed
+
+- **KAN-1 — dependency audit:** upgrade server Jest and its types to version 30 and use Node's built-in watch mode for API development. This removes the vulnerable braces dependency paths through Jest 29 and nodemon while retaining the full audit gate.
+
 ### Milestones
 
 - **Phase 1 (Stabilize TaskForge) closed on 2026-10-02.** The production app and API are live, MongoDB Atlas (free tier) and the Render Blueprint (synced to `main`) are confirmed, CI is green, and the production smoke test passed 62/62. Demo reliability, a screenshot recapture, and a CHANGELOG backfill were moved to maintenance. See the [Phase 1 closure summary](docs/phases/phase-1-stabilize.md#closure-summary-2026-10-02).

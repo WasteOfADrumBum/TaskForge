@@ -2,7 +2,7 @@
 
 A short, living snapshot of where TaskForge is right now. For the full plan, see [roadmap.md](roadmap.md).
 
-**Last updated:** 2026-10-02
+**Last updated:** 2026-10-05
 
 ## Checkpoint
 
@@ -18,6 +18,12 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 ## Known blockers
 
 - None.
+
+## Delivery pipeline stabilization (2026-10-05)
+
+- **KAN-1:** remove the dependency-audit blocker through Jest 30 and Node watch mode. Full dependency audit is clean locally; branch validation and deployment evidence are recorded in [KAN-1](https://taskforgejms.atlassian.net/browse/KAN-1).
+- The existing task-assignment work is preserved separately on `feat/agent-task-assignment` and tracked in [KAN-2](https://taskforgejms.atlassian.net/browse/KAN-2); it is not shipped by this tooling branch.
+- Josh approved autonomous delivery through release readiness and bounded Phase 2. Normal scoped tickets may merge after validation and independent review. New scope, paid cost, major architecture/core security changes, risky data operations, and Phases 3–8 require a decision.
 
 ## Infrastructure verification (2026-10-02)
 

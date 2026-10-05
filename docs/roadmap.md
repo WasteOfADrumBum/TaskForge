@@ -59,6 +59,10 @@ AI features go through a provider abstraction and are never hard-wired to one pa
 - [x] **COMPLETE**: Phase 1 infrastructure verification (Vercel app and Render API live, Atlas and Render Blueprint confirmed, CI green on `main`, and the API recovers from a free-tier cold start: after 20 minutes idle on 2026-10-02, a failed-login probe with a non-existent email took 32.9 s (a cold start) and returned the correct `401 Invalid credentials`, which requires a successful Atlas lookup. The next request took 0.43 s.)
 - [x] **COMPLETE**: Documentation cleanup for current docs (stale README, manifest names, and phase/status docs corrected; the CHANGELOG backfill for work before PR #4 is deferred to maintenance below)
 
+### Delivery readiness (approved 2026-10-05)
+
+- [ ] **IN PROGRESS**: [KAN-1](https://taskforgejms.atlassian.net/browse/KAN-1): restore the full dependency audit through Jest 30 and Node watch mode. The audit and branch checks pass locally; merge, CI, and deployment verification are pending. No audit gate is disabled.
+
 ### Phase 1 maintenance (deferred; does not block Phase 1)
 
 Decided at Phase 1 closure (2026-10-02). These are tracked as ongoing maintenance, not Phase 1 scope.
