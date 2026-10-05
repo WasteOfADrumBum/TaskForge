@@ -10,10 +10,10 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02)) |
 | Current phase             | Phase 2: AI Workforce, foundation work (no AI execution yet)                                                |
-| Current branch            | `codex/KAN-7-auth-abuse-protection`; original assignment WIP preserved on `feat/agent-task-assignment`      |
+| Current branch            | `codex/KAN-8-task-input-validation`; original assignment WIP preserved on `feat/agent-task-assignment`      |
 | Current checkpoint        | Release/delivery readiness followed by task → agent assignment and bounded Phase 2                          |
-| Last completed checkpoint | Auth validation (PR #17, `bf888c6`); release readiness (PR #16); assignment (PR #15)                        |
-| Next recommended          | Resolve KAN-7 proxy identity and implement bounded abuse protection; then KAN-8 task validation             |
+| Last completed checkpoint | Auth abuse protection (PR #18, `0275740`); auth validation (PR #17)                                         |
+| Next recommended          | Complete KAN-8 task validation; then KAN-9 logout/session edge cases                                        |
 
 ## Known verification gaps
 
@@ -131,6 +131,10 @@ Note: the server suite sometimes prints Jest's `A worker process has failed to e
 - Malformed input rejection, email normalization, duplicate-race handling, and Unicode-aware registration limits are implemented. Existing account login remains compatible. PR #17 merged as `bf888c6`. Local 579 tests, format/lint/types/build/audit, independent review, PR/main CI and deployments passed. Live client/API source matched the merge; health/readiness and malformed query-object rejection passed.
 - The existing registration layout is retained. A [source-matched Figma reference](https://www.figma.com/design/2l4DJJigN7aa4Fk6S5zu8M/TaskForge?node-id=14-71) records default, too-short and too-long password states.
 
-## Authentication abuse protection (KAN-7, active)
+## Authentication abuse protection (KAN-7, complete)
 
-- Clean branch created from verified merged main. The [branch task](tasks/KAN-7-auth-abuse-protection.md) records account/capacity limiting and Render proxy boundaries. Middleware is implemented; 593 tests and local checks passed, with independent review finding no blockers. PR/CI/deployment checks remain pending; proxy trust stays disabled. No per-client IP guarantee or deployed abuse protection is claimed.
+- Clean branch created from verified merged main. The [branch task](tasks/KAN-7-auth-abuse-protection.md) records account/capacity limiting and Render proxy boundaries. Middleware is implemented; 593 tests and local checks passed, with independent review finding no blockers. PR #18 merged as `0275740`; PR/main CI and deployments passed. Live client/API commit matched, readiness passed and expected limiter headers were verified. Proxy trust stays disabled; no per-client IP guarantee is claimed.
+
+## Task input validation (KAN-8, active)
+
+- [Branch task](tasks/KAN-8-task-input-validation.md) records strict IDs, content bounds and calendar-date validation. Implementation and 679 tests are validated locally, with all checks and audit passed. Synthetic browser QA verifies native limits, leap-date display and responsive layout; ownership and assignment regressions pass. PR/CI/deployment verification remains pending. No production data changes.

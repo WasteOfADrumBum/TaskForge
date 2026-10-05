@@ -33,7 +33,14 @@ import {
 import WorkTabs from '../../components/work/WorkTabs';
 import { agentStatusLabel, getAgentId } from '../../types/agent';
 import { getProjectId, projectStatusLabel } from '../../types/project';
-import { getTaskId, type Task, type TaskPriority, type TaskStatus } from '../../types/task';
+import {
+  getTaskId,
+  TASK_TITLE_MAX,
+  TASK_DESCRIPTION_MAX,
+  type Task,
+  type TaskPriority,
+  type TaskStatus,
+} from '../../types/task';
 import {
   agentFromValue,
   assigneeInput,
@@ -325,6 +332,7 @@ const WorkPage = () => {
               <Field.Label>Title</Field.Label>
               <Input
                 ref={titleRef}
+                maxLength={TASK_TITLE_MAX}
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
                 placeholder="What needs to get done?"
@@ -333,6 +341,7 @@ const WorkPage = () => {
             <Field.Root>
               <Field.Label>Description</Field.Label>
               <Textarea
+                maxLength={TASK_DESCRIPTION_MAX}
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 placeholder="Add useful context"
@@ -357,6 +366,8 @@ const WorkPage = () => {
               <Field.Label>Due date</Field.Label>
               <Input
                 type="date"
+                min="0001-01-01"
+                max="9999-12-31"
                 value={dueDate}
                 onChange={(event) => setDueDate(event.target.value)}
               />

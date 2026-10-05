@@ -1,3 +1,7 @@
+// Keep in sync with server/src/models/taskModel.
+export const TASK_TITLE_MAX = 120;
+export const TASK_DESCRIPTION_MAX = 2000;
+
 export type TaskStatus = 'todo' | 'in-progress' | 'done';
 export type TaskPriority = 'low' | 'medium' | 'high';
 // 'user' is always the signed-in owner; 'agent' is one of the owner's agents. Matches
