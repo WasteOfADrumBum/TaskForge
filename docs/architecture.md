@@ -164,7 +164,7 @@ Defined in `.github/workflows/ci.yml` (Node 24, Ubuntu). CI is a quality gate fo
 
 | Environment | Client                                 | API                                                | Database               |
 | ----------- | -------------------------------------- | -------------------------------------------------- | ---------------------- |
-| Local       | Vite dev server, `:5173`               | nodemon + ts-node, `:5000`                         | Local MongoDB or Atlas |
+| Local       | Vite dev server, `:5173`               | Node watch + ts-node, `:5000`                      | Local MongoDB or Atlas |
 | Test        | Vitest + jsdom                         | Jest + supertest (services mocked)                 | None                   |
 | Preview     | Vercel preview URL per PR              | Whatever Vercel's Preview `VITE_API_URL` points to | Same as that API       |
 | Production  | https://taskforge-alpha-six.vercel.app | https://taskforge-api-rp2m.onrender.com            | MongoDB Atlas          |

@@ -10,7 +10,7 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02))                   |
 | Current phase             | Phase 2: AI Workforce, foundation work (no AI execution yet)                                                                  |
-| Current branch            | Not started (Task → Agent Assignment branch to be created from `main`)                                                        |
+| Current branch            | `feat/agent-task-assignment` (local work in progress; not merged)                                                             |
 | Current checkpoint        | Task → Agent Assignment: assign TaskForge tasks to agent definitions (assignment only; no agent runs or AI execution)         |
 | Last completed checkpoint | Agent Registry foundation (PR #10, merged to `main` as `3ccb585`); before that, Work + Projects foundation (PR #9, `493f0c3`) |
 | Next recommended          | After assignment: Phase 2 provider abstraction (`AIProvider` with a no-provider/demo fallback); still no paid provider        |
