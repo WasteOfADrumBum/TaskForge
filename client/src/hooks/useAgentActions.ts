@@ -1,3 +1,4 @@
+import { isCurrentSession } from '../api/authenticatedFetch';
 import { useState } from 'react';
 import { createAgent, deleteAgent, updateAgent } from '../api/agents';
 import { toaster } from '../components/ui/toaster';
@@ -12,11 +13,17 @@ import { SessionExpiredError } from '../utils/session';
 export const useAgentActions = () => {
   const dispatch = useAppDispatch();
   const token = useAppSelector((state) => state.auth.token);
+  const sessionVersion = useAppSelector((state) => state.auth.sessionVersion);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fail = (failure: unknown, fallback: string, title: string) => {
-    if (failure instanceof SessionExpiredError) return;
+    if (
+      failure instanceof SessionExpiredError ||
+      !token ||
+      !isCurrentSession(token, sessionVersion)
+    )
+      return;
     const message = failure instanceof Error ? failure.message : fallback;
     setError(message);
     toaster.create({ title, description: message, type: 'error' });
@@ -25,7 +32,7 @@ export const useAgentActions = () => {
   // Creates an agent, or, when `existing` is given, sends only the fields that changed. An
   // edit with no changes sends nothing, so it can't bump `updatedAt`.
   const save = async (input: AgentInput, existing?: Agent): Promise<Agent | null> => {
-    if (!token) return null;
+    if (!token || !isCurrentSession(token, sessionVersion)) return null;
     const agentId = existing ? getAgentId(existing) : undefined;
     let changes: AgentUpdate = {};
     if (existing) {
@@ -38,6 +45,7 @@ export const useAgentActions = () => {
       const agent = agentId
         ? await updateAgent(token, agentId, changes)
         : await createAgent(token, input);
+      if (!isCurrentSession(token, sessionVersion)) return null;
       dispatch(agentId ? replaceAgent(agent) : addAgent(agent));
       toaster.create({
         title: agentId ? 'Agent Updated' : 'Agent Created',
@@ -49,17 +57,18 @@ export const useAgentActions = () => {
       fail(saveError, 'Unable to save agent', 'Agent Error');
       return null;
     } finally {
-      setSaving(false);
+      if (isCurrentSession(token, sessionVersion)) setSaving(false);
     }
   };
 
   const remove = async (agent: Agent): Promise<boolean> => {
-    if (!token) return false;
+    if (!token || !isCurrentSession(token, sessionVersion)) return false;
     const agentId = getAgentId(agent);
     setSaving(true);
     setError(null);
     try {
       await deleteAgent(token, agentId);
+      if (!isCurrentSession(token, sessionVersion)) return false;
       dispatch(removeAgent(agentId));
       toaster.create({ title: 'Agent Deleted', description: agent.name, type: 'success' });
       return true;
@@ -67,7 +76,7 @@ export const useAgentActions = () => {
       fail(deleteError, 'Unable to delete agent', 'Delete Failed');
       return false;
     } finally {
-      setSaving(false);
+      if (isCurrentSession(token, sessionVersion)) setSaving(false);
     }
   };
 

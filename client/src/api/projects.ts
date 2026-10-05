@@ -1,4 +1,4 @@
-import { authenticatedFetch } from './authenticatedFetch';
+import { authenticatedFetch, readAuthenticatedJson } from './authenticatedFetch';
 import { API_URL, authHeaders, getErrorMessage } from './http';
 import type { Project, ProjectInput, ProjectUpdate } from '../types/project';
 
@@ -10,9 +10,9 @@ export const getProjects = async (token: string): Promise<Project[]> => {
     headers: authHeaders(token),
   });
   if (!response.ok) {
-    throw new Error(await getErrorMessage(response, 'Unable to load projects'));
+    throw new Error(await getErrorMessage(response, 'Unable to load projects', token));
   }
-  const data = (await response.json()) as { projects: Project[] };
+  const data = await readAuthenticatedJson<{ projects: Project[] }>(response, token);
   return data.projects;
 };
 
@@ -23,9 +23,9 @@ export const createProject = async (token: string, input: ProjectInput): Promise
     body: JSON.stringify(input),
   });
   if (!response.ok) {
-    throw new Error(await getErrorMessage(response, 'Unable to create project'));
+    throw new Error(await getErrorMessage(response, 'Unable to create project', token));
   }
-  const data = (await response.json()) as { project: Project };
+  const data = await readAuthenticatedJson<{ project: Project }>(response, token);
   return data.project;
 };
 
@@ -40,9 +40,9 @@ export const updateProject = async (
     body: JSON.stringify(updates),
   });
   if (!response.ok) {
-    throw new Error(await getErrorMessage(response, 'Unable to update project'));
+    throw new Error(await getErrorMessage(response, 'Unable to update project', token));
   }
-  const data = (await response.json()) as { project: Project };
+  const data = await readAuthenticatedJson<{ project: Project }>(response, token);
   return data.project;
 };
 
@@ -52,6 +52,6 @@ export const deleteProject = async (token: string, projectId: string): Promise<v
     headers: authHeaders(token),
   });
   if (!response.ok) {
-    throw new Error(await getErrorMessage(response, 'Unable to delete project'));
+    throw new Error(await getErrorMessage(response, 'Unable to delete project', token));
   }
 };

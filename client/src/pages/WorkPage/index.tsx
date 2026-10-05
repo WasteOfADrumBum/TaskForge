@@ -1,3 +1,4 @@
+import { isCurrentSession } from '../../api/authenticatedFetch';
 import { SessionExpiredError } from '../../utils/session';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import {
@@ -56,6 +57,7 @@ const WorkPage = () => {
   const dispatch = useAppDispatch();
   const location = useLocation();
   const token = useAppSelector((state) => state.auth.token);
+  const sessionVersion = useAppSelector((state) => state.auth.sessionVersion);
   const tasks = useAppSelector((state) => state.tasks.items);
   const loading = useAppSelector((state) => state.tasks.loading);
   const error = useAppSelector((state) => state.tasks.error);
@@ -187,7 +189,7 @@ const WorkPage = () => {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!token) return;
+    if (!token || !isCurrentSession(token, sessionVersion)) return;
     dispatch(setTaskLoading(true));
     dispatch(setTaskError(null));
     const input = { title, description, priority, dueDate: dueDate || null };
@@ -199,6 +201,7 @@ const WorkPage = () => {
           ...(project !== editingOriginalProject && { project }),
           ...(assignee !== editingOriginalAssignee && assigneeInput(assignee)),
         });
+        if (!isCurrentSession(token, sessionVersion)) return;
         dispatch(replaceTask(task));
         toaster.create({
           title: 'Task Updated',
@@ -212,6 +215,7 @@ const WorkPage = () => {
           ...(assignee && assigneeInput(assignee)),
           status: 'todo',
         });
+        if (!isCurrentSession(token, sessionVersion)) return;
         dispatch(addTask(task));
         toaster.create({
           title: 'Task Created',
@@ -221,12 +225,13 @@ const WorkPage = () => {
       }
       resetForm();
     } catch (submitError) {
-      if (submitError instanceof SessionExpiredError) return;
+      if (submitError instanceof SessionExpiredError || !isCurrentSession(token, sessionVersion))
+        return;
       const message = submitError instanceof Error ? submitError.message : 'Unable to save task';
       dispatch(setTaskError(message));
       toaster.create({ title: 'Task Error', description: message, type: 'error' });
     } finally {
-      dispatch(setTaskLoading(false));
+      if (isCurrentSession(token, sessionVersion)) dispatch(setTaskLoading(false));
     }
   };
 
@@ -247,9 +252,10 @@ const WorkPage = () => {
   };
 
   const handleStatusChange = async (task: Task, status: TaskStatus) => {
-    if (!token) return;
+    if (!token || !isCurrentSession(token, sessionVersion)) return;
     try {
       const updated = await updateTask(token, getTaskId(task), { status });
+      if (!isCurrentSession(token, sessionVersion)) return;
       dispatch(replaceTask(updated));
       toaster.create({
         title:
@@ -262,7 +268,8 @@ const WorkPage = () => {
         type: 'success',
       });
     } catch (updateError) {
-      if (updateError instanceof SessionExpiredError) return;
+      if (updateError instanceof SessionExpiredError || !isCurrentSession(token, sessionVersion))
+        return;
       const message = updateError instanceof Error ? updateError.message : 'Unable to update task';
       dispatch(setTaskError(message));
       toaster.create({ title: 'Update Failed', description: message, type: 'error' });
@@ -270,22 +277,24 @@ const WorkPage = () => {
   };
 
   const confirmDelete = async () => {
-    if (!token || !deleteTarget) return;
+    if (!token || !isCurrentSession(token, sessionVersion) || !deleteTarget) return;
     const taskId = getTaskId(deleteTarget);
     dispatch(setTaskLoading(true));
     try {
       await deleteTask(token, taskId);
+      if (!isCurrentSession(token, sessionVersion)) return;
       dispatch(removeTask(taskId));
       if (editingId === taskId) resetForm();
       toaster.create({ title: 'Task Deleted', description: deleteTarget.title, type: 'success' });
       setDeleteTarget(null);
     } catch (deleteError) {
-      if (deleteError instanceof SessionExpiredError) return;
+      if (deleteError instanceof SessionExpiredError || !isCurrentSession(token, sessionVersion))
+        return;
       const message = deleteError instanceof Error ? deleteError.message : 'Unable to delete task';
       dispatch(setTaskError(message));
       toaster.create({ title: 'Delete Failed', description: message, type: 'error' });
     } finally {
-      dispatch(setTaskLoading(false));
+      if (isCurrentSession(token, sessionVersion)) dispatch(setTaskLoading(false));
     }
   };
 

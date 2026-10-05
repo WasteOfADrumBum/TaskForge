@@ -10,7 +10,7 @@ import taskReducer from '../../redux/slices/taskSlice';
 const renderProtectedRoute = (token: string | null) => {
   const store = configureStore({
     reducer: { auth: authReducer, tasks: taskReducer },
-    preloadedState: { auth: { token, loading: false, error: null } },
+    preloadedState: { auth: { token, loading: false, error: null, sessionVersion: 0 } },
   });
 
   render(

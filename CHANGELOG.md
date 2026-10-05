@@ -6,6 +6,8 @@ All notable changes to TaskForge are recorded here.
 
 ### Changed
 
+- **KAN-9 — local logout reliability:** clear the token and all user resources immediately, even offline, without waiting for a stateless server acknowledgement. Discard old authenticated network failures and response bodies after logout or a new login; retain current-session error handling and JWT behavior. A client session counter also rejects old work when re-login reuses the same JWT.
+
 - **KAN-8 — task input validation:** reject malformed IDs as 404 and invalid field types, enum values, oversized text and calendar dates as 400 before database work. Limit titles/descriptions to 120/2000 characters with matching form bounds; preserve null date clearing and assignment/ownership behavior. Validate model dates before casting and preserve calendar years 1–99 in client arithmetic.
 
 - **KAN-7 — authentication abuse protection:** add separate login/registration account quotas and process capacity limits with clear 429 retry feedback. Keep proxy trust disabled and ignore forwarded headers in limit keys. Storage is process-local, resets on restart, and can temporarily block an account or shared capacity under attack; no paid store or hosting change.

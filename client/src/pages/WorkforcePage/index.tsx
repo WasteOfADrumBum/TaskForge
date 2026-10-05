@@ -1,3 +1,4 @@
+import { isCurrentSession } from '../../api/authenticatedFetch';
 import { Alert, Box, Heading, Link, SimpleGrid, Text } from '@chakra-ui/react';
 import { useMemo, useState } from 'react';
 import { LuBot } from 'react-icons/lu';
@@ -16,6 +17,8 @@ const phase2Url =
 
 // The Agent Registry: persistent, user-owned agent definitions. Nothing here runs an agent.
 const WorkforcePage = () => {
+  const token = useAppSelector((state) => state.auth.token);
+  const sessionVersion = useAppSelector((state) => state.auth.sessionVersion);
   const agents = useAppSelector((state) => state.agents.items);
   const loading = useAppSelector((state) => state.agents.loading);
   const loaded = useAppSelector((state) => state.agents.loaded);
@@ -46,14 +49,16 @@ const WorkforcePage = () => {
     setEditing(null);
   };
   const handleSubmit = async (input: Parameters<typeof save>[0]) => {
+    if (!token || !isCurrentSession(token, sessionVersion)) return false;
     const saved = await save(input, editing ?? undefined);
+    if (!isCurrentSession(token, sessionVersion)) return false;
     if (saved && editing) setEditing(null);
     return Boolean(saved);
   };
   const confirmDelete = async () => {
-    if (!deleteTarget) return;
+    if (!token || !isCurrentSession(token, sessionVersion) || !deleteTarget) return;
     const deleted = await remove(deleteTarget);
-    if (!deleted) return;
+    if (!isCurrentSession(token, sessionVersion) || !deleted) return;
     if (editing && getAgentId(editing) === getAgentId(deleteTarget)) setEditing(null);
     setDeleteTarget(null);
   };

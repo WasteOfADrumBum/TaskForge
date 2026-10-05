@@ -214,13 +214,19 @@ describe('session expiration flow', () => {
     await waitFor(() => expect(store.getState().agents.items).toEqual([privateAgent]));
     await userEvent.click(screen.getByRole('button', { name: 'Open navigation' }));
     const nav = within(await screen.findByRole('dialog', { name: 'Navigation' }));
+    const sessionVersion = store.getState().auth.sessionVersion;
     await userEvent.click(nav.getByRole('button', { name: /log out/i }));
     await waitFor(() =>
       expect(screen.getByRole('heading', { name: 'Welcome back' })).toBeInTheDocument(),
     );
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(localStorage.getItem('token')).toBeNull();
-    expect(store.getState().auth).toEqual({ token: null, loading: false, error: null });
+    expect(store.getState().auth).toEqual({
+      token: null,
+      loading: false,
+      error: null,
+      sessionVersion: sessionVersion + 1,
+    });
     expect(store.getState().tasks).toEqual({
       items: [],
       loading: false,

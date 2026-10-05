@@ -1,3 +1,4 @@
+import { isCurrentSession } from '../api/authenticatedFetch';
 import { useCallback, useEffect, useState } from 'react';
 import { getProjects } from '../api/projects';
 import { useAppDispatch, useAppSelector } from '../redux/hooks/typedHooks';
@@ -9,6 +10,7 @@ import { SessionExpiredError } from '../utils/session';
 export const useProjectLoader = () => {
   const dispatch = useAppDispatch();
   const token = useAppSelector((state) => state.auth.token);
+  const sessionVersion = useAppSelector((state) => state.auth.sessionVersion);
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
@@ -19,20 +21,22 @@ export const useProjectLoader = () => {
       dispatch(setProjectError(null));
       try {
         const loadedProjects = await getProjects(token);
-        if (active) dispatch(setProjects(loadedProjects));
+        if (active && isCurrentSession(token, sessionVersion))
+          dispatch(setProjects(loadedProjects));
       } catch (loadError) {
-        if (loadError instanceof SessionExpiredError) return;
+        if (loadError instanceof SessionExpiredError || !isCurrentSession(token, sessionVersion))
+          return;
         const message = loadError instanceof Error ? loadError.message : 'Unable to load projects';
-        if (active) dispatch(setProjectError(message));
+        if (active && isCurrentSession(token, sessionVersion)) dispatch(setProjectError(message));
       } finally {
-        if (active) dispatch(setProjectLoading(false));
+        if (active && isCurrentSession(token, sessionVersion)) dispatch(setProjectLoading(false));
       }
     };
     void loadProjects();
     return () => {
       active = false;
     };
-  }, [dispatch, token, reloadKey]);
+  }, [dispatch, token, sessionVersion, reloadKey]);
 
   return useCallback(() => setReloadKey((key) => key + 1), []);
 };

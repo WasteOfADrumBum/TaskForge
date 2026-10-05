@@ -1,3 +1,4 @@
+import { isCurrentSession } from '../../api/authenticatedFetch';
 import {
   Box,
   Button,
@@ -62,6 +63,8 @@ const BackLink = () => (
 );
 
 const ProjectDetailPage = () => {
+  const token = useAppSelector((state) => state.auth.token);
+  const sessionVersion = useAppSelector((state) => state.auth.sessionVersion);
   const { id = '' } = useParams();
   const navigate = useNavigate();
   const projects = useAppSelector((state) => state.projects.items);
@@ -129,13 +132,16 @@ const ProjectDetailPage = () => {
   }
 
   const handleSubmit = async (input: Parameters<typeof save>[0]) => {
+    if (!token || !isCurrentSession(token, sessionVersion)) return false;
     const saved = await save(input, project);
+    if (!isCurrentSession(token, sessionVersion)) return false;
     if (saved) setEditing(false);
     return Boolean(saved);
   };
   const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    if (await remove(deleteTarget)) {
+    if (!token || !isCurrentSession(token, sessionVersion) || !deleteTarget) return;
+    const deleted = await remove(deleteTarget);
+    if (isCurrentSession(token, sessionVersion) && deleted) {
       setDeleteTarget(null);
       navigate('/work/projects');
     }
