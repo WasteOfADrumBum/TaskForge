@@ -62,7 +62,9 @@ AI features go through a provider abstraction and are never hard-wired to one pa
 ### Delivery readiness (approved 2026-10-05)
 
 - [x] **COMPLETE**: [KAN-1](https://taskforgejms.atlassian.net/browse/KAN-1): restore the full dependency audit through Jest 30 and Node watch mode. PR #12 merged as `48aae59`; 361 tests, full audit, final-head/main CI, deployment status, and live availability/auth guards passed. No audit exception.
-- [ ] **IN PROGRESS**: [KAN-4](https://taskforgejms.atlassian.net/browse/KAN-4): enforce PR and current CI checks on main, block force pushes/deletions, and document independent review and approved merge authority. Settings applied; policy PR validation pending. See [delivery policy](delivery.md).
+- [x] **COMPLETE**: [KAN-4](https://taskforgejms.atlassian.net/browse/KAN-4): enforce PR and current CI checks on main, block force pushes/deletions, and document independent review and approved merge authority. PR #13 merged as `882e134`; effective settings, 361 tests, required PR/main CI, deployment status, and live health verified. See [delivery policy](delivery.md).
+
+- [ ] **IN PROGRESS**: [KAN-5](https://taskforgejms.atlassian.net/browse/KAN-5): reconcile current docs and restore project guidance/branch workflow. Documentation checks, independent review, and PR CI pending.
 
 ### Phase 1 maintenance (deferred; does not block Phase 1)
 
@@ -84,7 +86,7 @@ These are known minor polish issues found during PR #7. They were never Phase 1 
 
 - [x] **COMPLETE**: Work + Projects foundation: user-owned projects (model, owner-scoped CRUD API, optional task → project link, delete keeps tasks), a Projects area in Work, and Active projects on the Command Center (PR #9, merged to `main` as `493f0c3`). A prerequisite only: no agent or AI feature.
 - [x] **COMPLETE**: Agent Registry: persistent, user-owned agent definitions (name, role, description, status active/paused/disabled, skills, permission identifiers) with owner-scoped CRUD at `/api/agents`, the Workforce registry page (`/workforce`), an agent detail page (`/workforce/:id`), and a Workforce summary on the Command Center. PR #10, CI green, merged to `main` as `3ccb585`. Definitions only: nothing runs an agent or enforces its permissions. A `tools` field is deferred until there are tools to describe.
-- [ ] **PLANNED**: Assign TaskForge tasks to agents
+- [ ] **IN PROGRESS**: [KAN-2](https://taskforgejms.atlassian.net/browse/KAN-2): assign TaskForge tasks to agents. Existing local work on `feat/agent-task-assignment` is preserved; not merged or shipped.
 - [ ] **PLANNED**: Shared agent knowledge
 - [ ] **PLANNED**: Agent run model (input, context, result, status)
 - [ ] **PLANNED**: Agent handoffs

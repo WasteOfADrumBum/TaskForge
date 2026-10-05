@@ -87,17 +87,17 @@ flowchart LR
 ```
 
 - **Client** (`client/`): a React single-page app served by Vercel. It calls the API over HTTPS with `Authorization: Bearer <token>`.
-- **API** (`server/`): an Express app layered as `routes → controllers → services → models`. Task routes require a valid JWT, and every task query is filtered by owner.
-- **Database:** MongoDB Atlas, accessed through Mongoose models for users and tasks.
+- **API** (`server/`): an Express app layered as `routes → controllers → services → models`. Task, project, and agent routes require a valid JWT, and every resource query is filtered by owner.
+- **Database:** MongoDB Atlas, accessed through Mongoose models for users, tasks, projects, and agents.
 
 Full details, including the auth, deployment, and CI flows, are in [docs/architecture.md](docs/architecture.md).
 
 ## Authentication and sessions
 
 1. On login, the API verifies the bcrypt password hash and returns a JWT signed with `JWT_SECRET`. Tokens expire after **7 days**.
-2. The client stores the token in `localStorage` and sends it on every task request.
+2. The client stores the token in `localStorage` and sends it on every authenticated task, project, and agent request.
 3. The API's `requireAuth` middleware rejects missing, malformed, wrongly signed, or expired tokens with `401`.
-4. When any task request gets a `401`, the client clears the token and task data and returns to the login page with a "session expired" message.
+4. When an authenticated resource request gets a `401`, the client clears the token and all task, project, and agent data and returns to the login page with a "session expired" message.
 5. A response that arrives after the user has logged out or logged in again is discarded, so an old request can never sign out a new session.
 6. Protected pages also check the token's expiry before rendering. This is a UX check only; the server is always the authority.
 
@@ -108,13 +108,14 @@ Logout is stateless: the client discards the token. There is no server-side revo
 ```bash
 npm test               # client (Vitest) + server (Jest)
 npm run lint           # ESLint for both workspaces
+npm run typecheck      # client TypeScript; server types checked during build
 npm run format:check   # Prettier
 npm run build          # production builds for client and server
 ```
 
-- Client tests cover the task API layer, session expiration and stale-request handling, protected routes, task utilities, and key components.
-- Server tests cover the auth and task routes, including input validation and rejection of missing, expired, forged, and malformed JWTs. Services are mocked, so tests need no database.
-- [CI](.github/workflows/ci.yml) runs on every push and pull request to `main`: install → format check → lint → test → build → `npm audit`.
+- Client tests cover task, project, and agent APIs, session expiration and stale requests, protected routes, resource utilities, and key components.
+- Server tests cover auth, task, project, and agent routes, including input validation, owner boundaries, and rejection of missing, expired, forged, and malformed JWTs. Services are mocked, so tests need no database.
+- [CI](.github/workflows/ci.yml) runs on every push and pull request to `main`: install → format check → lint → client typecheck → test → build (including server typecheck) → `npm audit`. Main requires current PR CI and independent review before merge; see the [delivery policy](docs/delivery.md).
 
 ## Deployment
 
@@ -134,20 +135,20 @@ Production URLs:
 
 **Prerequisites:** Node.js 24+ and npm 11+ (see [`.nvmrc`](.nvmrc)), and a MongoDB connection string (local MongoDB or a free Atlas cluster).
 
-```bash
+```powershell
 git clone https://github.com/WasteOfADrumBum/TaskForge.git
 cd TaskForge
 npm install
 
-cp server/.env.example server/.env   # then fill in MONGO_URI and JWT_SECRET
-cp client/.env.example client/.env
+Copy-Item server/.env.example server/.env   # then fill in MONGO_URI and JWT_SECRET
+Copy-Item client/.env.example client/.env
 
 npm run dev
 ```
 
 `npm run dev` starts the client at http://localhost:5173 and the API at http://localhost:5000.
 
-Optional demo data. This creates the demo user (or resets its password) and replaces its tasks, so point `MONGO_URI` at a local or development database:
+Optional demo data. This creates the demo user (or resets its password) and replaces **all of its tasks, projects, and agents**, so point `MONGO_URI` at a local or development database. Do not run it against production without explicit authorization:
 
 ```bash
 npm --workspace server run seed:demo   # needs MONGO_URI, DEMO_EMAIL, DEMO_PASSWORD

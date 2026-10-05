@@ -17,7 +17,7 @@ flowchart LR
     end
 
     subgraph Atlas["MongoDB Atlas (free)"]
-        DB[("users + tasks")]
+        DB[("users + tasks + projects + agents")]
     end
 
     User -- "HTTPS" --> SPA
@@ -126,9 +126,9 @@ sequenceDiagram
     A-->>C: { tasks }
 
     Note over C,A: Later, the token expires or is rejected
-    C->>A: Any task request
+    C->>A: Any authenticated task, project, or agent request
     A-->>C: 401
-    C->>C: Clear token and tasks, redirect to /login<br/>with "session expired" message
+    C->>C: Clear token and all resource data, redirect to /login<br/>with "session expired" message
 ```
 
 Notes:
@@ -155,10 +155,10 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    Event["Push or PR to main"] --> Install[npm ci] --> Format[format:check] --> Lint[lint] --> Test[test] --> Build[build] --> Audit[npm audit]
+    Event["Push or PR to main"] --> Install[npm ci] --> Format[format:check] --> Lint[lint] --> Types[client typecheck] --> Test[test] --> Build[build] --> Audit[npm audit]
 ```
 
-Defined in `.github/workflows/ci.yml` (Node 24, Ubuntu). CI is a quality gate for pull requests. It is **not** wired as a gate in front of Vercel or Render; those platforms are expected to deploy on their own when `main` changes (per their dashboard settings), so `main` should only change through PRs with green CI.
+Defined in `.github/workflows/ci.yml` (Node 24, Ubuntu). Current PR CI is enforced by main branch protection, including for administrators. Independent review is recorded before merge; see [delivery policy](delivery.md). It is **not** wired as a gate in front of Vercel or Render; those platforms are expected to deploy on their own when `main` changes (per their dashboard settings), so `main` should only change through PRs with green CI.
 
 ## Environment boundaries
 
