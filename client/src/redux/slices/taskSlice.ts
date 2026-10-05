@@ -2,17 +2,20 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { Task } from '../../types/task';
 import { getTaskId } from '../../types/task';
 import { clearAuth, sessionExpired } from './authSlice';
+import { removeAgent } from './agentSlice';
 import { removeProject } from './projectSlice';
 
 interface TaskState {
   items: Task[];
   loading: boolean;
+  loaded: boolean;
   error: string | null;
 }
 
 const initialState: TaskState = {
   items: [],
   loading: false,
+  loaded: false,
   error: null,
 };
 
@@ -26,10 +29,20 @@ const taskSlice = createSlice({
     builder.addCase(removeProject, (state, action) => {
       for (const task of state.items) if (task.project === action.payload) task.project = null;
     });
+    // Deleting an agent unassigns its tasks on the server (the tasks are kept); mirror that.
+    builder.addCase(removeAgent, (state, action) => {
+      for (const task of state.items) {
+        if (task.assigneeAgent === action.payload) {
+          task.assigneeType = null;
+          task.assigneeAgent = null;
+        }
+      }
+    });
   },
   reducers: {
     setTasks(state, action: PayloadAction<Task[]>) {
       state.items = action.payload;
+      state.loaded = true;
       state.error = null;
     },
     addTask(state, action: PayloadAction<Task>) {
@@ -52,6 +65,7 @@ const taskSlice = createSlice({
     clearTasks(state) {
       state.items = [];
       state.loading = false;
+      state.loaded = false;
       state.error = null;
     },
   },

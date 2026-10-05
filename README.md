@@ -53,7 +53,7 @@ Captured from the live app with sample data. More details are in [docs/images](d
 ## Key features
 
 - **Accounts and authentication.** Register and sign in with email and password. Passwords are hashed with bcrypt; sessions use signed JWTs.
-- **Private, user-owned data.** Every task, project, and agent query on the server is scoped to the signed-in user. One user can never read or change another user's tasks, projects, or agents, or attach a task to another user's project.
+- **Private, user-owned data.** Every task, project, and agent query on the server is scoped to the signed-in user. One user can never read or change another user's tasks, projects, or agents, or attach a task to another user's project or agent.
 - **Task management.** Create, edit, and delete tasks with a title, description, status (to do / in progress / done), priority (low / medium / high), and due date.
 - **Projects.** Group tasks into private projects (active / completed / archived). Each project has its own page with tasks, progress, and activity. Deleting a project keeps its tasks and simply unassigns them.
 - **Search, filter, and sort.** Search by text, filter by status and priority, and sort by created date, due date, or priority.
@@ -62,7 +62,7 @@ Captured from the live app with sample data. More details are in [docs/images](d
 - **Session-expiration handling.** Expired or rejected sessions sign the user out cleanly and explain why (see below).
 - **Dark-first theme.** A dark command-center look with teal, orange, and violet accents. Light and system modes are available on the Settings page.
 - **Polished UI.** Landing page, auth pages, and workspace built with Chakra UI v3; routes are lazy-loaded.
-- **Agent Registry (Workforce).** Define private AI workers with a role, description, status (active / paused / disabled), skill tags, and permission identifiers, each with its own detail page. These are saved definitions only: agents don't run, call any AI model, or take tasks yet, and the app says so.
+- **Agent Registry (Workforce).** Define private AI workers with a role, description, status (active / paused / disabled), skill tags, and permission identifiers, each with its own detail page. KAN-2 implements task assignment on its delivery branch (production validation pending). You can assign tasks to yourself or to an active agent, and see each agent's assigned and open tasks. Assignments only record who owns the work: agents don't run or call any AI model yet, and the app says so.
 
 ## Tech stack
 
@@ -188,7 +188,7 @@ Future AI features will go through a provider abstraction (chat, embeddings, str
 - [Project status](docs/project-status.md): the current checkpoint, production URLs, and latest validation results.
 - [Changelog](CHANGELOG.md): notable changes.
 
-**Phase 1 — Stabilize TaskForge** is complete: the app is live, verified in production, and on free-tier infrastructure. Current focus: the foundation for **Phase 2 — AI Workforce** (agent registry, runs, human approval, provider abstraction). Work + Projects is done, and the Agent Registry stores agent definitions. No AI execution, runs, or approvals are built yet.
+**Phase 1 — Stabilize TaskForge** is complete: the app is live, verified in production, and on free-tier infrastructure. Current focus: the foundation for **Phase 2 — AI Workforce** (agent registry, runs, human approval, provider abstraction). Work + Projects is done, the Agent Registry stores agent definitions, and task assignment is implemented on the KAN-2 branch with delivery verification pending. No AI execution, runs, or approvals are built yet.
 
 ## About this project
 

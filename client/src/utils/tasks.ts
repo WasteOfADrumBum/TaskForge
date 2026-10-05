@@ -1,4 +1,5 @@
 import type { Task, TaskPriority, TaskStatus } from '../types/task';
+import { matchesAssigneeFilter, type AssigneeFilter } from './assignees';
 import { daysUntilDueDate, toCalendarDate } from './dates';
 
 export type TaskSort = 'created-desc' | 'created-asc' | 'due-asc' | 'priority-desc';
@@ -7,6 +8,8 @@ interface TaskFilters {
   search: string;
   status: TaskStatus | 'all';
   priority: TaskPriority | 'all';
+  // Optional, so callers that don't filter by assignee can leave it out.
+  assignee?: AssigneeFilter;
   sort: TaskSort;
 }
 
@@ -28,7 +31,8 @@ export const filterAndSortTasks = (tasks: Task[], filters: TaskFilters) => {
       task.description.toLowerCase().includes(search);
     const matchesStatus = filters.status === 'all' || task.status === filters.status;
     const matchesPriority = filters.priority === 'all' || task.priority === filters.priority;
-    return matchesSearch && matchesStatus && matchesPriority;
+    const matchesAssignee = matchesAssigneeFilter(task, filters.assignee ?? 'all');
+    return matchesSearch && matchesStatus && matchesPriority && matchesAssignee;
   });
 
   return [...filtered].sort((a, b) => {

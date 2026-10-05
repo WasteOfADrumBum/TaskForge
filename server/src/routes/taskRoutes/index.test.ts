@@ -1,11 +1,13 @@
 import request from 'supertest';
 import jwt from 'jsonwebtoken';
 import app from '../../app';
+import { findAgentStatus } from '../../services/agentService';
 import { ownsProject } from '../../services/projectService';
 import {
   createTask,
   deleteTaskById,
   findTasksByOwner,
+  isTaskAssignedToAgent,
   updateTaskById,
 } from '../../services/taskService';
 
@@ -13,9 +15,15 @@ jest.mock('../../services/taskService', () => ({
   createTask: jest.fn(),
   deleteTaskById: jest.fn(),
   findTasksByOwner: jest.fn(),
+  isTaskAssignedToAgent: jest.fn(),
   updateTaskById: jest.fn(),
 }));
 jest.mock('../../services/projectService', () => ({ ownsProject: jest.fn() }));
+jest.mock('../../services/agentService', () => ({ findAgentStatus: jest.fn() }));
+
+const mockedFindAgentStatus = jest.mocked(findAgentStatus);
+const mockedIsTaskAssignedToAgent = jest.mocked(isTaskAssignedToAgent);
+const agentId = '507f1f77bcf86cd799439031';
 
 const mockedOwnsProject = jest.mocked(ownsProject);
 const projectId = '507f1f77bcf86cd799439021';
@@ -254,6 +262,169 @@ describe('task routes', () => {
         .send({ project: projectId });
       expect(response.status).toBe(400);
       expect(mockedUpdateTaskById).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('assignee', () => {
+    const create = (body: Record<string, unknown>) =>
+      request(app)
+        .post('/api/tasks')
+        .set(authorization)
+        .send({ title: 'Assigned', ...body });
+    const update = (body: Record<string, unknown>) =>
+      request(app)
+        .patch('/api/tasks/' + taskId)
+        .set(authorization)
+        .send(body);
+
+    beforeEach(() => {
+      mockedCreateTask.mockResolvedValue({ id: taskId } as never);
+      mockedUpdateTaskById.mockResolvedValue({ id: taskId } as never);
+    });
+
+    it('creates a task assigned to the user', async () => {
+      const response = await create({ assigneeType: 'user' });
+      expect(response.status).toBe(201);
+      expect(mockedCreateTask).toHaveBeenCalledWith(
+        userId,
+        expect.objectContaining({ assigneeType: 'user', assigneeAgent: null }),
+      );
+      expect(mockedFindAgentStatus).not.toHaveBeenCalled();
+    });
+
+    it('creates a task assigned to an active agent the user owns', async () => {
+      mockedFindAgentStatus.mockResolvedValue('active');
+      const response = await create({ assigneeType: 'agent', assigneeAgent: agentId });
+      expect(response.status).toBe(201);
+      expect(mockedFindAgentStatus).toHaveBeenCalledWith(userId, agentId);
+      expect(mockedCreateTask).toHaveBeenCalledWith(
+        userId,
+        expect.objectContaining({ assigneeType: 'agent', assigneeAgent: agentId }),
+      );
+    });
+
+    it('creates an unassigned task when no assignee is sent', async () => {
+      const response = await create({});
+      expect(response.status).toBe(201);
+      expect(mockedCreateTask.mock.calls[0][1]).not.toHaveProperty('assigneeType');
+      expect(mockedCreateTask.mock.calls[0][1]).not.toHaveProperty('assigneeAgent');
+    });
+
+    it('rejects a missing or another user’s agent with the same response', async () => {
+      // findAgentStatus is owner-scoped, so both cases look identical here.
+      mockedFindAgentStatus.mockResolvedValue(null);
+      const response = await create({ assigneeType: 'agent', assigneeAgent: agentId });
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({ message: 'Agent not found' });
+      expect(mockedCreateTask).not.toHaveBeenCalled();
+    });
+
+    it.each([['paused'], ['disabled']] as const)(
+      'rejects a new assignment to a %s agent',
+      async (status) => {
+        mockedFindAgentStatus.mockResolvedValue(status);
+        const created = await create({ assigneeType: 'agent', assigneeAgent: agentId });
+        expect(created.status).toBe(400);
+        expect(created.body).toEqual({ message: 'Only active agents can take new tasks' });
+        expect(mockedCreateTask).not.toHaveBeenCalled();
+
+        mockedIsTaskAssignedToAgent.mockResolvedValue(false);
+        const updated = await update({ assigneeType: 'agent', assigneeAgent: agentId });
+        expect(updated.status).toBe(400);
+        expect(mockedIsTaskAssignedToAgent).toHaveBeenCalledWith(userId, taskId, agentId);
+        expect(mockedUpdateTaskById).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each([['paused'], ['disabled']] as const)(
+      'keeps a %s agent on a task that already has it',
+      async (status) => {
+        mockedFindAgentStatus.mockResolvedValue(status);
+        mockedIsTaskAssignedToAgent.mockResolvedValue(true);
+        const response = await update({
+          title: 'Renamed',
+          assigneeType: 'agent',
+          assigneeAgent: agentId,
+        });
+        expect(response.status).toBe(200);
+        expect(mockedUpdateTaskById).toHaveBeenCalledWith(userId, taskId, {
+          title: 'Renamed',
+          assigneeType: 'agent',
+          assigneeAgent: agentId,
+        });
+      },
+    );
+
+    it.each([
+      ['Me', { assigneeType: 'user' }, { assigneeType: 'user', assigneeAgent: null }],
+      ['nobody (null)', { assigneeType: null }, { assigneeType: null, assigneeAgent: null }],
+      ['nobody (empty)', { assigneeType: '' }, { assigneeType: null, assigneeAgent: null }],
+      [
+        'nobody (explicit null agent)',
+        { assigneeType: null, assigneeAgent: null },
+        { assigneeType: null, assigneeAgent: null },
+      ],
+      [
+        'an agent',
+        { assigneeType: 'agent', assigneeAgent: agentId },
+        { assigneeType: 'agent', assigneeAgent: agentId },
+      ],
+    ])('reassigns a task to %s', async (_label, body, expected) => {
+      mockedFindAgentStatus.mockResolvedValue('active');
+      const response = await update(body);
+      expect(response.status).toBe(200);
+      // Both fields are always set together, so any previous assignee (nobody, the user, or
+      // another agent) is fully replaced.
+      expect(mockedUpdateTaskById).toHaveBeenCalledWith(userId, taskId, expected);
+    });
+
+    it('leaves the assignee unchanged when an update does not mention it', async () => {
+      const response = await update({ title: 'Renamed', status: 'done' });
+      expect(response.status).toBe(200);
+      expect(mockedUpdateTaskById).toHaveBeenCalledWith(userId, taskId, {
+        title: 'Renamed',
+        status: 'done',
+      });
+      expect(mockedFindAgentStatus).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      [{ assigneeType: 'agent' }, 'Invalid agent'],
+      [{ assigneeType: 'agent', assigneeAgent: 'not-an-id' }, 'Invalid agent'],
+      [{ assigneeType: 'agent', assigneeAgent: { $ne: null } }, 'Invalid agent'],
+      [{ assigneeType: 'agent', assigneeAgent: '507f1f77bcf86cd79943903z' }, 'Invalid agent'],
+      [{ assigneeType: 'team' }, 'Invalid assignee'],
+      [{ assigneeType: 'user', assigneeAgent: agentId }, 'Invalid assignee'],
+      [{ assigneeType: null, assigneeAgent: agentId }, 'Invalid assignee'],
+      [{ assigneeAgent: agentId }, 'Invalid assignee'],
+      [{ assigneeType: { $ne: null } }, 'Invalid assignee'],
+    ])('rejects %j without querying', async (body, message) => {
+      for (const send of [create, update]) {
+        const response = await send(body);
+        expect(response.status).toBe(400);
+        expect(response.body).toEqual({ message });
+      }
+      expect(mockedFindAgentStatus).not.toHaveBeenCalled();
+      expect(mockedCreateTask).not.toHaveBeenCalled();
+      expect(mockedUpdateTaskById).not.toHaveBeenCalled();
+    });
+
+    it('rejects a paused agent for a malformed task id without querying the task', async () => {
+      mockedFindAgentStatus.mockResolvedValue('paused');
+      const response = await request(app)
+        .patch('/api/tasks/not-a-task-id')
+        .set(authorization)
+        .send({ assigneeType: 'agent', assigneeAgent: agentId });
+      expect(response.status).toBe(400);
+      expect(mockedIsTaskAssignedToAgent).not.toHaveBeenCalled();
+    });
+
+    it('returns a 500 without details when the agent check fails', async () => {
+      mockedFindAgentStatus.mockRejectedValue(new Error('connection lost'));
+      const response = await create({ assigneeType: 'agent', assigneeAgent: agentId });
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({ message: 'Server error' });
+      expect(mockedCreateTask).not.toHaveBeenCalled();
     });
   });
 

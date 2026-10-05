@@ -2,6 +2,7 @@ import { Badge, Box, Button, Heading, HStack, Link, Text, VStack } from '@chakra
 import {
   LuArrowDown,
   LuArrowUp,
+  LuBot,
   LuCalendarDays,
   LuCheck,
   LuFolderKanban,
@@ -10,12 +11,17 @@ import {
   LuPlay,
   LuRotateCcw,
   LuTrash2,
+  LuUserRound,
+  LuUserRoundX,
 } from 'react-icons/lu';
 import { Link as RouterLink } from 'react-router-dom';
+import { getAgentId, type Agent } from '../../types/agent';
 import { getProjectId, type Project } from '../../types/project';
 import type { Task, TaskPriority, TaskStatus } from '../../types/task';
+import { getTaskAssignee } from '../../utils/assignees';
 import { formatCalendarDate } from '../../utils/dates';
 import { isTaskOverdue } from '../../utils/tasks';
+import AgentStatusBadge from '../agents/AgentStatusBadge';
 
 interface TaskCardProps {
   task: Task;
@@ -26,6 +32,8 @@ interface TaskCardProps {
   now?: Date;
   // The task's project, when it has one. Rendered as a link, so it needs a router.
   project?: Project;
+  // The task's agent assignee, when it has one and the agent is loaded. Rendered as a link.
+  agent?: Agent;
 }
 
 const statusLabel: Record<TaskStatus, string> = {
@@ -56,7 +64,60 @@ const PriorityIcon = ({ priority }: { priority: TaskPriority }) => {
   return <LuMinus />;
 };
 
-const TaskCard = ({ task, onEdit, onDelete, onStatusChange, now, project }: TaskCardProps) => {
+const metaLinkProps = {
+  color: 'fg.muted',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 1.5,
+  _hover: { color: 'accent.teal' },
+} as const;
+
+// Who the task is assigned to. An agent that isn't loaded (still loading, failed to load, or
+// deleted) is shown without a name rather than hiding the assignment.
+const AssigneeLabel = ({ task, agent }: { task: Task; agent?: Agent }) => {
+  const assignee = getTaskAssignee(task);
+  if (assignee.kind === 'agent') {
+    if (!agent) {
+      return (
+        <HStack gap={1.5} color="fg.muted">
+          <LuBot aria-hidden="true" />
+          <Text>Assigned to an agent</Text>
+        </HStack>
+      );
+    }
+    return (
+      <HStack gap={2}>
+        <Link asChild {...metaLinkProps}>
+          <RouterLink to={'/workforce/' + getAgentId(agent)}>
+            <LuBot aria-hidden="true" />
+            Agent: {agent.name}
+          </RouterLink>
+        </Link>
+        {agent.status !== 'active' && <AgentStatusBadge status={agent.status} />}
+      </HStack>
+    );
+  }
+  return (
+    <HStack gap={1.5} color="fg.muted">
+      {assignee.kind === 'me' ? (
+        <LuUserRound aria-hidden="true" />
+      ) : (
+        <LuUserRoundX aria-hidden="true" />
+      )}
+      <Text>{assignee.kind === 'me' ? 'Assigned to me' : 'Unassigned'}</Text>
+    </HStack>
+  );
+};
+
+const TaskCard = ({
+  task,
+  onEdit,
+  onDelete,
+  onStatusChange,
+  now,
+  project,
+  agent,
+}: TaskCardProps) => {
   const overdue = isTaskOverdue(task, now);
   const borderColor = overdue ? 'red.400' : statusBorder[task.status];
   return (
@@ -93,31 +154,23 @@ const TaskCard = ({ task, onEdit, onDelete, onStatusChange, now, project }: Task
           <Text color="fg.muted" mt={2}>
             {task.description || 'No description provided.'}
           </Text>
-          {(task.dueDate || project) && (
-            <HStack gap={4} mt={3} fontSize="sm" flexWrap="wrap">
-              {task.dueDate && (
-                <HStack gap={1.5} color={overdue ? 'red.500' : 'fg.muted'}>
-                  <LuCalendarDays aria-hidden="true" />
-                  <Text>Due {formatCalendarDate(task.dueDate)}</Text>
-                </HStack>
-              )}
-              {project && (
-                <Link
-                  asChild
-                  color="fg.muted"
-                  display="inline-flex"
-                  alignItems="center"
-                  gap={1.5}
-                  _hover={{ color: 'accent.teal' }}
-                >
-                  <RouterLink to={'/work/projects/' + getProjectId(project)}>
-                    <LuFolderKanban aria-hidden="true" />
-                    {project.name}
-                  </RouterLink>
-                </Link>
-              )}
-            </HStack>
-          )}
+          <HStack gap={4} rowGap={1.5} mt={3} fontSize="sm" flexWrap="wrap">
+            <AssigneeLabel task={task} agent={agent} />
+            {task.dueDate && (
+              <HStack gap={1.5} color={overdue ? 'red.500' : 'fg.muted'}>
+                <LuCalendarDays aria-hidden="true" />
+                <Text>Due {formatCalendarDate(task.dueDate)}</Text>
+              </HStack>
+            )}
+            {project && (
+              <Link asChild {...metaLinkProps}>
+                <RouterLink to={'/work/projects/' + getProjectId(project)}>
+                  <LuFolderKanban aria-hidden="true" />
+                  {project.name}
+                </RouterLink>
+              </Link>
+            )}
+          </HStack>
         </Box>
         <HStack flexWrap="wrap" gap={2}>
           {task.status === 'todo' && (

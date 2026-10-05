@@ -51,7 +51,12 @@ describe('ProtectedRoute', () => {
       expect(localStorage.getItem('token')).toBeNull();
       expect(store.getState().auth.token).toBeNull();
       expect(store.getState().auth.error).toMatch(/session has expired/);
-      expect(store.getState().tasks).toEqual({ items: [], loading: false, error: null });
+      expect(store.getState().tasks).toEqual({
+        items: [],
+        loading: false,
+        error: null,
+        loaded: false,
+      });
     },
   );
 });

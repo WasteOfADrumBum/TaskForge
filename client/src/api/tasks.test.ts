@@ -96,7 +96,12 @@ describe('task API', () => {
       loading: false,
       error: SESSION_EXPIRED_MESSAGE,
     });
-    expect(store.getState().tasks).toEqual({ items: [], loading: false, error: null });
+    expect(store.getState().tasks).toEqual({
+      items: [],
+      loading: false,
+      error: null,
+      loaded: false,
+    });
   });
 
   it.each([403, 500])('keeps the session on HTTP %s', async (status) => {

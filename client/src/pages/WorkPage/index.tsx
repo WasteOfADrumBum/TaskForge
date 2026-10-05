@@ -31,8 +31,16 @@ import {
   setTaskLoading,
 } from '../../redux/slices/taskSlice';
 import WorkTabs from '../../components/work/WorkTabs';
+import { agentStatusLabel, getAgentId } from '../../types/agent';
 import { getProjectId, projectStatusLabel } from '../../types/project';
 import { getTaskId, type Task, type TaskPriority, type TaskStatus } from '../../types/task';
+import {
+  agentFromValue,
+  assigneeInput,
+  assigneeValue,
+  getTaskAssignee,
+  type AssigneeFilter,
+} from '../../utils/assignees';
 import { toCalendarDate } from '../../utils/dates';
 import { sortProjects } from '../../utils/projects';
 import { filterAndSortTasks, type TaskSort } from '../../utils/tasks';
@@ -47,9 +55,17 @@ const WorkPage = () => {
   const projects = useAppSelector((state) => state.projects.items);
   const projectsLoaded = useAppSelector((state) => state.projects.loaded);
   const projectsError = useAppSelector((state) => state.projects.error);
-  // Location state from the top bar's New Task (newTask) or a project's "New task in project"
-  // (newTask + projectId).
-  const navState = location.state as { newTask?: number; projectId?: string } | null;
+  const agents = useAppSelector((state) => state.agents.items);
+  const agentsLoaded = useAppSelector((state) => state.agents.loaded);
+  const agentsError = useAppSelector((state) => state.agents.error);
+  // Location state from the top bar's New Task (newTask), a project's "New task in project"
+  // (newTask + projectId), or an agent's "Assign a new task" (newTask + agentId).
+  const navState = location.state as {
+    newTask?: number;
+    projectId?: string;
+    agentId?: string;
+  } | null;
+  const navAssignee = navState?.agentId ? 'agent:' + navState.agentId : '';
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<TaskPriority>('medium');
@@ -61,10 +77,16 @@ const WorkPage = () => {
   // user changed it, so a title-only edit can never unassign a task (for example while
   // projects are still loading or failed to load).
   const [editingOriginalProject, setEditingOriginalProject] = useState<string | null>(null);
+  // The assignee select value: '' (Unassigned), 'me', or 'agent:<id>'. Like the project, an
+  // update only sends the assignee when the user changed it, so editing another field never
+  // changes or clears it, even while agents are loading, failed to load, or the agent is gone.
+  const [assignee, setAssignee] = useState(navAssignee);
+  const [editingOriginalAssignee, setEditingOriginalAssignee] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<Task | null>(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | 'all'>('all');
+  const [assigneeFilter, setAssigneeFilter] = useState<AssigneeFilter>('all');
   const [sort, setSort] = useState<TaskSort>('created-desc');
   const titleRef = useRef<HTMLInputElement>(null);
   // Overdue badges roll over at local midnight, like the Command Center.
@@ -72,14 +94,56 @@ const WorkPage = () => {
 
   const filteredTasks = useMemo(
     () =>
-      filterAndSortTasks(tasks, { search, status: statusFilter, priority: priorityFilter, sort }),
-    [tasks, search, statusFilter, priorityFilter, sort],
+      filterAndSortTasks(tasks, {
+        search,
+        status: statusFilter,
+        priority: priorityFilter,
+        assignee: assigneeFilter,
+        sort,
+      }),
+    [tasks, search, statusFilter, priorityFilter, assigneeFilter, sort],
   );
   const sortedProjects = useMemo(() => sortProjects(projects), [projects]);
   const projectsById = useMemo(
     () => new Map(projects.map((project) => [getProjectId(project), project])),
     [projects],
   );
+  const agentsById = useMemo(
+    () => new Map(agents.map((agent) => [getAgentId(agent), agent])),
+    [agents],
+  );
+  // Only active agents can take a new task.
+  const activeAgents = useMemo(
+    () =>
+      agents
+        .filter((agent) => agent.status === 'active')
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    [agents],
+  );
+  const selectedAgentId = agentFromValue(assignee);
+  const selectedAgent = selectedAgentId ? agentsById.get(selectedAgentId) : undefined;
+  // Agents that can't be offered as a new choice (paused, disabled, or not loaded) but must stay
+  // in the list: the edited task's current agent, so the user can switch back to it, and the
+  // selection itself (for example a requested agent while agents are still loading).
+  const inactiveOptions = [
+    ...new Set(
+      [agentFromValue(editingOriginalAssignee), selectedAgentId].filter(
+        (agentId): agentId is string =>
+          agentId !== null && agentsById.get(agentId)?.status !== 'active',
+      ),
+    ),
+  ];
+  const inactiveLabel = (agentId: string) => {
+    const agent = agentsById.get(agentId);
+    if (agent) return agent.name + ' (' + agentStatusLabel[agent.status] + ')';
+    if (agentsLoaded) return 'Deleted agent';
+    return agentsError ? 'Agents unavailable' : 'Loading agents...';
+  };
+
+  const agentForTask = (task: Task) => {
+    const taskAssignee = getTaskAssignee(task);
+    return taskAssignee.kind === 'agent' ? agentsById.get(taskAssignee.agentId) : undefined;
+  };
 
   const resetForm = () => {
     setTitle('');
@@ -87,13 +151,16 @@ const WorkPage = () => {
     setPriority('medium');
     setDueDate('');
     setProjectId('');
+    setAssignee('');
     setEditingId(null);
     setEditingOriginalProject(null);
+    setEditingOriginalAssignee('');
   };
   const resetFilters = () => {
     setSearch('');
     setStatusFilter('all');
     setPriorityFilter('all');
+    setAssigneeFilter('all');
     setSort('created-desc');
   };
 
@@ -105,6 +172,7 @@ const WorkPage = () => {
     setHandledRequest(newTaskRequest);
     resetForm();
     setProjectId(navState?.projectId ?? '');
+    setAssignee(navAssignee);
   }
   useEffect(() => {
     if (newTaskRequest) titleRef.current?.focus();
@@ -122,6 +190,7 @@ const WorkPage = () => {
         const task = await updateTask(token, editingId, {
           ...input,
           ...(project !== editingOriginalProject && { project }),
+          ...(assignee !== editingOriginalAssignee && assigneeInput(assignee)),
         });
         dispatch(replaceTask(task));
         toaster.create({
@@ -130,7 +199,12 @@ const WorkPage = () => {
           type: 'success',
         });
       } else {
-        const task = await createTask(token, { ...input, project, status: 'todo' });
+        const task = await createTask(token, {
+          ...input,
+          project,
+          ...(assignee && assigneeInput(assignee)),
+          status: 'todo',
+        });
         dispatch(addTask(task));
         toaster.create({
           title: 'Task Created',
@@ -159,6 +233,9 @@ const WorkPage = () => {
     // to load, or deleted); the select shows a labelled placeholder for it.
     setProjectId(task.project ?? '');
     setEditingOriginalProject(task.project ?? null);
+    // Same for the assignee: keep the stored agent even if it isn't loaded or isn't active.
+    setAssignee(assigneeValue(task));
+    setEditingOriginalAssignee(assigneeValue(task));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -313,6 +390,43 @@ const WorkPage = () => {
                 <NativeSelect.Indicator />
               </NativeSelect.Root>
             </Field.Root>
+            <Field.Root>
+              <Field.Label>Assignee</Field.Label>
+              <NativeSelect.Root>
+                <NativeSelect.Field
+                  value={assignee}
+                  onChange={(event) => setAssignee(event.target.value)}
+                >
+                  <option value="">Unassigned</option>
+                  <option value="me">Me</option>
+                  {inactiveOptions.map((agentId) => (
+                    <option key={agentId} value={'agent:' + agentId}>
+                      {inactiveLabel(agentId)}
+                    </option>
+                  ))}
+                  {activeAgents.length > 0 && (
+                    <optgroup label="Agents">
+                      {activeAgents.map((agent) => (
+                        <option key={getAgentId(agent)} value={'agent:' + getAgentId(agent)}>
+                          {agent.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                </NativeSelect.Field>
+                <NativeSelect.Indicator />
+              </NativeSelect.Root>
+              {selectedAgent && selectedAgent.status !== 'active' ? (
+                <Field.HelperText>
+                  {selectedAgent.name} is {agentStatusLabel[selectedAgent.status].toLowerCase()}. It
+                  keeps this task but can’t take new ones.
+                </Field.HelperText>
+              ) : (
+                <Field.HelperText>
+                  Only active agents can take new tasks. Agents don’t run yet.
+                </Field.HelperText>
+              )}
+            </Field.Root>
             {error && (
               <Box
                 borderWidth="1px"
@@ -379,7 +493,7 @@ const WorkPage = () => {
                   pl="10"
                 />
               </Box>
-              <SimpleGrid columns={{ base: 1, md: 3 }} gap={3}>
+              <SimpleGrid columns={{ base: 1, md: 2, '2xl': 4 }} gap={3}>
                 <NativeSelect.Root>
                   <NativeSelect.Field
                     aria-label="Filter by status"
@@ -405,6 +519,19 @@ const WorkPage = () => {
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
                     <option value="high">High</option>
+                  </NativeSelect.Field>
+                  <NativeSelect.Indicator />
+                </NativeSelect.Root>
+                <NativeSelect.Root>
+                  <NativeSelect.Field
+                    aria-label="Filter by assignee"
+                    value={assigneeFilter}
+                    onChange={(event) => setAssigneeFilter(event.target.value as AssigneeFilter)}
+                  >
+                    <option value="all">All assignees</option>
+                    <option value="me">Me</option>
+                    <option value="agents">Agents</option>
+                    <option value="unassigned">Unassigned</option>
                   </NativeSelect.Field>
                   <NativeSelect.Indicator />
                 </NativeSelect.Root>
@@ -457,6 +584,7 @@ const WorkPage = () => {
                 onStatusChange={(item, status) => void handleStatusChange(item, status)}
                 now={today}
                 project={task.project ? projectsById.get(task.project) : undefined}
+                agent={agentForTask(task)}
               />
             ))}
           </VStack>

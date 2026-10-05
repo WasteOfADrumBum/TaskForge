@@ -43,6 +43,26 @@ describe('task utilities', () => {
     expect(result.map((task) => task._id)).toEqual(['1']);
   });
 
+  it('filters by assignee alongside the other filters', () => {
+    const assigned: Task[] = [
+      { ...tasks[0], assigneeType: 'user' },
+      { ...tasks[1], assigneeType: 'agent', assigneeAgent: 'a1' },
+      tasks[2],
+    ];
+    const ids = (assignee: 'all' | 'me' | 'agents' | 'unassigned') =>
+      filterAndSortTasks(assigned, {
+        search: '',
+        status: 'all',
+        priority: 'all',
+        assignee,
+        sort: 'created-asc',
+      }).map((task) => task._id);
+    expect(ids('all')).toEqual(['1', '2', '3']);
+    expect(ids('me')).toEqual(['1']);
+    expect(ids('agents')).toEqual(['2']);
+    expect(ids('unassigned')).toEqual(['3']);
+  });
+
   it('sorts by priority', () => {
     const result = filterAndSortTasks(tasks, {
       search: '',

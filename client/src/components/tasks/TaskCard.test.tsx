@@ -2,7 +2,10 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Provider } from '../ui/provider';
+import { MemoryRouter } from 'react-router-dom';
 import TaskCard from './TaskCard';
+import { makeAgent } from '../../test/renderApp';
+import type { Agent } from '../../types/agent';
 import type { Task } from '../../types/task';
 
 const baseTask: Task = {
@@ -88,5 +91,58 @@ describe('TaskCard', () => {
     await user.click(screen.getByRole('button', { name: /delete/i }));
     expect(onEdit).toHaveBeenCalledWith(baseTask);
     expect(onDelete).toHaveBeenCalledWith(baseTask);
+  });
+
+  describe('assignee', () => {
+    const renderAssigned = (task: Task, agent?: Agent) =>
+      render(
+        <Provider>
+          <MemoryRouter>
+            <TaskCard
+              task={task}
+              agent={agent}
+              onStatusChange={vi.fn()}
+              onEdit={vi.fn()}
+              onDelete={vi.fn()}
+            />
+          </MemoryRouter>
+        </Provider>,
+      );
+
+    it('shows an unassigned task', () => {
+      renderAssigned(baseTask);
+      expect(screen.getByText('Unassigned')).toBeInTheDocument();
+    });
+
+    it('shows a task assigned to me', () => {
+      renderAssigned({ ...baseTask, assigneeType: 'user' });
+      expect(screen.getByText('Assigned to me')).toBeInTheDocument();
+    });
+
+    it('links an agent assignee to its page, with no status badge while active', () => {
+      const scout = makeAgent({ _id: 'a1', name: 'Scout' });
+      renderAssigned({ ...baseTask, assigneeType: 'agent', assigneeAgent: 'a1' }, scout);
+      expect(screen.getByRole('link', { name: 'Agent: Scout' })).toHaveAttribute(
+        'href',
+        '/workforce/a1',
+      );
+      expect(screen.queryByText('Active')).not.toBeInTheDocument();
+    });
+
+    it.each([
+      ['paused', 'Paused'],
+      ['disabled', 'Disabled'],
+    ] as const)('shows a %s agent’s status next to its assignment', (status, label) => {
+      const agent = makeAgent({ _id: 'a1', name: 'Scribe', status });
+      renderAssigned({ ...baseTask, assigneeType: 'agent', assigneeAgent: 'a1' }, agent);
+      expect(screen.getByRole('link', { name: 'Agent: Scribe' })).toBeInTheDocument();
+      expect(screen.getByText(label)).toBeInTheDocument();
+    });
+
+    it('still shows the assignment when the agent isn’t loaded', () => {
+      renderAssigned({ ...baseTask, assigneeType: 'agent', assigneeAgent: 'gone' });
+      expect(screen.getByText('Assigned to an agent')).toBeInTheDocument();
+      expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    });
   });
 });

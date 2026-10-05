@@ -28,6 +28,7 @@ import { useAppSelector } from '../../redux/hooks/typedHooks';
 import { getProjectId } from '../../types/project';
 import { getTaskId } from '../../types/task';
 import { getAgentSummary } from '../../utils/agents';
+import { getAssignmentSummary } from '../../utils/assignees';
 import { getProjectStats, getStatsForProject } from '../../utils/projects';
 import {
   getGreeting,
@@ -53,6 +54,7 @@ const timeFormat = new Intl.DateTimeFormat('en-US', {
 const CommandCenterPage = () => {
   const tasks = useAppSelector((state) => state.tasks.items);
   const loading = useAppSelector((state) => state.tasks.loading);
+  const tasksLoaded = useAppSelector((state) => state.tasks.loaded);
   const error = useAppSelector((state) => state.tasks.error);
   // One `now` for every section, so the Overdue metric and the priorities always agree. It
   // advances when the local day changes, so a tab left open past midnight stays correct.
@@ -74,6 +76,8 @@ const CommandCenterPage = () => {
   const projectStats = useMemo(() => getProjectStats(tasks, now), [tasks, now]);
   const agents = useAppSelector((state) => state.agents.items);
   const agentSummary = useMemo(() => getAgentSummary(agents), [agents]);
+  const assignmentSummary = useMemo(() => getAssignmentSummary(tasks, agents), [tasks, agents]);
+  const tasksReady = tasksLoaded && !loading && !error;
   const initialLoad = loading && tasks.length === 0;
   const open = summary.todo + summary.inProgress;
   const completion = summary.total ? Math.round((summary.done / summary.total) * 100) : 0;
@@ -331,8 +335,34 @@ const CommandCenterPage = () => {
                   </Box>
                 ))}
               </SimpleGrid>
+              <Box as="dl" mt={4} fontSize="sm">
+                {[
+                  {
+                    label: 'Agents with open tasks',
+                    value: assignmentSummary.agentsWithOpenTasks,
+                  },
+                  { label: 'Open tasks on agents', value: assignmentSummary.openOnAgents },
+                  { label: 'Open tasks on you', value: assignmentSummary.openOnMe },
+                  { label: 'Unassigned open tasks', value: assignmentSummary.openUnassigned },
+                ].map((item) => (
+                  <HStack
+                    key={item.label}
+                    justify="space-between"
+                    py={1.5}
+                    borderTopWidth="1px"
+                    borderColor="border.muted"
+                  >
+                    <Text as="dt" color="fg.muted">
+                      {item.label}
+                    </Text>
+                    <Text as="dd" fontWeight="semibold" m={0}>
+                      {tasksReady ? item.value : error ? 'Unavailable' : 'Loading...'}
+                    </Text>
+                  </HStack>
+                ))}
+              </Box>
               <Text fontSize="xs" color="fg.muted" mt={3}>
-                Agent definitions only. Agents don’t run yet.
+                Assignments record who owns the work. Agents don’t run yet.
               </Text>
             </Box>
           )}
