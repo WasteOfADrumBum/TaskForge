@@ -61,7 +61,8 @@ AI features go through a provider abstraction and are never hard-wired to one pa
 
 ### Delivery readiness (approved 2026-10-05)
 
-- [ ] **IN PROGRESS**: [KAN-1](https://taskforgejms.atlassian.net/browse/KAN-1): restore the full dependency audit through Jest 30 and Node watch mode. The audit and branch checks pass locally; merge, CI, and deployment verification are pending. No audit gate is disabled.
+- [x] **COMPLETE**: [KAN-1](https://taskforgejms.atlassian.net/browse/KAN-1): restore the full dependency audit through Jest 30 and Node watch mode. PR #12 merged as `48aae59`; 361 tests, full audit, final-head/main CI, deployment status, and live availability/auth guards passed. No audit exception.
+- [ ] **IN PROGRESS**: [KAN-4](https://taskforgejms.atlassian.net/browse/KAN-4): enforce PR and current CI checks on main, block force pushes/deletions, and document independent review and approved merge authority. Settings applied; policy PR validation pending. See [delivery policy](delivery.md).
 
 ### Phase 1 maintenance (deferred; does not block Phase 1)
 

@@ -6,6 +6,8 @@ All notable changes to TaskForge are recorded here.
 
 ### Changed
 
+- **KAN-4 — delivery gates:** protect main with PRs, current GitHub Actions quality checks, resolved review conversations, and administrator enforcement; block force pushes and branch deletion. Document independent review and approved autonomous merge boundaries.
+
 - **KAN-1 — dependency audit:** upgrade server Jest and its types to version 30 and use Node's built-in watch mode for API development. This removes the vulnerable braces dependency paths through Jest 29 and nodemon while retaining the full audit gate.
 
 ### Milestones

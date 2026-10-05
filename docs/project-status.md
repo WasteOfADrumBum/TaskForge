@@ -21,7 +21,8 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 
 ## Delivery pipeline stabilization (2026-10-05)
 
-- **KAN-1:** remove the dependency-audit blocker through Jest 30 and Node watch mode. Full dependency audit is clean locally; branch validation and deployment evidence are recorded in [KAN-1](https://taskforgejms.atlassian.net/browse/KAN-1).
+- **KAN-1 complete:** PR #12 merged as `48aae59`; 361 tests, audit, final-head/main CI, successful deployment status, and live availability/auth guards passed. Evidence is recorded in [KAN-1](https://taskforgejms.atlassian.net/browse/KAN-1).
+- **KAN-4 in progress:** main now requires PRs, current quality CI, resolved conversations, and administrator enforcement. Force pushes/deletions are blocked; the policy PR remains under validation. See [delivery policy](delivery.md).
 - The existing task-assignment work is preserved separately on `feat/agent-task-assignment` and tracked in [KAN-2](https://taskforgejms.atlassian.net/browse/KAN-2); it is not shipped by this tooling branch.
 - Josh approved autonomous delivery through release readiness and bounded Phase 2. Normal scoped tickets may merge after validation and independent review. New scope, paid cost, major architecture/core security changes, risky data operations, and Phases 3–8 require a decision.
 
