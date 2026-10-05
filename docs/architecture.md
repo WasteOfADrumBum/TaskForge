@@ -100,7 +100,7 @@ flowchart LR
 - **Ownership:** every agent query filters by `owner`. Another user's agent gets the same `404 Agent not found` as a missing one, and malformed ids get `404` without a database query. `owner`, `_id`, and timestamps in a request body are ignored.
 - **Deleting an agent never deletes tasks.** Same order as deleting a project: unassign the owner's tasks from the agent, delete the agent, then a best-effort second unassign. Task writes also recheck agent existence after persistence and conditionally clear a deleted reference without overwriting a concurrent reassignment. Cleanup remains nontransactional: a database failure can leave a stale reference, which the client labels as deleted. The client preserves assignment input during unrelated edits; the server rechecks the reference on every task write and clears it when the agent no longer exists. A task deleted during create reconciliation returns `404 Task not found`, never a successful null task.
 
-**Task assignment (KAN-2, implemented on `codex/KAN-2-agent-task-assignment`; delivery validation pending):**
+**Task assignment (KAN-2, shipped in PR #15; release identity verified by KAN-11):**
 
 - **Model:** `Task.assigneeType` is `user`, `agent`, or `null` (default, Unassigned). `Task.assigneeAgent` is the agent id when the type is `agent`, otherwise `null`. `user` always means the task's owner.
 - **Validation** (task create and update, in `taskController`): both fields omitted leaves the assignment unchanged. `assigneeType` is required whenever `assigneeAgent` is sent. `null`, `''`, and `user` must not carry an agent id (`400 Invalid assignee`). For `agent`, a malformed id gets `400 Invalid agent`, and a missing agent and another user's agent both get `400 Agent not found`. Both fields are always written together, so a reassignment fully replaces the previous assignee.
@@ -141,6 +141,8 @@ sequenceDiagram
 ```
 
 Notes:
+
+- Auth inputs are validated before database queries or hashing. Email is trimmed, lowercased, shape-checked and limited to 254 characters. Registration requires at least 15 Unicode code points and at most 72 UTF-8 bytes, preventing bcrypt truncation; passwords are not trimmed. Login accepts existing shorter or longer passwords up to 4096 UTF-8 bytes for compatibility. Duplicate registration races return 409. Malformed inputs return 400; incorrect credentials retain the generic 401 response.
 
 - The server is the only authority on whether a token is valid. The client's expiry check in `ProtectedRoute` only avoids rendering a page that is bound to fail.
 - A response to a request sent with an older token is discarded, so it can never sign out a newer session.
@@ -183,7 +185,7 @@ Defined in `.github/workflows/ci.yml` (Node 24, Ubuntu). Current PR CI is enforc
 - The client only knows the API URL (`VITE_API_URL`); it holds no secrets.
 - If a preview deployment points at the production API, its requests only succeed when the preview origin is in `CLIENT_ORIGIN`; otherwise the browser blocks them.
 
-## Operational verification (KAN-11 delivery branch)
+## Operational verification (KAN-11, shipped in PR #16)
 
 `/health` remains liveness. `/ready` performs a bounded, shared database ping and reports 200 ready or 503 unavailable without internal details. `/release` reports the commit embedded from the actual build checkout, independently of Render's deployment metadata. Client builds emit `/release.json` with their checkout commit and effective public API URL. These endpoints and the asset use no-store headers; release identity does not prove database readiness or authenticated feature behavior.
 

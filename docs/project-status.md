@@ -6,30 +6,30 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 
 ## Checkpoint
 
-| Item                      | Value                                                                                                                           |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02))                     |
-| Current phase             | Phase 2: AI Workforce, foundation work (no AI execution yet)                                                                    |
-| Current branch            | `codex/KAN-11-release-readiness`; original assignment WIP preserved on `feat/agent-task-assignment`                             |
-| Current checkpoint        | Release/delivery readiness followed by task → agent assignment and bounded Phase 2                                              |
-| Last completed checkpoint | Docs/workflow (PR #14, `fc00e80`); delivery gates (PR #13); audit recovery (PR #12)                                             |
-| Next recommended          | Resolve KAN-11 release/readiness proof for merged KAN-2; then remaining security/reliability readiness and bounded AI execution |
+| Item                      | Value                                                                                                       |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02)) |
+| Current phase             | Phase 2: AI Workforce, foundation work (no AI execution yet)                                                |
+| Current branch            | `codex/KAN-6-auth-input-validation`; original assignment WIP preserved on `feat/agent-task-assignment`      |
+| Current checkpoint        | Release/delivery readiness followed by task → agent assignment and bounded Phase 2                          |
+| Last completed checkpoint | Release readiness (PR #16, `f727b69`); assignment (PR #15, `16628b0`)                                       |
+| Next recommended          | Finish KAN-6 authentication validation; then KAN-7 abuse protection and remaining approved readiness work   |
 
 ## Known verification gaps
 
-- Exact Render API source identity remains to be confirmed under KAN-11; successful provider deployment status and healthy routes do not establish a served commit.
+- Real MongoDB integration/concurrency QA remains tracked in KAN-13. No production CRUD or backup/restore rehearsal was performed.
 
 ## Delivery pipeline stabilization (2026-10-05)
 
 - **KAN-1 complete:** PR #12 merged as `48aae59`; 361 tests, audit, final-head/main CI, successful deployment status, and live availability/auth guards passed. Evidence is recorded in [KAN-1](https://taskforgejms.atlassian.net/browse/KAN-1).
 - **KAN-4 complete:** PR #13 merged as `882e134`; required PR/main CI, effective protection, deployment status, and live health passed. Main requires PRs/current quality CI/resolved conversations, including administrators; force pushes/deletions are blocked. See [delivery policy](delivery.md).
 - **KAN-5 complete:** PR #14 merged as `fc00e80`; docs/link checks, independent review, required PR/main CI, deployment status, and live health passed.
-- The existing task-assignment work is preserved separately on `feat/agent-task-assignment` and tracked in [KAN-2](https://taskforgejms.atlassian.net/browse/KAN-2); PR #15 merged as `16628b0`, with 471 tests, independent review and PR/main CI passed. Provider deployment success and live health passed; exact API source proof remains pending under KAN-11.
+- The existing task-assignment work is preserved separately on `feat/agent-task-assignment` and tracked in [KAN-2](https://taskforgejms.atlassian.net/browse/KAN-2); PR #15 merged as `16628b0`, with 471 tests, independent review and PR/main CI passed. Provider deployment success and live health passed; matching client/API merge identity was verified under KAN-11. KAN-2 and KAN-3 are Done.
 - Josh approved autonomous delivery through release readiness and bounded Phase 2. Normal scoped tickets may merge after validation and independent review. New scope, paid cost, major architecture/core security changes, risky data operations, and Phases 3–8 require a decision.
 
-## Release readiness (KAN-11, in progress)
+## Release readiness (KAN-11, complete)
 
-- Separate liveness, bounded DB readiness and build-derived release identity are being implemented. See the [release/idle recovery runbook](release-runbook.md). No hosting changes, production data operations, paid service or automatic cluster administration.
+- PR #16 merged as `f727b69`. Independent review, 491 tests, PR/main CI and provider deployments passed. Live client `/release.json` and API `/release` matched that commit; `/ready` returned 200. Separate liveness, bounded DB readiness and build-derived release identity are shipped. See the [release/idle recovery runbook](release-runbook.md). No hosting changes, production data operations, paid service or automatic cluster administration.
 - Free-tier manual recovery is documented; an actual private backup/isolated Mongo restore is not yet verified. Simulated outage/recovery tests do not establish production restore readiness.
 
 ## Infrastructure verification (2026-10-02)
@@ -125,3 +125,8 @@ Run on `feat/agent-registry-foundation` on 2026-10-02 (local, before PR #10). Th
 | `git diff --check`     | Pass                                                        |
 
 Note: the server suite sometimes prints Jest's `A worker process has failed to exit gracefully` warning. This happened in 2 of 3 runs. All tests still pass, the exit code is 0, and `--detectOpenHandles` reports no open handles. It already existed on `main` before this branch and is tracked as maintenance in the roadmap.
+
+## Authentication validation (KAN-6, active)
+
+- Malformed input rejection, email normalization, duplicate-race handling, and Unicode-aware registration limits are implemented. Existing account login remains compatible. Local 579 tests, format/lint/types/build/audit and independent review passed; PR/CI/deployment validation is pending.
+- The existing registration layout is retained. A [source-matched Figma reference](https://www.figma.com/design/2l4DJJigN7aa4Fk6S5zu8M/TaskForge?node-id=14-71) records default, too-short and too-long password states.

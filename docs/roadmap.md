@@ -66,7 +66,8 @@ AI features go through a provider abstraction and are never hard-wired to one pa
 
 - [x] **COMPLETE**: [KAN-5](https://taskforgejms.atlassian.net/browse/KAN-5): reconcile current docs and restore project guidance/branch workflow. PR #14 merged as `fc00e80`; documentation checks, independent review, PR/main CI, deployment status, and live health passed.
 
-- [ ] **IN PROGRESS**: [KAN-11](https://taskforgejms.atlassian.net/browse/KAN-11): bounded DB readiness, build-derived release identity, preview isolation and free-tier recovery runbook. Prioritized to resolve assignment deployment verification; implementation/review/CI/live evidence pending.
+- [x] **COMPLETE**: [KAN-11](https://taskforgejms.atlassian.net/browse/KAN-11): bounded DB readiness, build-derived release identity, preview isolation and free-tier recovery runbook. PR #16 merged as `f727b69`; 491 tests, independent review, PR/main CI and deployment status passed. Live client/API commits matched the merge; readiness returned 200.
+- [ ] **IN PROGRESS**: [KAN-6](https://taskforgejms.atlassian.net/browse/KAN-6): authentication input validation and registration feedback. Local 579 tests and required checks passed; independent review passed. PR/CI/deployment verification remain delivery gates.
 
 ### Phase 1 maintenance (deferred; does not block Phase 1)
 
@@ -84,11 +85,11 @@ These are known minor polish issues found during PR #7. They were never Phase 1 
 
 ## Phase 2: AI Workforce ([details](phases/phase-2-ai-workforce.md))
 
-**Status: IN PROGRESS** (foundation only). Work + Projects (PR #9) and the Agent Registry (PR #10) are merged. Agents are saved definitions only: no AI execution, model calls, runs, handoffs, approvals, or permission enforcement exist. Assignment is implemented on the KAN-2 delivery branch; production verification is pending.
+**Status: IN PROGRESS** (foundation only). Work + Projects (PR #9) and the Agent Registry (PR #10) are merged. Agents are saved definitions only: no AI execution, model calls, runs, handoffs, approvals, or permission enforcement exist. Task assignment is shipped; live client/API source identity is verified. Synthetic browser QA passed; real MongoDB integration QA remains tracked under KAN-13.
 
 - [x] **COMPLETE**: Work + Projects foundation: user-owned projects (model, owner-scoped CRUD API, optional task → project link, delete keeps tasks), a Projects area in Work, and Active projects on the Command Center (PR #9, merged to `main` as `493f0c3`). A prerequisite only: no agent or AI feature.
 - [x] **COMPLETE**: Agent Registry: persistent, user-owned agent definitions (name, role, description, status active/paused/disabled, skills, permission identifiers) with owner-scoped CRUD at `/api/agents`, the Workforce registry page (`/workforce`), an agent detail page (`/workforce/:id`), and a Workforce summary on the Command Center. PR #10, CI green, merged to `main` as `3ccb585`. Definitions only: nothing runs an agent or enforces its permissions. A `tools` field is deferred until there are tools to describe.
-- [ ] **IN PROGRESS**: [KAN-2](https://taskforgejms.atlassian.net/browse/KAN-2): assign TaskForge tasks to agents. Preserved local work is carried into `codex/KAN-2-agent-task-assignment`, with assignment validation, deletion race reconciliation, workload UI, and source-matched Figma states. PR #15 merged as `16628b0`; 471 tests and independent review plus PR/main CI passed. Exact backend source verification pending under KAN-11; original uncommitted work remains untouched.
+- [x] **COMPLETE**: [KAN-2](https://taskforgejms.atlassian.net/browse/KAN-2): assign TaskForge tasks to agents. Preserved local work is carried into `codex/KAN-2-agent-task-assignment`, with assignment validation, deletion race reconciliation, workload UI, and source-matched Figma states. PR #15 merged as `16628b0`; 471 tests and independent review plus PR/main CI passed. Matching live client/API source identity verified under KAN-11. KAN-3 synthetic browser QA passed; original uncommitted work remains untouched.
 - [ ] **PLANNED**: Shared agent knowledge
 - [ ] **PLANNED**: Agent run model (input, context, result, status)
 - [ ] **PLANNED**: Agent handoffs

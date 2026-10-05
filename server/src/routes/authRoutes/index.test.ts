@@ -34,7 +34,7 @@ describe('auth routes', () => {
 
     const response = await request(app)
       .post('/api/auth/register')
-      .send({ email: 'test@example.com', password: 'Password123!' });
+      .send({ email: 'test@example.com', password: 'Password123!long' });
 
     expect(response.status).toBe(201);
     expect(response.body).toEqual({
@@ -53,7 +53,7 @@ describe('auth routes', () => {
 
     const response = await request(app)
       .post('/api/auth/register')
-      .send({ email: 'test@example.com', password: 'Password123!' });
+      .send({ email: 'test@example.com', password: 'Password123!long' });
 
     expect(response.status).toBe(409);
     expect(response.body).toEqual({ message: 'User already exists' });
@@ -96,5 +96,22 @@ describe('auth routes', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ message: 'Logged out successfully' });
+  });
+});
+
+it('keeps an existing bcrypt password longer than 72 bytes usable at login', async () => {
+  const password = 'legacy password '.repeat(6);
+  const hashedPassword = await bcrypt.hash(password, 10);
+  mockedFindUserByEmail.mockResolvedValue({
+    id: 'legacy-user',
+    email: 'legacy@example.com',
+    password: hashedPassword,
+  } as never);
+  const response = await request(app)
+    .post('/api/auth/login')
+    .send({ email: 'legacy@example.com', password });
+  expect(response.status).toBe(200);
+  expect(jwt.verify(response.body.token, process.env.JWT_SECRET!)).toMatchObject({
+    id: 'legacy-user',
   });
 });
