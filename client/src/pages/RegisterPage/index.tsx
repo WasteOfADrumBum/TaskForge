@@ -111,7 +111,9 @@ const RegisterPage = () => {
         >
           <VStack align="stretch" gap={6}>
             <Box>
-              <Heading size="2xl">Create your workspace</Heading>
+              <Heading as="h1" size="2xl">
+                Create your workspace
+              </Heading>
               <Text color="fg.muted" mt={2}>
                 Start organizing tasks, priorities, due dates, and progress.
               </Text>
