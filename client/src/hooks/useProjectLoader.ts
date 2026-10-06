@@ -1,42 +1,68 @@
 import { isCurrentSession } from '../api/authenticatedFetch';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { getProjects } from '../api/projects';
 import { useAppDispatch, useAppSelector } from '../redux/hooks/typedHooks';
 import { setProjectError, setProjectLoading, setProjects } from '../redux/slices/projectSlice';
 import { SessionExpiredError } from '../utils/session';
+import { useDelayedRequest } from './useDelayedRequest';
 
-// Loads the signed-in user's projects once for the whole authenticated shell, like
-// useTaskLoader. The returned function reloads them on demand.
 export const useProjectLoader = () => {
   const dispatch = useAppDispatch();
   const token = useAppSelector((state) => state.auth.token);
   const sessionVersion = useAppSelector((state) => state.auth.sessionVersion);
   const [reloadKey, setReloadKey] = useState(0);
-
+  const [recovered, setRecovered] = useState(false);
+  const hadIssue = useRef(false);
+  const { begin, cancel: cancelRequest, waiting } = useDelayedRequest();
   useEffect(() => {
     if (!token) return;
     let active = true;
-    const loadProjects = async () => {
-      dispatch(setProjectLoading(true));
-      dispatch(setProjectError(null));
+    const request = begin();
+    if (!request) return;
+    const current = () => active && request.isCurrent() && isCurrentSession(token, sessionVersion);
+    dispatch(setProjectLoading(true));
+    dispatch(setProjectError(null));
+    const load = async () => {
       try {
-        const loadedProjects = await getProjects(token);
-        if (active && isCurrentSession(token, sessionVersion))
-          dispatch(setProjects(loadedProjects));
-      } catch (loadError) {
-        if (loadError instanceof SessionExpiredError || !isCurrentSession(token, sessionVersion))
-          return;
-        const message = loadError instanceof Error ? loadError.message : 'Unable to load projects';
-        if (active && isCurrentSession(token, sessionVersion)) dispatch(setProjectError(message));
+        const items = await getProjects(token, request.signal);
+        if (current()) {
+          dispatch(setProjects(items));
+          setRecovered(hadIssue.current || request.wasWaiting());
+          hadIssue.current = false;
+        }
+      } catch (error) {
+        if (error instanceof SessionExpiredError || !current()) return;
+        hadIssue.current = true;
+        setRecovered(false);
+        dispatch(
+          setProjectError(error instanceof Error ? error.message : 'Unable to load projects'),
+        );
       } finally {
-        if (active && isCurrentSession(token, sessionVersion)) dispatch(setProjectLoading(false));
+        if (current()) {
+          request.finish();
+          dispatch(setProjectLoading(false));
+        }
       }
     };
-    void loadProjects();
+    void load();
     return () => {
       active = false;
+      request.cancel();
     };
-  }, [dispatch, token, sessionVersion, reloadKey]);
-
-  return useCallback(() => setReloadKey((key) => key + 1), []);
+  }, [dispatch, token, sessionVersion, reloadKey, begin]);
+  const reload = useCallback(() => {
+    cancelRequest();
+    setRecovered(false);
+    setReloadKey((key) => key + 1);
+  }, [cancelRequest]);
+  const cancel = useCallback(() => {
+    if (!cancelRequest()) return;
+    hadIssue.current = true;
+    setRecovered(false);
+    if (token && isCurrentSession(token, sessionVersion)) {
+      dispatch(setProjectLoading(false));
+      dispatch(setProjectError('Loading cancelled. Your existing data is unchanged.'));
+    }
+  }, [cancelRequest, dispatch, token, sessionVersion]);
+  return { reload, cancel, waiting, recovered };
 };

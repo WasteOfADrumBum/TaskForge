@@ -10,7 +10,7 @@
 1. Fast requests retain the current experience; delayed service has truthful waiting feedback, retry/cancel for safe reads/sign-in, and accessible announcements.
 2. Failure cannot hang indefinitely; the full request lifetime includes response body parsing.
 3. No automatic write replay or mutation Retry control. Unconfirmed writes instruct refresh/verification before any new submission. Cancellation does not imply server rollback; manual resubmission is not claimed duplicate-free.
-4. Loading, delayed, failed and recovery states exist in authoritative Figma and match the implementation. Include an unconfirmed-write state to avoid misleading saved/cancelled claims.
+4. Implement necessary waiting, failed and recovery feedback using existing TaskForge patterns. Design-tool artifacts are deferred/non-blocking under October 6 user direction.
 5. Test fast/slow/failed/header/body/cancel/retry/accessibility, retain session-generation protection, and collect safe cold-start evidence. Document demo access/data strategy without production resets.
 
 ## Current implementation checkpoint
@@ -19,14 +19,18 @@ Transport/API work is implemented: one 90-second deadline covers fetch and JSON;
 
 825 tests passed (424 client, 401 server), including a regression for an unhandled late JSON rejection after deadline. Format, lint, types, both builds, full audit (0 vulnerabilities) and whitespace checks passed. Independent review found no transport blockers; this is sufficient for a partial draft checkpoint, not ticket completion.
 
-## Design blocker: Figma MCP usage limit
+## Resumed functional delivery (2026-10-06)
 
-The authoritative file and its existing TaskForge tokens/Figtree styles were inspected. The scoped inventory is one request-feedback family: Loading, Delayed, Failed, Recovered, ChangeUnconfirmed. Planned styles reuse dark panel/foreground/border, spacing and radius variables; safe actions use Cancel/Retry, writes get no replay action.
-
-Figma rejected the construction call with: “You've reached the Figma MCP tool call limit on the Starter plan.” No created node IDs were returned and no request-state design/UI completion is claimed. No paid upgrade is authorized or performed. UI work is not started; no design gate is skipped.
-
-Resume when Figma MCP access is available, then create/validate the variants, get design context, implement feedback/cancel/retry, finish accessibility/browser/cold-start/demo QA, and run all delivery gates. Transport-only tests do not satisfy the complete ticket.
+User removed all Figma/MCP/agent/design-generation workflows and gates. Transport checkpoint 6f4d557 is preserved; exact-head CI 37384848037 and preview passed. Functional waiting, safe cancel/retry, recovery and polite announcements are implemented directly from existing application patterns. 860 tests passed (459 client, 401 server), including 35 new UI/loader regressions. Independent review found no remaining blockers. Clean-install format, lint, types, tests, builds and audit passed. Browser QA confirms delayed role=status/aria-live=polite read feedback, Cancel, Retry loading and recovered status; sign-in cancellation retires a late response. No overflow at 390/768/1440 pixels. Known existing development script warning remains tracked for integration QA. Final CI/release verification remains. No paid service or production data change.
 
 ## Delivery boundary
 
-A draft transport checkpoint may be committed/pushed for review after validation. Do not merge KAN-10 or mark it Done until its UI/Figma/QA acceptance is met. No production data writes, seed/reset, new service/cost, hosting/database/auth architecture change or automatic keepalive.
+A draft transport checkpoint may be committed/pushed for review after validation. Do not merge KAN-10 or mark it Done until its functional UI/QA acceptance is met. No production data writes, seed/reset, new service/cost, hosting/database/auth architecture change or automatic keepalive.
+
+## Read-only slow-start evidence
+
+2026-10-06 at 11:50 UTC: live readiness returned 200 ready after31.535s; follow-up returned200ready after0.189s. No account/data writes or seed. Demo access/recovery strategy is documented in [release runbook](../release-runbook.md).
+
+## Dependency gate remediation
+
+October 6 audit feed added GHSA-68fv-2mgg-jv7q and GHSA-hp3w-g68c-fv3c to existing dependency versions. source-map-js is patched to 1.2.2. sprintf-js has no patched release; a scoped @istanbuljs/load-nyc-config override to js-yaml 4.3.2 removes its argparse 1 path. The actual loader uses the compatible load API; a real YAML configuration probe passed. Clean npm ci and npm audit passed with zero vulnerabilities. No exception, test-tool downgrade or weakened gate.

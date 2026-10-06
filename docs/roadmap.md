@@ -71,7 +71,7 @@ AI features go through a provider abstraction and are never hard-wired to one pa
 - [x] **COMPLETE**: [KAN-7](https://taskforgejms.atlassian.net/browse/KAN-7): bounded authentication abuse protection. PR #18 merged as `0275740`; 593 tests, local checks, independent review, synthetic browser QA, PR/main CI and deployments passed. Live client/API commit matched; readiness and limiter headers verified. [Policy and limits](tasks/KAN-7-auth-abuse-protection.md).
 - [x] **COMPLETE**: [KAN-8](https://taskforgejms.atlassian.net/browse/KAN-8): strict task IDs, bounded content and calendar dates. PR #19 merged as `d6ad789`; 679 tests, local checks, independent review, synthetic browser QA, PR/main CI and deployments passed. Live client/API commit matched, health/readiness verified.
 - [x] **COMPLETE**: [KAN-9](https://taskforgejms.atlassian.net/browse/KAN-9): immediate local logout and stale-session safeguards including repeated JWTs. PR #20 merged as `39c5ec6`; 786 tests, all checks, independent review, offline browser QA, PR/main CI and deployments passed. Live client/API identity matched; health/readiness verified.
-- [ ] **IN PROGRESS**: [KAN-10](https://taskforgejms.atlassian.net/browse/KAN-10): bounded transport is implemented; request-state UI/Figma blocked by Starter MCP usage limit. [Branch task](tasks/KAN-10-cold-start-feedback.md); no completion or deployment claim.
+- [ ] **IN PROGRESS**: [KAN-10](https://taskforgejms.atlassian.net/browse/KAN-10): bounded transport and functional waiting/cancel/retry/recovery UI are validated using existing application patterns; final CI/release verification remains. [Branch task](tasks/KAN-10-cold-start-feedback.md); no completion or deployment claim.
 
 ### Phase 1 maintenance (deferred; does not block Phase 1)
 

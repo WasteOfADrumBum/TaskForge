@@ -9,7 +9,7 @@ Use one Jira ticket per branch. Fill in the fields before implementation.
 - Approved milestone: release readiness and bounded Phase 2
 - Acceptance criteria: numbered, testable outcomes
 - Context: roadmap item, related code, existing decisions
-- Figma: relevant node links, or why no design change applies
+- Product UI: existing application patterns and functional/accessibility acceptance
 - Deployment implications: preview/API/database boundaries and safe QA plan
 
 ## Start safely
@@ -22,7 +22,7 @@ Move Jira to In Progress. Inspect the existing implementation; extend working fu
 
 ## Design and implementation
 
-When UI changes need design, inspect the authoritative Figma file and reconcile it with existing implementation before editing. Add the applicable design when practical and link it to Jira. An empty file does not prove design parity; use the existing intended UX as the baseline.
+Implement UI directly from Jira requirements and existing TaskForge components, theme tokens and interaction patterns. Per October 6 user direction, do not use Figma, its MCP/agents, or design-generation workflows. Design-tool artifacts or limits are not delivery gates.
 
 Add meaningful tests for changed behavior: success, failure, sessions, and ownership as applicable. No tests are needed solely to mirror reversible documentation edits. Keep tests next to code.
 
@@ -47,7 +47,7 @@ Do not hide failures, skip checks, weaken assertions, or alter the audit policy 
 ## Review, PR, and merge
 
 1. Have a reviewer separate from the implementer inspect the final diff and relevant surrounding code. Record findings and corrections on the PR.
-2. Commit with the Jira key, push, and create a PR with acceptance evidence, QA, Figma applicability, deployment implications, and known limitations.
+2. Commit with the Jira key, push, and create a PR with acceptance evidence, QA, accessibility where applicable, deployment implications, and known limitations.
 3. Move Jira to In Review. Re-review changed code after corrections and repeat affected validation.
 4. Confirm the final head has passed required CI and is current with main. Merge within the approved milestone using `--match-head-commit`; never use an administrator bypass.
 5. Verify merge SHA, main CI, deployments, live availability, and relevant behavior. Record any source-identity limitation precisely.
@@ -76,6 +76,6 @@ Wait for Josh's decision on that condition. Routine approved tickets, commits, p
 - PR:
 - What changed:
 - Tests/QA:
-- Figma:
+- Product UI/accessibility:
 - Deployment:
 - Result:

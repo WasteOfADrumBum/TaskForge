@@ -45,3 +45,13 @@ Atlas Free clusters have no managed Atlas backups. Use MongoDB Database Tools `m
 ## Safe runbook rehearsal
 
 Automated tests simulate disconnected, healthy, failed, timed-out and recovered database probes. A local built API smoke run can verify release metadata and liveness without a real database; readiness is 503 while disconnected. Compare the built client metadata to HEAD and a controlled public API URL. This checks instructions and operational contracts without changing production data.
+
+## Demo access and request recovery
+
+The public app supports normal account sign-in. There is no automatic demo sign-in or production reseeding. If the owner supplies a shared demo account, treat it as a writable workspace with the same task/project/agent operations as any account; it is not a read-only sandbox. Keep it separate from personal data and never publish environment credentials in the repository.
+
+For repeatable walkthrough/QA data, use synthetic local fixtures or the existing seed command against an explicitly isolated development database. That command resets the demo password and replaces the demo user's tasks, projects and agents. Production reset/seed remains a separate owner-approved data operation; KAN-10 performs none.
+
+Requests are bounded to 90 seconds across connection and body parsing. Safe reads/sign-in may be canceled and manually retried; mutations are never automatically replayed. An unconfirmed write requires refreshing/verifying the workspace before another submission. Cancellation does not roll back server work.
+
+Read-only smoke evidence on 2026-10-06 at 11:50 UTC: the initial `/ready` response took 31.535 seconds and returned 200 ready; the next took 0.189 seconds and also returned 200 ready. This demonstrates observed slow-start recovery without account/database writes; it is not an always-available free-tier guarantee.

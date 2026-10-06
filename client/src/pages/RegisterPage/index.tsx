@@ -1,4 +1,8 @@
-import { useRef, useState, type FormEvent } from 'react';
+import RequestFeedback from '../../components/ui/RequestFeedback';
+import { useDelayedRequest } from '../../hooks/useDelayedRequest';
+import { UNCERTAIN_CHANGE_MESSAGE } from '../../api/request';
+import { store } from '../../redux/store';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Box, Button, chakra, Field, Heading, HStack, Input, Text, VStack } from '@chakra-ui/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { register } from '../../api/auth';
@@ -17,19 +21,47 @@ const RegisterPage = () => {
   const navigate = useNavigate();
   const loading = useAppSelector((state) => state.auth.loading);
 
+  const [requestMessage, setRequestMessage] = useState<string | null>(null);
+  const requestState = useDelayedRequest();
+  const { begin, cancel } = requestState;
+  const ownerVersion = useRef<number | null>(null);
+  const sessionVersion = useAppSelector((state) => state.auth.sessionVersion);
+  useEffect(
+    () => () => {
+      cancel();
+      if (
+        ownerVersion.current !== null &&
+        store.getState().auth.sessionVersion === ownerVersion.current
+      )
+        dispatch(setLoading(false));
+      ownerVersion.current = null;
+    },
+    [cancel, dispatch, sessionVersion],
+  );
+
   const handleRegister = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (requestState.pending) return;
     const validationError = getRegistrationPasswordError(password);
     setPasswordError(validationError);
     if (validationError) {
       passwordInput.current?.focus();
       return;
     }
+    const request = begin();
+    if (!request) return;
+    const version = store.getState().auth.sessionVersion;
+    ownerVersion.current = version;
+    const current = () => request.isCurrent() && store.getState().auth.sessionVersion === version;
     dispatch(setLoading(true));
     dispatch(setError(null));
-
+    setRequestMessage(null);
     try {
-      await register({ email, password });
+      await register({ email, password }, request.signal);
+      if (!current()) return;
+      request.finish();
+      ownerVersion.current = null;
+      dispatch(setLoading(false));
       toaster.create({
         title: 'Account created',
         description: 'Your workspace is ready. Sign in to continue.',
@@ -37,14 +69,29 @@ const RegisterPage = () => {
       });
       navigate('/login');
     } catch (error) {
+      if (!current()) return;
       const message = error instanceof Error ? error.message : 'Unable to register';
+      setRequestMessage(message);
       dispatch(setError(message));
       toaster.create({ title: 'Registration failed', description: message, type: 'error' });
     } finally {
-      dispatch(setLoading(false));
+      if (current()) {
+        request.finish();
+        ownerVersion.current = null;
+        dispatch(setLoading(false));
+      }
     }
   };
-
+  const cancelRegistration = () => {
+    cancel();
+    if (
+      ownerVersion.current !== null &&
+      store.getState().auth.sessionVersion === ownerVersion.current
+    )
+      dispatch(setLoading(false));
+    ownerVersion.current = null;
+    setRequestMessage(UNCERTAIN_CHANGE_MESSAGE);
+  };
   return (
     <Box minH="100vh" bg="bg.subtle">
       <HStack maxW="7xl" mx="auto" px={{ base: 4, md: 6 }} py={5} justify="space-between">
@@ -98,6 +145,16 @@ const RegisterPage = () => {
               <Field.HelperText fontSize="xs">{REGISTRATION_PASSWORD_HELP}</Field.HelperText>
               <Field.ErrorText fontSize="xs">{passwordError}</Field.ErrorText>
             </Field.Root>
+            {requestState.waiting ? (
+              <RequestFeedback message="TaskForge may be waking up. Account creation is still waiting for a response." />
+            ) : requestMessage && !requestState.pending ? (
+              <RequestFeedback message={requestMessage} />
+            ) : null}
+            {requestState.pending && (
+              <Button type="button" variant="outline" onClick={cancelRegistration}>
+                Cancel request
+              </Button>
+            )}
             <Button type="submit" size="lg" width="full" loading={loading}>
               Create account
             </Button>

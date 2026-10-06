@@ -98,6 +98,8 @@ The request flow is `routes → controllers → services → models`:
 
 ## Project workflow
 
+Product UI follows Jira and existing TaskForge patterns. Do not use Figma, its MCP/agents, or design-generation workflows. Design artifacts/tool limits are not completion or merge gates (user direction, 2026-10-06).
+
 Work in this pattern: one prompt → one branch → implementation → tests → validation → review → commit/push.
 
 - `docs/roadmap.md` is the roadmap source of truth. `docs/project-status.md` tracks the current checkpoint. Phase details live in `docs/phases/`.

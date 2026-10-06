@@ -13,7 +13,7 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | Current branch            | `codex/KAN-10-cold-start-feedback`; original assignment WIP preserved on `feat/agent-task-assignment`       |
 | Current checkpoint        | Release/delivery readiness followed by task → agent assignment and bounded Phase 2                          |
 | Last completed checkpoint | Immediate logout/session safeguards (PR #20, `39c5ec6`)                                                     |
-| Next recommended          | Resume KAN-10 Figma/UI after MCP usage access is available; preserve its tested transport checkpoint        |
+| Next recommended          | Complete KAN-10 CI/release verification; then KAN-12 settings/accessibility                                 |
 
 ## Known verification gaps
 
@@ -143,7 +143,7 @@ Note: the server suite sometimes prints Jest's `A worker process has failed to e
 
 - [Branch task](tasks/KAN-9-immediate-local-logout.md) records immediate local clearing and delayed-response protection. Implementation and 786 tests are validated locally, with all checks/audit passed. API-body and final-consumer/navigation race regressions pass; actual offline browser logout clears immediately with no request or expiry message. PR #20 merged as `39c5ec6`; PR/main CI and deployments passed. Both live release commits matched; health/readiness passed. Existing JWT/stateless auth behavior and page layout remain unchanged.
 
-## Cold-start feedback (KAN-10, active; usage blocker)
+## Cold-start feedback (KAN-10, active)
 
-- [Branch task](tasks/KAN-10-cold-start-feedback.md): bounded 90-second transport/API work is implemented. 825 tests and all required local checks/audit passed; independent transport review found no blockers. This validates the partial checkpoint, not the complete ticket.
-- Figma Starter MCP call limit blocked creation of required request states. Existing file/tokens were inspected; no new request-feedback nodes/UI were completed. No paid upgrade or design-gate exception. Ticket stays In Progress; no merge/deployment/completion claimed.
+- [Branch task](tasks/KAN-10-cold-start-feedback.md): bounded transport and delayed waiting/cancel/retry/recovery UI are implemented. Clean-install validation passed: 860 tests, formatting, lint, types, builds and audit (0 vulnerabilities). Independent review found no remaining blockers. Browser QA confirms delayed polite feedback, read cancel/manual retry/recovery and sign-in cancellation; no production writes. PR #21 awaits final CI and release verification.
+- October 6 user direction removes all design-tool workflows/gates. Functional waiting, safe cancel/retry and accessibility QA use existing application patterns. Ticket remains open until delivery validation passes.
