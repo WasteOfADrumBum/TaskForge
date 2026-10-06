@@ -2,7 +2,7 @@
 
 A short, living snapshot of where TaskForge is right now. For the full plan, see [roadmap.md](roadmap.md).
 
-**Last updated:** 2026-10-05
+**Last updated:** 2026-10-06
 
 ## Checkpoint
 
@@ -10,14 +10,14 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02)) |
 | Current phase             | Phase 2: AI Workforce, foundation work (no AI execution yet)                                                |
-| Current branch            | `codex/KAN-13-integration-smoke`; original assignment WIP preserved on `feat/agent-task-assignment`         |
+| Current branch            | `codex/KAN-14-release-evidence`; original assignment WIP preserved on `feat/agent-task-assignment`          |
 | Current checkpoint        | Release/delivery readiness followed by task → agent assignment and bounded Phase 2                          |
-| Last completed checkpoint | Settings/accessibility (PR #22, `401a7d1`)                                                                  |
-| Next recommended          | Complete KAN-13 integration/browser QA; then KAN-14 portfolio readiness                                     |
+| Last completed checkpoint | Required integration/browser verification (PR #23, `3a8e3c5`)                                               |
+| Next recommended          | Finish KAN-14 release evidence; then bounded Phase 2 provider work (KAN-15)                                 |
 
 ## Known verification gaps
 
-- Isolated real MongoDB integration and browser smoke are locally validated under KAN-13; final delivery checks remain. No production CRUD, Atlas behavior, multi-request concurrency or private backup/restore rehearsal is claimed.
+- Real local MongoDB integration and Chromium smoke are required CI checks and shipped under KAN-13. They do not establish production CRUD, Atlas behavior, multi-request concurrency, exhaustive browser/accessibility coverage, or private backup/restore readiness.
 
 ## Delivery pipeline stabilization (2026-10-05)
 
@@ -64,7 +64,7 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 
 ## Production URLs
 
-Verified 2026-10-01: both URLs return HTTP 200, the API health check returns `{"status":"ok"}`, the live client bundle calls the Render API, and the API's CORS allows the Vercel origin. Re-confirmed live on 2026-10-02.
+Reverified after PR #23 on 2026-10-06: client `/release.json` and API `/release` matched `3a8e3c5`; API `/health` and `/ready` returned 200. The client metadata names the production Render API. Earlier full production smoke evidence is historical above; this milestone used no production test writes.
 
 | Service      | URL                                            |
 | ------------ | ---------------------------------------------- |
@@ -81,22 +81,22 @@ Verified 2026-10-01: both URLs return HTTP 200, the API health check returns `{"
 | MongoDB Atlas  | Database `taskforge` on `Cluster0`      | Free | AWS `us-east-1`; `MONGO_URI` set as a Render env var |
 | GitHub Actions | CI on push/PR to `main`                 | Free | `.github/workflows/ci.yml`                           |
 
-Free-tier note: Render free services sleep when idle, so the first request after a sleep is slow. The API recovers correctly. A clearer waiting experience is tracked as "demo reliability" maintenance. Full details: [architecture.md](architecture.md).
+Free-tier note: Render free services sleep when idle, so the first request after a sleep is slow. The API recovers correctly. Delayed waiting, safe read cancellation/manual retry, and honest write uncertainty shipped in KAN-10. Months of unattended availability are not guaranteed; manual recovery and backup limits remain documented in the [runbook](release-runbook.md). Full details: [architecture.md](architecture.md).
 
 ## Deferred maintenance (non-blocking)
 
-All five are tracked in the [roadmap](roadmap.md#phase-1-maintenance-deferred-does-not-block-phase-1).
+The remaining items are tracked in the [roadmap](roadmap.md#phase-1-maintenance-deferred-does-not-block-phase-1).
 
 These three Phase 1 items were moved to maintenance at closure:
 
-- **Demo reliability:** a waking-up state during cold starts, and keeping the demo account seeded.
-- **Screenshot recapture:** the current set shows the older, smaller logos from before PR #7.
+- **Demo reliability:** waiting/recovery shipped in KAN-10. No automatic production demo reseeding is planned by this release.
+- **Screenshot recapture:** active in KAN-14, using verified release source and synthetic local fixtures.
 - **CHANGELOG backfill:** work before PR #4.
 
 These are known minor polish issues from PR #7. They were never Phase 1 items:
 
 - **Greeting refresh:** the Command Center greeting only updates when the day changes.
-- **Hero logo contrast:** the dark "Task" wordmark is hard to read on the dark background.
+- **Hero logo contrast:** resolved in KAN-12 with the existing asset on a suitable light surface.
 
 ## Design reference
 
@@ -104,27 +104,27 @@ The v2 shell and Command Center UX originally came from a separate TaskForge v2 
 
 ## Documentation
 
-| Item             | Status                                                                                                                              |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| README           | Portfolio README with real production screenshots                                                                                   |
-| Architecture doc | Done: [architecture.md](architecture.md), with Mermaid diagrams                                                                     |
-| Screenshots      | 6 captured from production ([images/README.md](images/README.md)); recapture is a maintenance item, needed only for the newer logos |
+| Item             | Status                                                                                                              |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------- |
+| README           | Portfolio README with current application screenshots and explicit local/synthetic provenance                       |
+| Architecture doc | Done: [architecture.md](architecture.md), with Mermaid diagrams                                                     |
+| Screenshots      | Current release recapture tracked in KAN-14; provenance and source recorded in [images/README.md](images/README.md) |
 
-## Validation status
+## Validation status (verified release `3a8e3c5`, 2026-10-06)
 
-Run on `feat/agent-registry-foundation` on 2026-10-02 (local, before PR #10). The PR #10 CI `quality` check also passed before the merge to `main` (`3ccb585`).
+| Check                                             | Result                             |
+| ------------------------------------------------- | ---------------------------------- |
+| Format, lint, client/server/QA types              | Pass                               |
+| Application units                                 | Pass: 875 (474 client, 401 server) |
+| Fixture safety                                    | Pass: 3                            |
+| Real MongoDB/API integration                      | Pass: 16                           |
+| Chromium critical flows                           | Pass: 3                            |
+| Clean installation and production builds          | Pass                               |
+| Full dependency audit                             | Pass: 0 vulnerabilities            |
+| Independent review and required PR/main CI        | Pass                               |
+| Live client/API source identity; health/readiness | Pass                               |
 
-| Check                  | Result                                                      |
-| ---------------------- | ----------------------------------------------------------- |
-| `npm run format:check` | Pass                                                        |
-| `npm run lint`         | Pass (0 warnings)                                           |
-| `npm run typecheck`    | Pass (0 errors)                                             |
-| `npm test`             | Pass: client 208/208 (25 files), server 153/153 (11 suites) |
-| `npm run build`        | Pass (client + server)                                      |
-| `npm audit`            | Pass (0 vulnerabilities)                                    |
-| `git diff --check`     | Pass                                                        |
-
-Note: the server suite sometimes prints Jest's `A worker process has failed to exit gracefully` warning. This happened in 2 of 3 runs. All tests still pass, the exit code is 0, and `--detectOpenHandles` reports no open handles. It already existed on `main` before this branch and is tracked as maintenance in the roadmap.
+Existing development theme-script and unit jsdom diagnostics are recorded, not hidden. Passing these suites does not establish a console-clean production experience or full accessibility certification.
 
 ## Authentication validation (KAN-6, complete)
 
@@ -152,6 +152,14 @@ Note: the server suite sometimes prints Jest's `A worker process has failed to e
 
 Settings planned sections, accessible theme selection, public heading semantics and hero logo contrast are implemented using existing application patterns. 875 tests and local checks/audit0, independent review, and keyboard/persistence/responsive browser checks pass; PR #22 merged as `401a7d1`; required PR/main CI and live client/API release identities, health and readiness passed after Josh-approved corrective cache-cleared API redeploy. Jira Done. Account profile/deletion APIs remain planned and outside this ticket.
 
-## Reproducible critical verification (KAN-13, active)
+## Reproducible critical verification (KAN-13, complete)
 
-Sixteen real MongoDB/API tests and three browser flows pass in fresh loopback-only temporary databases. Ownership mutation correctly failed, then exact source restoration returned green. Fast unit suites remain separate. CI will require both suites inside its existing protected quality job. 875 unit tests,3 safety checks,16 real integration cases and3 browser flows pass. Local checks/audit0 and independent review pass; final PR/CI/release verification remains. No production data, architecture, service or cost change.
+[PR #23](https://github.com/WasteOfADrumBum/TaskForge/pull/23) merged as `3a8e3c5`. Sixteen real MongoDB/API cases and three Chromium flows run in fresh loopback-only temporary databases. Ownership mutation failed as expected, then exact source restoration returned green. Three startup safety tests prevent browser traffic reaching an unrelated occupied service. Fast unit suites remain separate; all suites run in the existing protected quality job.
+
+- [Final PR CI](https://github.com/WasteOfADrumBum/TaskForge/actions/runs/37508713490) and [main CI](https://github.com/WasteOfADrumBum/TaskForge/actions/runs/37509241938) passed, including 875 units, 3 safety tests, 16 real API cases, 3 browser flows, and audit0.
+- Vercel deployment `6891689707` and Render deployment `6891682887` reported success. Both live release identities matched the merge; health/readiness passed.
+- [Testing boundaries](testing.md): no production test writes, no data reset, and no new recurring service or architecture change.
+
+## Release evidence (KAN-14, active)
+
+The [release walkthrough](release-walkthrough.md) connects an approved requirement to Jira, existing patterns, PR, QA, review, and deployment evidence. The gallery uses production-equivalent `3a8e3c5` source with synthetic local fixtures, not production account data. Capture verification, documentation review, final PR/CI and deployed source checks remain required before KAN-14 is Done. This closes the readiness portion only; bounded Phase 2 execution remains approved work ahead, with Phases 3–8 outside the milestone.

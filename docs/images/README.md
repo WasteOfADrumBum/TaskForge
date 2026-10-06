@@ -1,33 +1,31 @@
-# Screenshots
+# Application screenshots
 
-README screenshots live in this folder. They are real captures from the production app (https://taskforge-alpha-six.vercel.app), never mockups, and never real personal data.
+These are real application captures, using only synthetic local data. They are not mockups, and no production account or records were created, changed or removed for this capture.
 
 ## Current set
 
-Captured 2026-10-01 from production, using a throwaway `smoke-test-*@example.com` account with realistic sample tasks. That account was removed from production on 2026-10-02.
+Captured 2026-10-06 from the verified release source `3a8e3c5c1ccda79b124c28ba706e2838bfdf9db3` (KAN-13, PR #23). The live client/API release identities matched this commit before capture. The local harness imports the same application code and owns a fresh loopback-only MongoDB/API/client environment.
 
-- **Browser:** Microsoft Edge (Playwright), 1440×900, dark mode, America/New_York time zone.
-- **Account:** the sample tasks were deleted after capture. The demo account was not used.
+- Playwright Chromium; 1440×900 viewport, full-page PNGs, dark mode, America/New_York.
+- Synthetic fixture: 6 tasks, 2 projects, 3 agent definitions. No personal, employer, FEMA or private career content.
+- Source/time/routes are recorded in [capture metadata](capture-metadata.json). The agent detail ID belongs only to the disposable local fixture.
+- The earlier October1 production captures are superseded. This workflow does not repeat their production account/data operations.
 
-| File                 | Page         | What it shows                                                                              | Status   |
-| -------------------- | ------------ | ------------------------------------------------------------------------------------------ | -------- |
-| `landing-page.png`   | `/`          | Hero, calls to action, feature cards                                                       | Captured |
-| `login.png`          | `/login`     | Sign-in form                                                                               | Captured |
-| `command-center.png` | `/home`      | Daily brief, metrics, today's priorities (overdue / due today), rule-based recommendations | Captured |
-| `work.png`           | `/work`      | Task form, search and filters, task cards with status, priority, and overdue badges        | Captured |
-| `workforce.png`      | `/workforce` | Planned AI Workforce concepts, each labeled "Planned"                                      | Captured |
-| `settings.png`       | `/settings`  | Appearance (light / dark / system) inside the app shell                                    | Captured |
+| File               | Page           | Shows                                                                             |
+| ------------------ | -------------- | --------------------------------------------------------------------------------- |
+| landing-page.png   | /              | Current hero/logo, public heading and calls to action                             |
+| login.png          | /login         | Empty sign-in form; no credentials                                                |
+| command-center.png | /home          | Rule-based brief, metrics, projects and assignment summary                        |
+| work.png           | /work          | Task form, filters, assignments and paused-agent badge                            |
+| projects.png       | /work/projects | Actual private project registry and progress                                      |
+| workforce.png      | /workforce     | Saved agent definitions and assignment workload; execution explicitly unavailable |
+| agent-detail.png   | /workforce/:id | Assigned tasks, definition metadata and clearly planned runs/approvals            |
+| settings.png       | /settings      | Working appearance selection and clearly planned account features                 |
 
-**Known gap:** these were captured before the logo crop in PR #7, so the sidebar and header logos in the images are the older, smaller ones. Everything else matches production. Recapturing is a [Phase 1 maintenance item](../roadmap.md#phase-1-maintenance-deferred-does-not-block-phase-1) and does not block anything.
+## Safe recapture
 
-## Recapturing
+Use the isolated environment described in [testing](../testing.md), populate a fresh local account with synthetic records, and capture the real pages. Verify the source against the served release metadata, wait for data/fonts to load, clear transient toasts, and exclude browser chrome. Keep existing filenames referenced by the README.
 
-The safest way is the same as before: use a **throwaway account** on the live app, add sample tasks through the UI, capture, then delete those tasks.
+Never point capture fixtures at production, load production credentials, or seed/reset an existing database. The root harness verifies its owned API listener before Vite starts and refuses pre-existing database collections/server reuse. Stop only the capture workflow's own processes afterward.
 
-> **Warning:** `npm --workspace server run seed:demo` writes to whatever database `MONGO_URI` points at. It creates or resets the demo user's password and **deletes and replaces** its tasks. Never run it against production unless you have deliberately decided to.
-
-Guidelines:
-
-- PNG, 1440×900 viewport, browser chrome excluded, dark mode for the whole set.
-- Reload the page before capturing, so success toasts are gone and the page is scrolled to the top.
-- Keep the filenames above, because the root `README.md` references them.
+Agent definitions, assignment counts and permission identifiers shown here do not prove AI execution or permission enforcement. Those Phase 2 features are still planned. These captures support release evidence; they do not establish exhaustive visual/accessibility, cross-browser, production backup or Atlas recovery guarantees.

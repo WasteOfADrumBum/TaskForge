@@ -1,0 +1,58 @@
+{
+  "capturedAt": "2026-10-06T18:19:25.607Z",
+  "sourceCommit": "3a8e3c5c1ccda79b124c28ba706e2838bfdf9db3",
+  "environment": "Isolated loopback app/API with fresh real MongoDB and synthetic data; no production writes",
+  "browser": "Playwright Chromium",
+  "timezone": "America/New_York",
+  "theme": "dark",
+  "captures": [
+    {
+      "file": "landing-page.png",
+      "path": "/",
+      "width": 1440,
+      "fullPage": true
+    },
+    {
+      "file": "login.png",
+      "path": "/login",
+      "width": 1440,
+      "fullPage": true
+    },
+    {
+      "file": "command-center.png",
+      "path": "/home",
+      "width": 1440,
+      "fullPage": true
+    },
+    {
+      "file": "work.png",
+      "path": "/work",
+      "width": 1440,
+      "fullPage": true
+    },
+    {
+      "file": "projects.png",
+      "path": "/work/projects",
+      "width": 1440,
+      "fullPage": true
+    },
+    {
+      "file": "workforce.png",
+      "path": "/workforce",
+      "width": 1440,
+      "fullPage": true
+    },
+    {
+      "file": "agent-detail.png",
+      "path": "/workforce/6ac53ba564d45631fbcbff40",
+      "width": 1440,
+      "fullPage": true
+    },
+    {
+      "file": "settings.png",
+      "path": "/settings",
+      "width": 1440,
+      "fullPage": true
+    }
+  ]
+}

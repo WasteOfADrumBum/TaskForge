@@ -4,6 +4,10 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+### Documentation
+
+- **KAN-14 — release evidence:** reconcile shipped assignment and readiness status, publish a concise Jira-to-deployment walkthrough, and refresh the application gallery with explicitly synthetic local capture provenance. AI execution, providers, runs, enforced agent permissions, audit and approvals remain planned; no runtime behavior or production data changes.
+
 ### Changed
 
 - **KAN-13 — reproducible critical verification:** add separate isolated real MongoDB/API tests and browser smoke for persistence, assignment, owner isolation, session expiry and mobile navigation. Required CI runs both after fast unit checks. Test runners create only fresh loopback databases, refuse pre-existing data and verify API listener ownership before browser traffic. Keep the full audit gate with a scoped shell-quote patch for the existing build tool.
