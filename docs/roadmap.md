@@ -75,14 +75,15 @@ AI features go through a provider abstraction and are never hard-wired to one pa
 
 - [x] **COMPLETE**: [KAN-12](https://taskforgejms.atlassian.net/browse/KAN-12): truthful Settings controls, public headings and existing hero contrast. PR #22 merged as `401a7d1`; 875 tests, local checks/audit0, independent review/browser QA, PR/main CI and deployments passed. Both live release identities matched after an explicitly approved corrective cache-cleared API redeploy. No account-management APIs or added cost.
 
-- [ ] **IN PROGRESS**: [KAN-13](https://taskforgejms.atlassian.net/browse/KAN-13): reproducible isolated real MongoDB/API and browser critical-flow checks. Local integration and browser flows pass; independent review/full gates/release verification remain.
+- [x] **COMPLETE**: [KAN-13](https://taskforgejms.atlassian.net/browse/KAN-13): required isolated real MongoDB/API and browser critical-flow checks. PR #23 merged as `3a8e3c5`; 875 units, 3 safety tests, 16 real database/API cases, 3 browser flows, audit0, independent review, PR/main CI and provider deployments passed. Both live release identities matched; health/readiness passed.
+- [ ] **IN PROGRESS**: [KAN-14](https://taskforgejms.atlassian.net/browse/KAN-14): release walkthrough, current screenshot provenance, and accurate shipped/planned documentation. Documentation and local capture work only; final validation/review/PR/deployment evidence remain.
 
 ### Phase 1 maintenance (deferred; does not block Phase 1)
 
 Decided at Phase 1 closure (2026-10-02). These are tracked as ongoing maintenance, not Phase 1 scope.
 
 - [x] **COMPLETE**: Demo waiting/recovery experience (KAN-10, PR #21). Delayed waiting and safe recovery are shipped; demo access/data strategy is documented without automatic production reseeding.
-- [ ] **PLANNED**: Recapture README screenshots. The current set is accurate except that it shows the older, smaller logos from before PR #7.
+- [ ] **IN PROGRESS**: README screenshot recapture and release evidence (KAN-14). Current production-equivalent source and synthetic local data; final capture/review evidence remains.
 - [ ] **PLANNED**: CHANGELOG backfill for work before PR #4. Build it from git history; never invent entries.
 
 These are known minor polish issues found during PR #7. They were never Phase 1 items:
@@ -93,7 +94,7 @@ These are known minor polish issues found during PR #7. They were never Phase 1 
 
 ## Phase 2: AI Workforce ([details](phases/phase-2-ai-workforce.md))
 
-**Status: IN PROGRESS** (foundation only). Work + Projects (PR #9) and the Agent Registry (PR #10) are merged. Agents are saved definitions only: no AI execution, model calls, runs, handoffs, approvals, or permission enforcement exist. Task assignment is shipped; live client/API source identity is verified. Synthetic browser QA passed; real MongoDB integration QA remains tracked under KAN-13.
+**Status: IN PROGRESS** (foundation only). Work + Projects (PR #9) and the Agent Registry (PR #10) are merged. Agents are saved definitions only: no AI execution, model calls, runs, handoffs, approvals, or permission enforcement exist. Task assignment is shipped; live client/API source identity is verified. Synthetic browser QA passed; real MongoDB integration and browser critical-flow QA shipped under KAN-13 (PR #23).
 
 - [x] **COMPLETE**: Work + Projects foundation: user-owned projects (model, owner-scoped CRUD API, optional task → project link, delete keeps tasks), a Projects area in Work, and Active projects on the Command Center (PR #9, merged to `main` as `493f0c3`). A prerequisite only: no agent or AI feature.
 - [x] **COMPLETE**: Agent Registry: persistent, user-owned agent definitions (name, role, description, status active/paused/disabled, skills, permission identifiers) with owner-scoped CRUD at `/api/agents`, the Workforce registry page (`/workforce`), an agent detail page (`/workforce/:id`), and a Workforce summary on the Command Center. PR #10, CI green, merged to `main` as `3ccb585`. Definitions only: nothing runs an agent or enforces its permissions. A `tools` field is deferred until there are tools to describe.
@@ -110,6 +111,8 @@ These are known minor polish issues found during PR #7. They were never Phase 1 
 - [ ] **PLANNED**: Developer Agent
 - [ ] **PLANNED**: Audit trail
 - [ ] **PLANNED**: Permission boundaries
+
+Release readiness is followed by the approved bounded Phase 2 work above. Phases 3–8 remain future roadmap context and require a separate milestone approval before new implementation.
 
 ## Phase 3: Knowledge ([details](phases/phase-3-knowledge.md))
 

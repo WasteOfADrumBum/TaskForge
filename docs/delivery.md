@@ -39,7 +39,7 @@ Vercel builds client previews from feature branches and production from `main`. 
 
 Render runs the API with the existing free-tier Blueprint. Merging to `main` can trigger production deployments; pre-merge checks protect the release. Post-merge CI and deployment verification remain required. This policy does not add a new deployment service or change hosting.
 
-Record the merge SHA, main CI run, deployment result, live availability, and relevant behavior in Jira before Done. A provider reporting success is distinct from proving the exact source served by the API. Render's GitHub deployment metadata currently names an older branch/SHA despite the configured-main evidence; exact API source identity remains tracked in KAN-11. Do not infer a source mismatch or successful source update from that metadata alone.
+Record the merge SHA, main CI run, deployment result, live availability, and relevant behavior in Jira before Done. A provider reporting success is distinct from proving the exact source served by the API. Render's GitHub deployment metadata still names an older branch/SHA. Verify the actual client /release.json and API /release against the merged commit; matching served identities were established under KAN-11 and subsequent tickets. Do not infer a source mismatch or successful source update from deployment metadata alone.
 
 Production QA must avoid changing existing data. Use read-only checks unless an approved ticket explicitly requires a safe write. Production data migrations and destructive operations require a separate decision.
 

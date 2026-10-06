@@ -32,7 +32,7 @@ It is also the foundation for a larger goal: a personal AI orchestration platfor
 
 ## Screenshots
 
-Captured from the live app with sample data. More details are in [docs/images](docs/images/README.md).
+Captured locally from the production-equivalent `3a8e3c5` release with synthetic tasks, projects, and agents. These are real application screens, not generated designs or production account data. Capture details are in [docs/images](docs/images/README.md).
 
 **Command Center**: the daily brief, task metrics, today's priorities, and rule-based recommendations.
 
@@ -46,17 +46,21 @@ Captured from the live app with sample data. More details are in [docs/images](d
 | --------------------------------------------- | --------------------------------- |
 | ![Landing page](docs/images/landing-page.png) | ![Sign in](docs/images/login.png) |
 
-| Workforce (earlier placeholder, before the Agent Registry) | Settings                              |
-| ---------------------------------------------------------- | ------------------------------------- |
-| ![Workforce placeholder](docs/images/workforce.png)        | ![Settings](docs/images/settings.png) |
+| Projects                              | Workforce                                    |
+| ------------------------------------- | -------------------------------------------- |
+| ![Projects](docs/images/projects.png) | ![Agent Registry](docs/images/workforce.png) |
+
+| Agent detail and assigned tasks               | Settings                              |
+| --------------------------------------------- | ------------------------------------- |
+| ![Agent detail](docs/images/agent-detail.png) | ![Settings](docs/images/settings.png) |
 
 ## Key features
 
 - **Accounts and authentication.** Register and sign in with email and password. Passwords are hashed with bcrypt; sessions use signed JWTs.
-- **Private, user-owned data.** Every task, project, and agent query on the server is scoped to the signed-in user. One user can never read or change another user's tasks, projects, or agents, or attach a task to another user's project or agent.
+- **Private, user-owned data.** Every task, project, and agent query on the server is scoped to the signed-in user. The API rejects cross-owner reads, edits, deletes, and task references; unit and real database tests cover these boundaries.
 - **Task management.** Create, edit, and delete tasks with a title, description, status (to do / in progress / done), priority (low / medium / high), and due date.
 - **Projects.** Group tasks into private projects (active / completed / archived). Each project has its own page with tasks, progress, and activity. Deleting a project keeps its tasks and simply unassigns them.
-- **Search, filter, and sort.** Search by text, filter by status and priority, and sort by created date, due date, or priority.
+- **Search, filter, and sort.** Search by text, filter by status, priority, and assignee, and sort by created date, due date, or priority.
 - **Command Center.** A daily brief with open, in-progress, completed, and overdue metrics, plus today's priorities, a completion summary, and recent task changes. Its "Recommended next" suggestions come from fixed rules over your tasks, are labeled "Rule based", and are not AI.
 - **App shell.** A persistent sidebar and top bar (current section, date, refresh, New Task). On phones the sidebar becomes a drawer.
 - **Session-expiration handling.** Expired or rejected sessions sign the user out cleanly and explain why (see below).
@@ -72,7 +76,7 @@ Captured from the live app with sample data. More details are in [docs/images](d
 | API      | Node.js 24, Express 5, TypeScript (ESM), Mongoose                        |
 | Database | MongoDB Atlas                                                            |
 | Auth     | bcrypt password hashing, JSON Web Tokens (`jsonwebtoken`)                |
-| Testing  | Vitest + Testing Library (client), Jest + supertest (server)             |
+| Testing  | Vitest + Testing Library, Jest + supertest, Playwright + real MongoDB    |
 | Quality  | ESLint 9 (flat config), Prettier, TypeScript strict mode, `npm audit`    |
 | CI       | GitHub Actions                                                           |
 | Hosting  | Vercel (frontend), Render (API)                                          |
@@ -105,6 +109,8 @@ Logout is stateless: the client discards the token. There is no server-side revo
 
 ## Testing and quality
 
+The verified release has **875 unit tests, 3 fixture-safety tests, 16 real database/API cases, and 3 Chromium flows**, with a clean dependency audit. The [release evidence](docs/project-status.md#reproducible-critical-verification-kan-13-complete) links PR, CI, and live source checks.
+
 ```bash
 npm test               # fast client (Vitest) + server (Jest) units
 npm run test:qa-safety  # test fixture ownership/startup checks
@@ -133,6 +139,9 @@ Production URLs:
 - App: https://taskforge-alpha-six.vercel.app
 - API: https://taskforge-api-rp2m.onrender.com
 - API health: https://taskforge-api-rp2m.onrender.com/health
+- Database readiness: https://taskforge-api-rp2m.onrender.com/ready
+
+The [release walkthrough](docs/release-walkthrough.md) shows Jira → PR → tests/review → verified deployment. The [recovery runbook](docs/release-runbook.md) records source identity, cold starts, manual idle recovery, and backup limits. Free tiers do not guarantee unattended availability after months; no keepalive or paid service is added.
 
 ## Local development
 
@@ -191,7 +200,7 @@ Future AI features will go through a provider abstraction (chat, embeddings, str
 - [Project status](docs/project-status.md): the current checkpoint, production URLs, and latest validation results.
 - [Changelog](CHANGELOG.md): notable changes.
 
-**Phase 1 — Stabilize TaskForge** is complete: the app is live, verified in production, and on free-tier infrastructure. Current focus: the foundation for **Phase 2 — AI Workforce** (agent registry, runs, human approval, provider abstraction). Work + Projects is done, the Agent Registry stores agent definitions, and task assignment shipped in PR #15 with client/API release identity verified under KAN-11. No AI execution, runs, or approvals are built yet.
+**Phase 1 — Stabilize TaskForge** is complete: the app is live, verified in production, and on free-tier infrastructure. Current focus: the foundation for **Phase 2 — AI Workforce** (agent registry, runs, human approval, provider abstraction). Work + Projects, the Agent Registry, task assignment, and the approved security/reliability checks are shipped. KAN-13 added required real database and browser verification in PR #23; both live release identities matched `3a8e3c5`. No AI execution, runs, or approvals are built yet.
 
 ## About this project
 
