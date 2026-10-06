@@ -1,3 +1,4 @@
+import RequestFeedback from '../ui/RequestFeedback';
 import {
   Box,
   CloseButton,
@@ -27,13 +28,23 @@ const AppShell = () => {
   const refreshProjects = useProjectLoader();
   const refreshAgents = useAgentLoader();
   const refresh = () => {
-    refreshTasks();
-    refreshProjects();
-    refreshAgents();
+    refreshTasks.reload();
+    refreshProjects.reload();
+    refreshAgents.reload();
   };
   const loading = useAppSelector(
     (state) => state.tasks.loading || state.projects.loading || state.agents.loading,
   );
+  const error = useAppSelector(
+    (state) => state.tasks.error || state.projects.error || state.agents.error,
+  );
+  const waiting = refreshTasks.waiting || refreshProjects.waiting || refreshAgents.waiting;
+  const cancelLoading = () => {
+    refreshTasks.cancel();
+    refreshProjects.cancel();
+    refreshAgents.cancel();
+  };
+  const recovered = refreshTasks.recovered || refreshProjects.recovered || refreshAgents.recovered;
   const closeNav = () => setNavOpen(false);
 
   return (
@@ -95,6 +106,23 @@ const AppShell = () => {
           px={{ base: 4, md: 6, xl: 9 }}
           py={{ base: 6, md: 8 }}
         >
+          {waiting && loading ? (
+            <RequestFeedback
+              message="TaskForge may be waking up. Your data is still loading."
+              onCancel={cancelLoading}
+            />
+          ) : error && !loading ? (
+            <RequestFeedback
+              message={
+                error.startsWith('Loading cancelled.')
+                  ? 'Loading stopped. Your existing data is unchanged.'
+                  : 'Some workspace data could not be confirmed. You can retry loading.'
+              }
+              onRetry={refresh}
+            />
+          ) : recovered && !loading ? (
+            <RequestFeedback message="Your data is up to date." />
+          ) : null}
           <Suspense fallback={<Text color="fg.muted">Loading...</Text>}>
             <Outlet />
           </Suspense>

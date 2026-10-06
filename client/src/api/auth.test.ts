@@ -80,6 +80,7 @@ describe('auth API', () => {
 
     expect(fetchMock).toHaveBeenCalledWith('http://localhost:5000/api/auth/logout', {
       method: 'POST',
+      signal: expect.any(AbortSignal),
     });
   });
 });

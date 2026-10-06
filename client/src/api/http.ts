@@ -1,3 +1,4 @@
+import { ApiTimeoutError, ApiCancelledError, ApiNetworkError } from './request';
 // Shared helpers for the authenticated resource APIs (tasks, projects, agents).
 import { readAuthenticatedJson } from './authenticatedFetch';
 import { SessionExpiredError } from '../utils/session';
@@ -13,7 +14,13 @@ export const getErrorMessage = async (response: Response, fallback: string, toke
     const body = await readAuthenticatedJson<ErrorResponse>(response, token);
     return body.message ?? fallback;
   } catch (error) {
-    if (error instanceof SessionExpiredError) throw error;
+    if (
+      error instanceof SessionExpiredError ||
+      error instanceof ApiTimeoutError ||
+      error instanceof ApiCancelledError ||
+      error instanceof ApiNetworkError
+    )
+      throw error;
     return fallback;
   }
 };

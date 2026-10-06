@@ -35,3 +35,7 @@ With the local API intentionally offline, the actual logout button clears localS
 ## Identical-token boundary
 
 A regression also proved that logout followed by login with the same JWT string could accept an old result. The client auth slice now increments an in-memory sessionVersion on login/logout/expiration. Fetch retains the original version with its Response; body parsing and final consumers compare both token and version. No server JWT format/lifetime, revocation, storage or authentication infrastructure changes. Reused-token body/error/action/401/network regressions pass; final full validation passed.
+
+## Delivery verified
+
+PR [#20](https://github.com/WasteOfADrumBum/TaskForge/pull/20) merged as `39c5ec6`. PR CI 37382373940 and main CI 37382660591 passed; Vercel 6870811502 and Render 6870808468 succeeded. Live client/API release commits matched; health/readiness passed. Jira is Done. No production data writes.

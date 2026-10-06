@@ -6,6 +6,8 @@ All notable changes to TaskForge are recorded here.
 
 ### Changed
 
+- **KAN-10 — cold-start recovery:** show polite waiting feedback after eight seconds, with cancel/manual retry for workspace reads and sign-in, plus read recovery status. Retire cancelled, replaced and unmounted requests; bound connection and body parsing to one 90-second deadline. Send writes once and show honest uncertainty without a mutation Retry control. Patch source-map-js and scope a compatible YAML loader override to remove newly reported vulnerable test-tool dependencies; retain the full audit gate.
+
 - **KAN-9 — local logout reliability:** clear the token and all user resources immediately, even offline, without waiting for a stateless server acknowledgement. Discard old authenticated network failures and response bodies after logout or a new login; retain current-session error handling and JWT behavior. A client session counter also rejects old work when re-login reuses the same JWT.
 
 - **KAN-8 — task input validation:** reject malformed IDs as 404 and invalid field types, enum values, oversized text and calendar dates as 400 before database work. Limit titles/descriptions to 120/2000 characters with matching form bounds; preserve null date clearing and assignment/ownership behavior. Validate model dates before casting and preserve calendar years 1–99 in client arithmetic.

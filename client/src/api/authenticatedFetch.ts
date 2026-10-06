@@ -1,3 +1,4 @@
+import { fetchApi, readApiJson, finishApiResponse } from './request';
 import { store } from '../redux/store';
 import { expireSession, SessionExpiredError } from '../utils/session';
 
@@ -20,17 +21,23 @@ export const authenticatedFetch = async (url: string, options: RequestInit): Pro
   assertCurrentSession(token, sessionVersion);
   let response: Response;
   try {
-    response = await fetch(url, options);
+    response = await fetchApi(url, options);
   } catch (error) {
     assertCurrentSession(token, sessionVersion);
     throw error;
   }
   if (response.status === 401) {
+    finishApiResponse(response);
     // An old request must not sign out a newer session, even if its JWT string repeats.
     if (isCurrentSession(token, sessionVersion)) expireSession(store.dispatch);
     throw new SessionExpiredError();
   }
-  assertCurrentSession(token, sessionVersion);
+  try {
+    assertCurrentSession(token, sessionVersion);
+  } catch (error) {
+    finishApiResponse(response);
+    throw error;
+  }
   responseSessions.set(response, sessionVersion);
   return response;
 };
@@ -40,7 +47,7 @@ export const readAuthenticatedJson = async <T>(response: Response, token: string
   const sessionVersion = responseSessions.get(response);
   if (sessionVersion === undefined) throw new SessionExpiredError();
   try {
-    return (await response.json()) as T;
+    return await readApiJson<T>(response);
   } finally {
     // Also discard stale body failures; never recapture a new session after an await.
     assertCurrentSession(token, sessionVersion);

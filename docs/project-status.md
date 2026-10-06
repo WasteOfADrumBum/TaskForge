@@ -10,10 +10,10 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02)) |
 | Current phase             | Phase 2: AI Workforce, foundation work (no AI execution yet)                                                |
-| Current branch            | `codex/KAN-9-immediate-local-logout`; original assignment WIP preserved on `feat/agent-task-assignment`     |
+| Current branch            | `codex/KAN-10-cold-start-feedback`; original assignment WIP preserved on `feat/agent-task-assignment`       |
 | Current checkpoint        | Release/delivery readiness followed by task → agent assignment and bounded Phase 2                          |
-| Last completed checkpoint | Task validation (PR #19, `d6ad789`); auth abuse protection (PR #18)                                         |
-| Next recommended          | Complete KAN-9 immediate logout; then KAN-10 cold-start feedback                                            |
+| Last completed checkpoint | Immediate logout/session safeguards (PR #20, `39c5ec6`)                                                     |
+| Next recommended          | Complete KAN-10 CI/release verification; then KAN-12 settings/accessibility                                 |
 
 ## Known verification gaps
 
@@ -139,6 +139,11 @@ Note: the server suite sometimes prints Jest's `A worker process has failed to e
 
 - [Branch task](tasks/KAN-8-task-input-validation.md) records strict IDs, content bounds and calendar-date validation. Implementation and 679 tests are validated locally, with all checks and audit passed. Synthetic browser QA verifies native limits, leap-date display and responsive layout; ownership and assignment regressions pass. PR #19 merged as `d6ad789`; PR/main CI and deployments passed, both live release commits matched, and health/readiness passed. No production data changes.
 
-## Local logout (KAN-9, active)
+## Local logout (KAN-9, complete)
 
-- [Branch task](tasks/KAN-9-immediate-local-logout.md) records immediate local clearing and delayed-response protection. Implementation and 786 tests are validated locally, with all checks/audit passed. API-body and final-consumer/navigation race regressions pass; actual offline browser logout clears immediately with no request or expiry message. PR/CI/deployment verification remains pending. Existing JWT/stateless auth behavior and page layout remain unchanged.
+- [Branch task](tasks/KAN-9-immediate-local-logout.md) records immediate local clearing and delayed-response protection. Implementation and 786 tests are validated locally, with all checks/audit passed. API-body and final-consumer/navigation race regressions pass; actual offline browser logout clears immediately with no request or expiry message. PR #20 merged as `39c5ec6`; PR/main CI and deployments passed. Both live release commits matched; health/readiness passed. Existing JWT/stateless auth behavior and page layout remain unchanged.
+
+## Cold-start feedback (KAN-10, active)
+
+- [Branch task](tasks/KAN-10-cold-start-feedback.md): bounded transport and delayed waiting/cancel/retry/recovery UI are implemented. Clean-install validation passed: 860 tests, formatting, lint, types, builds and audit (0 vulnerabilities). Independent review found no remaining blockers. Browser QA confirms delayed polite feedback, read cancel/manual retry/recovery and sign-in cancellation; no production writes. PR #21 awaits final CI and release verification.
+- October 6 user direction removes all design-tool workflows/gates. Functional waiting, safe cancel/retry and accessibility QA use existing application patterns. Ticket remains open until delivery validation passes.

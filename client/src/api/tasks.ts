@@ -1,9 +1,11 @@
+import { finishApiResponse } from './request';
 import { authenticatedFetch, readAuthenticatedJson } from './authenticatedFetch';
 import { API_URL, authHeaders, getErrorMessage } from './http';
 import type { Task, TaskInput, TaskUpdate } from '../types/task';
 
-export const getTasks = async (token: string): Promise<Task[]> => {
+export const getTasks = async (token: string, signal?: AbortSignal): Promise<Task[]> => {
   const response = await authenticatedFetch(API_URL + '/api/tasks', {
+    signal,
     headers: authHeaders(token),
   });
 
@@ -58,4 +60,5 @@ export const deleteTask = async (token: string, taskId: string): Promise<void> =
   if (!response.ok) {
     throw new Error(await getErrorMessage(response, 'Unable to delete task', token));
   }
+  finishApiResponse(response);
 };
