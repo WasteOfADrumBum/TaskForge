@@ -44,7 +44,9 @@ const LandingPage = () => (
       <Box maxW="7xl" mx="auto" px={{ base: 4, md: 6 }} py={{ base: 14, md: 20 }}>
         <VStack textAlign="center" gap={6} maxW="4xl" mx="auto">
           <Brand hero />
-          <Heading size={{ base: '3xl', md: '5xl' }}>Turn your workload into a clear plan.</Heading>
+          <Heading as="h1" size={{ base: '3xl', md: '5xl' }}>
+            Turn your workload into a clear plan.
+          </Heading>
           <Text fontSize={{ base: 'lg', md: 'xl' }} color="fg.muted" maxW="3xl">
             TaskForge is a secure productivity workspace for organizing tasks, priorities, due
             dates, and progress without unnecessary complexity.
@@ -81,9 +83,11 @@ const LandingPage = () => (
                   color={color + '.fg'}
                   flexShrink={0}
                 >
-                  <Icon size={20} />
+                  <Icon size={20} aria-hidden="true" focusable="false" />
                 </Box>
-                <Heading size="md">{title}</Heading>
+                <Heading as="h2" size="md">
+                  {title}
+                </Heading>
               </HStack>
               <Text color="fg.muted">{text}</Text>
             </Box>
@@ -100,7 +104,7 @@ const LandingPage = () => (
           <Text color="blue.400" fontSize="sm" textTransform="uppercase" letterSpacing="widest">
             Built with
           </Text>
-          <Heading size="lg" mt={2}>
+          <Heading as="h2" size="lg" mt={2}>
             React · TypeScript · Node.js · Express · MongoDB
           </Heading>
           <Text color="fg.muted" mt={3}>

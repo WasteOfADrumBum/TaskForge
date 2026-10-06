@@ -113,7 +113,9 @@ const LoginPage = () => {
         >
           <VStack align="stretch" gap={6}>
             <Box>
-              <Heading size="2xl">Welcome back</Heading>
+              <Heading as="h1" size="2xl">
+                Welcome back
+              </Heading>
               <Text color="fg.muted" mt={2}>
                 Sign in to continue to your TaskForge workspace.
               </Text>

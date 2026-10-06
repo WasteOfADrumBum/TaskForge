@@ -21,6 +21,9 @@ const Brand = ({ compact = false, hero = false }: BrandProps) => (
     w="auto"
     maxW={hero ? { base: '280px', md: '420px' } : 'min(100%, 220px)'}
     objectFit="contain"
+    bg={hero ? 'white' : undefined}
+    p={hero ? 3 : undefined}
+    borderRadius={hero ? 'lg' : undefined}
   />
 );
 

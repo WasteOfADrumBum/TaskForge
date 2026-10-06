@@ -71,13 +71,15 @@ AI features go through a provider abstraction and are never hard-wired to one pa
 - [x] **COMPLETE**: [KAN-7](https://taskforgejms.atlassian.net/browse/KAN-7): bounded authentication abuse protection. PR #18 merged as `0275740`; 593 tests, local checks, independent review, synthetic browser QA, PR/main CI and deployments passed. Live client/API commit matched; readiness and limiter headers verified. [Policy and limits](tasks/KAN-7-auth-abuse-protection.md).
 - [x] **COMPLETE**: [KAN-8](https://taskforgejms.atlassian.net/browse/KAN-8): strict task IDs, bounded content and calendar dates. PR #19 merged as `d6ad789`; 679 tests, local checks, independent review, synthetic browser QA, PR/main CI and deployments passed. Live client/API commit matched, health/readiness verified.
 - [x] **COMPLETE**: [KAN-9](https://taskforgejms.atlassian.net/browse/KAN-9): immediate local logout and stale-session safeguards including repeated JWTs. PR #20 merged as `39c5ec6`; 786 tests, all checks, independent review, offline browser QA, PR/main CI and deployments passed. Live client/API identity matched; health/readiness verified.
-- [ ] **IN PROGRESS**: [KAN-10](https://taskforgejms.atlassian.net/browse/KAN-10): bounded transport and functional waiting/cancel/retry/recovery UI are validated using existing application patterns; final CI/release verification remains. [Branch task](tasks/KAN-10-cold-start-feedback.md); no completion or deployment claim.
+- [x] **COMPLETE**: [KAN-10](https://taskforgejms.atlassian.net/browse/KAN-10): bounded transport and accessible delayed waiting/cancel/manual retry/recovery. PR #21 merged as `0452df2`; 860 tests, clean local checks/audit0, independent review, browser QA, required PR/main CI and deployments passed. Both live build commits matched; health/readiness passed. No production data reset or new cost.
+
+- [ ] **IN PROGRESS**: [KAN-12](https://taskforgejms.atlassian.net/browse/KAN-12): truthful Settings controls, public heading semantics and hero logo contrast. No account/profile/deletion API scope.
 
 ### Phase 1 maintenance (deferred; does not block Phase 1)
 
 Decided at Phase 1 closure (2026-10-02). These are tracked as ongoing maintenance, not Phase 1 scope.
 
-- [ ] **PLANNED**: Demo reliability. Show a clear "waking up the server" state during Render cold starts, and keep the demo account seeded. The API's recovery from a cold start was verified at closure; this item is about the waiting experience.
+- [x] **COMPLETE**: Demo waiting/recovery experience (KAN-10, PR #21). Delayed waiting and safe recovery are shipped; demo access/data strategy is documented without automatic production reseeding.
 - [ ] **PLANNED**: Recapture README screenshots. The current set is accurate except that it shows the older, smaller logos from before PR #7.
 - [ ] **PLANNED**: CHANGELOG backfill for work before PR #4. Build it from git history; never invent entries.
 

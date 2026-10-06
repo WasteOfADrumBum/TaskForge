@@ -34,3 +34,7 @@ A draft transport checkpoint may be committed/pushed for review after validation
 ## Dependency gate remediation
 
 October 6 audit feed added GHSA-68fv-2mgg-jv7q and GHSA-hp3w-g68c-fv3c to existing dependency versions. source-map-js is patched to 1.2.2. sprintf-js has no patched release; a scoped @istanbuljs/load-nyc-config override to js-yaml 4.3.2 removes its argparse 1 path. The actual loader uses the compatible load API; a real YAML configuration probe passed. Clean npm ci and npm audit passed with zero vulnerabilities. No exception, test-tool downgrade or weakened gate.
+
+## Completed release
+
+PR #21 merged as 0452df252840928ce444750c7e4a3fe07b681c0c. Required exact-head CI37461555830 and main CI37461926731 passed. Client deployment6883632517/API6883627528 succeeded; both live build identities matched, health/readiness passed. Jira Done; no production writes. Independent review/QA recorded on the PR.
