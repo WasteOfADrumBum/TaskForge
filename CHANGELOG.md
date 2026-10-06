@@ -6,6 +6,8 @@ All notable changes to TaskForge are recorded here.
 
 ### Changed
 
+- **KAN-13 — reproducible critical verification:** add separate isolated real MongoDB/API tests and browser smoke for persistence, assignment, owner isolation, session expiry and mobile navigation. Required CI runs both after fast unit checks. Test runners create only fresh loopback databases, refuse pre-existing data and verify API listener ownership before browser traffic. Keep the full audit gate with a scoped shell-quote patch for the existing build tool.
+
 - **KAN-12 — Settings and accessibility:** replace inert Settings navigation with clearly planned account/deletion information. Expose selected theme state on keyboard-accessible buttons using existing device persistence. Give public pages one primary heading and logical section headings; place the unchanged hero logo on a light token surface for legibility.
 
 - **KAN-10 — cold-start recovery:** show polite waiting feedback after eight seconds, with cancel/manual retry for workspace reads and sign-in, plus read recovery status. Retire cancelled, replaced and unmounted requests; bound connection and body parsing to one 90-second deadline. Send writes once and show honest uncertainty without a mutation Retry control. Patch source-map-js and scope a compatible YAML loader override to remove newly reported vulnerable test-tool dependencies; retain the full audit gate.

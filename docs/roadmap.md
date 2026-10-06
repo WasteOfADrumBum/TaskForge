@@ -73,7 +73,9 @@ AI features go through a provider abstraction and are never hard-wired to one pa
 - [x] **COMPLETE**: [KAN-9](https://taskforgejms.atlassian.net/browse/KAN-9): immediate local logout and stale-session safeguards including repeated JWTs. PR #20 merged as `39c5ec6`; 786 tests, all checks, independent review, offline browser QA, PR/main CI and deployments passed. Live client/API identity matched; health/readiness verified.
 - [x] **COMPLETE**: [KAN-10](https://taskforgejms.atlassian.net/browse/KAN-10): bounded transport and accessible delayed waiting/cancel/manual retry/recovery. PR #21 merged as `0452df2`; 860 tests, clean local checks/audit0, independent review, browser QA, required PR/main CI and deployments passed. Both live build commits matched; health/readiness passed. No production data reset or new cost.
 
-- [ ] **IN PROGRESS**: [KAN-12](https://taskforgejms.atlassian.net/browse/KAN-12): truthful Settings controls, public heading semantics and hero logo contrast. No account/profile/deletion API scope.
+- [x] **COMPLETE**: [KAN-12](https://taskforgejms.atlassian.net/browse/KAN-12): truthful Settings controls, public headings and existing hero contrast. PR #22 merged as `401a7d1`; 875 tests, local checks/audit0, independent review/browser QA, PR/main CI and deployments passed. Both live release identities matched after an explicitly approved corrective cache-cleared API redeploy. No account-management APIs or added cost.
+
+- [ ] **IN PROGRESS**: [KAN-13](https://taskforgejms.atlassian.net/browse/KAN-13): reproducible isolated real MongoDB/API and browser critical-flow checks. Local integration and browser flows pass; independent review/full gates/release verification remain.
 
 ### Phase 1 maintenance (deferred; does not block Phase 1)
 
@@ -87,7 +89,7 @@ These are known minor polish issues found during PR #7. They were never Phase 1 
 
 - [ ] **PLANNED**: Greeting refresh. The Command Center greeting (morning/afternoon/evening) only updates when the day changes.
 - [ ] **PLANNED**: Server test teardown. Jest sometimes warns that a worker `failed to exit gracefully`. This happened in 2 of 3 runs on 2026-10-02. All tests pass, and `--detectOpenHandles` finds no open handles, so it doesn't fail CI.
-- [ ] **PLANNED**: Hero logo contrast. The dark "Task" wordmark in `taskforge-logo.png` is hard to read on the dark background.
+- [x] **COMPLETE**: Hero logo contrast (KAN-12, PR #22): unchanged asset on a suitable light surface.
 
 ## Phase 2: AI Workforce ([details](phases/phase-2-ai-workforce.md))
 

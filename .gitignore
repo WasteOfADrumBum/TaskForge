@@ -33,3 +33,7 @@ Thumbs.db
 .env*
 !**/.env.example
 !**/.env.test
+
+# Local browser test artifacts
+test-results/
+playwright-report/

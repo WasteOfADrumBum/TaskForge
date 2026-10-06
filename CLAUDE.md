@@ -18,7 +18,10 @@ Run these from the repo root. Node >= 24 and npm >= 11 are required (`.nvmrc`).
 ```bash
 npm run dev            # client (Vite :5173) + server (nodemon :5000) together
 npm run build          # client vite build + server tsc --noEmit && tsup
-npm test               # client (Vitest) then server (Jest)
+npm test               # fast client (Vitest) then server (Jest) units
+npm run test:qa-safety  # test fixture startup/port ownership safeguards
+npm run test:integration # isolated real MongoDB/API suite
+npm run test:e2e        # isolated real API + Chromium critical flows
 npm run lint           # ESLint for both workspaces (root eslint.config.mjs)
 npm run typecheck      # client tsc --noEmit (the server typechecks in its build)
 npm run format:check   # Prettier check (CI fails on this)
@@ -35,7 +38,7 @@ npm --workspace server run test -- -t "lists tasks"          # Jest, by test nam
 npm --workspace server run seed:demo                         # resets demo user's tasks (needs MONGO_URI, DEMO_EMAIL, DEMO_PASSWORD)
 ```
 
-CI (`.github/workflows/ci.yml`, on push/PR to `main`) runs, in order: `npm ci` → `format:check` → `lint` → `typecheck` → `test` → `build` → `npm audit`. Run the same checks locally before pushing.
+CI (`.github/workflows/ci.yml`, on push/PR to `main`) runs, in order: `npm ci` → `format:check` → `lint` → `typecheck` → `test` → `build` → `npm audit` → QA safety → real DB integration → browser installation/smoke. Run the same checks locally before pushing; see [isolated test commands and boundaries](docs/testing.md).
 
 ## Environment
 
@@ -56,7 +59,7 @@ The request flow is `routes → controllers → services → models`:
 - Task enums live in `models/taskModel` (`TASK_STATUSES`, `TASK_PRIORITIES`); project statuses and length limits live in `models/projectModel`. Controllers validate against them.
 - **Projects:** a task's optional `project` must be omitted, `null`/`''` (unassign), or a project the same user owns. Check it through `projectService.ownsProject`, and give a foreign project the same response as a missing one. Validate ids from input with `utils/objectId.ts` (`isObjectIdString`), not `mongoose.isValidObjectId`. `deleteProjectById` unassigns tasks before deleting the project; keep that order.
 - **Agents (Agent Registry):** persistent, user-owned agent definitions only. Nothing runs an agent or enforces its permissions yet; never describe them as executing. Statuses, the permission catalog, and skill limits live in `models/agentModel`. The controller normalizes skills to lowercase slugs and rejects unknown permissions; a foreign agent gets the same `404` as a missing one. Tasks have no agent field yet.
-- Route tests mock the service layer with `jest.mock('../../services/...')`. They do not use a real database.
+- Unit route tests mock the service layer with `jest.mock('../../services/...')`. They do not use a real database. Separate `server/integration/*.integration.ts` tests use real models/services against a fresh loopback MongoDB, managed by the root test runner; never use production configuration or reset existing data.
 - Use `requireEnv(name)` from `config/env.ts` to read required env vars at call time.
 - The `index.ts` barrels in `controllers/`, `services/`, `routes/`, and `utils/` are empty. Import from the specific module folder.
 

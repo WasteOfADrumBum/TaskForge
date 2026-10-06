@@ -10,14 +10,14 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02)) |
 | Current phase             | Phase 2: AI Workforce, foundation work (no AI execution yet)                                                |
-| Current branch            | `codex/KAN-12-settings-accessibility`; original assignment WIP preserved on `feat/agent-task-assignment`    |
+| Current branch            | `codex/KAN-13-integration-smoke`; original assignment WIP preserved on `feat/agent-task-assignment`         |
 | Current checkpoint        | Release/delivery readiness followed by task → agent assignment and bounded Phase 2                          |
-| Last completed checkpoint | Cold-start waiting and recovery (PR #21, `0452df2`)                                                         |
-| Next recommended          | Complete KAN-12 Settings/accessibility; then KAN-13 integration QA                                          |
+| Last completed checkpoint | Settings/accessibility (PR #22, `401a7d1`)                                                                  |
+| Next recommended          | Complete KAN-13 integration/browser QA; then KAN-14 portfolio readiness                                     |
 
 ## Known verification gaps
 
-- Real MongoDB integration/concurrency QA remains tracked in KAN-13. No production CRUD or backup/restore rehearsal was performed.
+- Isolated real MongoDB integration and browser smoke are locally validated under KAN-13; final delivery checks remain. No production CRUD, Atlas behavior, multi-request concurrency or private backup/restore rehearsal is claimed.
 
 ## Delivery pipeline stabilization (2026-10-05)
 
@@ -148,6 +148,10 @@ Note: the server suite sometimes prints Jest's `A worker process has failed to e
 - [Branch task](tasks/KAN-10-cold-start-feedback.md): bounded transport and delayed waiting/cancel/retry/recovery UI are implemented. Clean-install validation passed: 860 tests, formatting, lint, types, builds and audit (0 vulnerabilities). Independent review found no remaining blockers. Browser QA confirms delayed polite feedback, read cancel/manual retry/recovery and sign-in cancellation; no production writes. PR #21 merged as `0452df2`; PR CI37461555830/main CI37461926731 and deployments passed. Both live client/API commits matched; health/readiness passed.
 - October 6 user direction removes all design-tool workflows/gates. Functional waiting, safe cancel/retry and accessibility QA use existing application patterns. KAN-10 is Done.
 
-## Settings and public accessibility (KAN-12, active)
+## Settings and public accessibility (KAN-12, complete)
 
-Settings planned sections, accessible theme selection, public heading semantics and hero logo contrast are implemented using existing application patterns. 875 tests and local checks/audit0, independent review, and keyboard/persistence/responsive browser checks pass; PR/CI/release gates remain. Account profile/deletion APIs remain planned and outside this ticket.
+Settings planned sections, accessible theme selection, public heading semantics and hero logo contrast are implemented using existing application patterns. 875 tests and local checks/audit0, independent review, and keyboard/persistence/responsive browser checks pass; PR #22 merged as `401a7d1`; required PR/main CI and live client/API release identities, health and readiness passed after Josh-approved corrective cache-cleared API redeploy. Jira Done. Account profile/deletion APIs remain planned and outside this ticket.
+
+## Reproducible critical verification (KAN-13, active)
+
+Sixteen real MongoDB/API tests and three browser flows pass in fresh loopback-only temporary databases. Ownership mutation correctly failed, then exact source restoration returned green. Fast unit suites remain separate. CI will require both suites inside its existing protected quality job. 875 unit tests,3 safety checks,16 real integration cases and3 browser flows pass. Local checks/audit0 and independent review pass; final PR/CI/release verification remains. No production data, architecture, service or cost change.

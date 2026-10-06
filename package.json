@@ -9,18 +9,23 @@
     "dev": "concurrently \"npm --workspace client run dev\" \"npm --workspace server run dev\"",
     "build": "concurrently \"npm --workspace client run build\" \"npm --workspace server run build\"",
     "start": "concurrently \"npm --workspace client run start\" \"npm --workspace server run start\"",
-    "lint": "npm run lint --workspace client && npm run lint --workspace server",
-    "typecheck": "npm run typecheck --workspace client",
+    "lint": "npm run lint --workspace client && npm run lint --workspace server && eslint scripts e2e playwright.config.ts",
+    "typecheck": "npm run typecheck --workspace client && tsc --noEmit -p tsconfig.qa.json",
     "format": "prettier --write .",
     "test": "npm run test:client && npm run test:server",
     "test:client": "npm --workspace client run test",
     "test:server": "npm --workspace server run test",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test:integration": "node scripts/run-integration.mjs",
+    "test:e2e": "playwright test",
+    "test:qa-safety": "node --test scripts/*.test.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.63.0",
     "@types/node": "^22.14.0",
     "concurrently": "^9.1.2",
+    "esbuild": "^0.27.2",
     "eslint": "^9.24.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.5",
@@ -29,6 +34,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.12.0",
     "jest": "^30.5.2",
+    "mongodb-memory-server-core": "^11.3.0",
     "prettier": "^3.5.3",
     "ts-node": "^10.9.2",
     "typescript": "5.9.3",
@@ -41,6 +47,9 @@
   "overrides": {
     "@istanbuljs/load-nyc-config": {
       "js-yaml": "4.3.2"
+    },
+    "concurrently": {
+      "shell-quote": "1.12.0"
     }
   }
 }
