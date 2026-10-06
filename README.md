@@ -106,16 +106,19 @@ Logout is stateless: the client discards the token. There is no server-side revo
 ## Testing and quality
 
 ```bash
-npm test               # client (Vitest) + server (Jest)
+npm test               # fast client (Vitest) + server (Jest) units
+npm run test:qa-safety  # test fixture ownership/startup checks
+npm run test:integration # isolated real MongoDB/API tests
+npm run test:e2e        # local API + Chromium critical flows
 npm run lint           # ESLint for both workspaces
-npm run typecheck      # client TypeScript; server types checked during build
+npm run typecheck      # client + QA TypeScript; server types checked during build
 npm run format:check   # Prettier
 npm run build          # production builds for client and server
 ```
 
 - Client tests cover task, project, and agent APIs, session expiration and stale requests, protected routes, resource utilities, and key components.
-- Server tests cover auth, task, project, and agent routes, including input validation, owner boundaries, and rejection of missing, expired, forged, and malformed JWTs. Services are mocked, so tests need no database.
-- [CI](.github/workflows/ci.yml) runs on every push and pull request to `main`: install → format check → lint → client typecheck → test → build (including server typecheck) → `npm audit`. Main requires current PR CI and independent review before merge; see the [delivery policy](docs/delivery.md).
+- Server tests cover auth, task, project, and agent routes, including input validation, owner boundaries, and rejection of missing, expired, forged, and malformed JWTs. Unit services are mocked, so the fast suite needs no database. Separate real MongoDB/API integration tests verify persisted round trips and ownership; Chromium smoke covers assignment, CRUD, sessions and mobile navigation using only fresh local data. See [isolated testing](docs/testing.md).
+- [CI](.github/workflows/ci.yml) runs on every push and pull request to `main`: install → format check → lint → client/QA typecheck → unit tests → build (including server typecheck) → `npm audit` → fixture safety → real database integration → Chromium smoke. Main requires current PR CI and independent review before merge; see the [delivery policy](docs/delivery.md).
 
 ## Deployment
 

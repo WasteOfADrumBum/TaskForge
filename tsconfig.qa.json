@@ -1,0 +1,12 @@
+{
+  "extends": "./server/tsconfig.json",
+  "compilerOptions": { "rootDir": ".", "noEmit": true },
+  "include": [
+    "server/integration/**/*.ts",
+    "server/src/types/**/*.d.ts",
+    "server/jest.integration.config.ts",
+    "e2e/**/*.ts",
+    "playwright.config.ts"
+  ],
+  "exclude": ["node_modules", "server/dist"]
+}

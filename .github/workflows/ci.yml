@@ -8,7 +8,7 @@ on:
 
 jobs:
   quality:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repository
@@ -40,3 +40,15 @@ jobs:
 
       - name: Audit dependencies
         run: npm audit
+
+      - name: Test fixture ownership safeguards
+        run: npm run test:qa-safety
+
+      - name: Real database integration
+        run: npm run test:integration
+
+      - name: Install browser for critical smoke
+        run: npx playwright install --with-deps chromium
+
+      - name: Critical browser smoke
+        run: npm run test:e2e

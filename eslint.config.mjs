@@ -47,5 +47,14 @@ export default tseslint.config(
       'no-console': 'off',
     },
   },
+  {
+    files: [
+      'scripts/**/*.mjs',
+      'e2e/**/*.ts',
+      'playwright.config.ts',
+      'server/integration/**/*.ts',
+    ],
+    languageOptions: { globals: globals.node },
+  },
   prettier,
 );

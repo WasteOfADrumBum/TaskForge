@@ -8,9 +8,10 @@
     "build": "tsc --noEmit && tsup",
     "start": "node dist/server/server.js",
     "test": "jest",
-    "lint": "eslint src",
+    "lint": "eslint src integration jest.integration.config.ts",
     "format": "prettier --write src",
-    "seed:demo": "node --loader ts-node/esm ./src/scripts/seedDemo.ts"
+    "seed:demo": "node --loader ts-node/esm ./src/scripts/seedDemo.ts",
+    "test:integration": "jest --config jest.integration.config.ts --runInBand"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

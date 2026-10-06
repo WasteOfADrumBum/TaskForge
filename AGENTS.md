@@ -18,7 +18,10 @@ Run these from the repo root. Node >= 24 and npm >= 11 are required (`.nvmrc`).
 ```bash
 npm run dev            # client (Vite :5173) + server (Node watch :5000) together
 npm run build          # client vite build + server tsc --noEmit && tsup
-npm test               # client (Vitest) then server (Jest)
+npm test               # fast client (Vitest) then server (Jest) units
+npm run test:qa-safety  # test fixture startup/port ownership safeguards
+npm run test:integration # isolated real MongoDB/API suite
+npm run test:e2e        # isolated real API + Chromium critical flows
 npm run lint           # ESLint for both workspaces (root eslint.config.mjs)
 npm run typecheck      # client tsc --noEmit (the server typechecks in its build)
 npm run format:check   # Prettier check (CI fails on this)
@@ -35,7 +38,7 @@ npm --workspace server run test -- -t "lists tasks"          # Jest, by test nam
 npm --workspace server run seed:demo                         # resets demo password/tasks/projects/agents; development database only
 ```
 
-CI (`.github/workflows/ci.yml`, on push/PR to `main`) runs, in order: `npm ci` → `format:check` → `lint` → `typecheck` → `test` → `build` → `npm audit`. Run the same checks locally before pushing.
+CI (`.github/workflows/ci.yml`, on push/PR to `main`) runs, in order: `npm ci` → `format:check` → `lint` → `typecheck` → `test` → `build` → `npm audit` → QA safety → real DB integration → browser installation/smoke. Run the same checks locally before pushing; see [isolated test commands and boundaries](docs/testing.md).
 
 ## Environment
 
@@ -54,7 +57,7 @@ The request flow is `routes → controllers → services → models`:
 - `middleware/auth` (`requireAuth`) checks the `Authorization: Bearer <jwt>` header and sets `req.userId` (typed in `src/types/express.d.ts`). All `/api/tasks`, `/api/projects`, and `/api/agents` routes use it.
 - JWTs are signed as `{ id }` and expire in `7d`. Logout is stateless: the server does nothing and the client drops the token.
 - Task enums live in `models/taskModel` (`TASK_STATUSES`, `TASK_PRIORITIES`). Controllers validate against them.
-- Route tests mock the service layer with `jest.mock('../../services/...')`. They do not use a real database.
+- Unit route tests mock the service layer with `jest.mock('../../services/...')`. They do not use a real database. Separate `server/integration/*.integration.ts` tests use real models/services against a fresh loopback MongoDB, managed by the root test runner; never use production configuration or reset existing data.
 - Use `requireEnv(name)` from `config/env.ts` to read required env vars at call time.
 - The `index.ts` barrels in `controllers/`, `services/`, `routes/`, and `utils/` are empty. Import from the specific module folder.
 
