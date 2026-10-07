@@ -7,6 +7,8 @@ export interface AgentRun {
   task: string;
   agent: string;
   input: string;
+  context?: unknown;
+  contextDigest?: string | null;
   result: unknown;
   resultDigest: string | null;
   status: RunStatus;

@@ -222,3 +222,7 @@ Owned queued run records use the existing MongoDB stack, a unique owner/retry-ke
 ## Human draft review (KAN-19)
 
 Owned pending draft reads feed the Agent Detail approval panel. Decisions bind canonical result digest, current version/status/owner and literal whole stored output in one audited MongoDB update. Review metadata holds the bounded private note; audit omits note/output/input. Stale or repeated decisions fail, session changes cannot update a new view, and uncertain writes require refresh rather than automatic retry. Approval accepts a draft only; no task/project mutation or new service is introduced. Local validation is complete; PR/CI/deployment verification remains pending.
+
+## Minimal permission-scoped context (KAN-20)
+
+A small server allowlist copies owned task/project notes and source identifiers/update times into the existing Run context, bounded to16KiB. Project inclusion is explicit and saved-permission gated before data reads. Snapshot/digest and claim audit are atomic; ordinary later replacement is blocked. Full source sets and current permissions are rechecked around provider use, while same-source note edits preserve captured as-of content. Notes are serialized untrusted user data, never audit text or new prompt roles. Existing MongoDB/JWT/local-only provider architecture stays; no RAG/ingestion, migration, service or task write. Local QA passed; normal PR/main CI and deployment verification remain pending.

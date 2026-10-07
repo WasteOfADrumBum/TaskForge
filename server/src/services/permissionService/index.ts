@@ -13,13 +13,6 @@ export type DraftDenialReason =
 export const authorizeRunDraft = async (owner: string, runId: string, includeProject = false) => {
   const run = await Run.findOne({ _id: runId, owner });
   if (!run) return { allowed: false as const, reason: 'run-not-found' as const };
-  const task = await Task.findOne({
-    _id: run.task,
-    owner,
-    assigneeType: 'agent',
-    assigneeAgent: run.agent,
-  });
-  if (!task) return { allowed: false as const, reason: 'task-not-assigned' as const };
   const agent = await Agent.findOne({ _id: run.agent, owner, status: 'active' });
   if (!agent) return { allowed: false as const, reason: 'agent-not-active' as const };
   // Read current persisted permissions only. Unknown identifiers never expand authority.
@@ -31,6 +24,13 @@ export const authorizeRunDraft = async (owner: string, runId: string, includePro
   const required = ['task.read', 'artifact.draft', ...(includeProject ? ['project.read'] : [])];
   if (required.some((permission) => !new Set<string>(agent.permissions).has(permission)))
     return { allowed: false as const, reason: 'missing-permission' as const };
+  const task = await Task.findOne({
+    _id: run.task,
+    owner,
+    assigneeType: 'agent',
+    assigneeAgent: run.agent,
+  });
+  if (!task) return { allowed: false as const, reason: 'task-not-assigned' as const };
   const project =
     includeProject && task.project ? await Project.findOne({ _id: task.project, owner }) : null;
   if (includeProject && task.project && !project)

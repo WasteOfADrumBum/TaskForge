@@ -40,7 +40,8 @@ const fixture = (
   const authority = jest
     .spyOn(permission, 'authorizeRunDraft')
     .mockImplementation(
-      async () => ({ allowed: true, run: state, task: {}, agent: {}, project: null }) as never,
+      async () =>
+        ({ allowed: true, run: state, task: { _id: id }, agent: {}, project: null }) as never,
     );
   const denied = jest.spyOn(audit, 'recordRunDenial').mockResolvedValue({} as never);
   const claim = jest
@@ -55,6 +56,19 @@ const fixture = (
           workDeadline: new Date(Date.now() + workMs),
           leaseExpiresAt: new Date(Date.now() + workMs + 5000),
           executionMode: mode,
+          context: {
+            schemaVersion: 1,
+            untrusted: true,
+            sources: [
+              {
+                kind: 'task',
+                id,
+                updatedAt: '2026-01-01T00:00:00.000Z',
+                title: 'Synthetic task',
+                description: '',
+              },
+            ],
+          },
         });
         return state;
       },
@@ -102,11 +116,17 @@ it('commits an audited claim and rechecks authority before a draft-only call and
   expect(result.status).toBe('awaiting-approval');
   expect(result.result).toMatchObject({ text: 'Simulated draft', simulation: true });
   expect(f.authority).toHaveBeenCalledTimes(3);
-  expect(f.claim).toHaveBeenCalledWith(owner, id, 0, 30000, expect.any(Date), 'demo');
+  expect(f.claim).toHaveBeenCalledWith(owner, id, 0, 30000, expect.any(Date), 'demo', false);
   expect(f.claim.mock.invocationCallOrder[0]).toBeLessThan(f.modelCall.mock.invocationCallOrder[0]);
   expect(f.modelCall.mock.calls[0][0]).toEqual([
     expect.objectContaining({ role: 'system' }),
-    { role: 'user', content: 'Synthetic private input' },
+    {
+      role: 'user',
+      content: JSON.stringify({
+        request: 'Synthetic private input',
+        untrustedContext: f.state().context,
+      }),
+    },
   ]);
   expect(f.fail).not.toHaveBeenCalled();
 });
@@ -146,7 +166,7 @@ it.each([2, 3])(
     f.authority.mockImplementation(async () =>
       ++calls === check
         ? { allowed: false, reason: 'missing-permission' }
-        : ({ allowed: true, run: f.state(), task: {}, agent: {}, project: null } as never),
+        : ({ allowed: true, run: f.state(), task: { _id: id }, agent: {}, project: null } as never),
     );
     await expect(f.executor.execute(owner, id, 'demo')).rejects.toMatchObject({ status: 403 });
     expect(f.complete).not.toHaveBeenCalled();
@@ -240,7 +260,7 @@ it('routes explicitly selected local drafts through the reused local adapter wit
     text: 'Synthetic local draft',
   });
   expect(result.executionMode).toBe('local');
-  expect(f.claim).toHaveBeenCalledWith(owner, id, 0, 30000, expect.any(Date), 'local');
+  expect(f.claim).toHaveBeenCalledWith(owner, id, 0, 30000, expect.any(Date), 'local', false);
 });
 
 it('rejects disabled local configuration without claiming work or making network calls', async () => {

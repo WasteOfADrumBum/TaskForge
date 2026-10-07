@@ -96,7 +96,13 @@ it('passes only explicit mode and owner to safeguarded execution, with an owned 
     .set(auth)
     .send({ mode: 'demo', permissions: ['shell.execute'], owner: agent, context: 'injected' });
   expect(response.status).toBe(200);
-  expect(runExecutor.execute).toHaveBeenCalledWith(owner, id, 'demo', expect.any(AbortSignal));
+  expect(runExecutor.execute).toHaveBeenCalledWith(
+    owner,
+    id,
+    'demo',
+    expect.any(AbortSignal),
+    false,
+  );
   expect(response.headers['cache-control']).toBe('no-store');
 });
 it('maps foreign execution to404 and unavailable modes to503 without exposing raw errors', async () => {

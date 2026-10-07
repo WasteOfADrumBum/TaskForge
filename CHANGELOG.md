@@ -10,6 +10,8 @@ All notable changes to TaskForge are recorded here.
 
 ### Changed
 
+- **KAN-20 — minimal context:** snapshot permitted task/project title/name/notes with source IDs/update times and a 16KiB serialized bound in the audited run claim. Explicit project context requires saved permission before reads and at each use boundary; complete source-set changes fail closed. Snapshot/digest stay immutable, context is serialized untrusted user data, and audit contains metadata rather than notes. No RAG, ingestion, task/project writes or paid service.
+
 - **KAN-19 — human draft review:** add owner review of exact draft version/result digest with optional bounded note, atomic decision/audit and stale/replay rejection. Agent Detail displays pending input/output, simulation labels and keyboard-accessible approval/rejection controls, with session isolation and refresh required after uncertain decisions. Approval records acceptance only; no task/project content is applied. Delivery validation is in progress.
 
 - **KAN-18 — draft permissions and audit:** require persisted owned assignment/active-agent/read-and-draft capabilities for explicitly selected simulation or local-only inference. Audit lifecycle transitions atomically, retain immutable safe denial records, fail closed before inference, fence cancellation/late output and expose owned audit reads. Output awaits human approval; no task writes, paid service, cloud fallback or production local inference. Run controls and approval UI remain later tickets.
