@@ -1,6 +1,6 @@
 # Phase 2: AI Workforce
 
-**Status: IN PROGRESS (foundation only).** Nothing runs an assigned agent. KAN-15 adds the server contract and KAN-16 the explicitly configured local developer adapter; production stays disabled and simulation requires explicit selection. User execution remains planned. The Work + Projects foundation (PR #9), the Agent Registry (persistent agent definitions), and the Workforce summary (PR #10) are complete and merged. Task → Agent Assignment merged in PR #15 as `16628b0` (client/API source identity verified under KAN-11; real database and browser coverage shipped under KAN-13): it records who owns a task, and nothing runs. AI execution, agent runs, permission enforcement, handoffs, and approvals are still planned. Item-level status lives in [roadmap.md](../roadmap.md#phase-2-ai-workforce-details).
+**Status: IN PROGRESS (foundation only).** Nothing runs an assigned agent. KAN-15 adds the server contract and KAN-16 the explicitly configured local developer adapter; production stays disabled and simulation requires explicit selection. User execution remains planned. The Work + Projects foundation (PR #9), the Agent Registry (persistent agent definitions), and the Workforce summary (PR #10) are complete and merged. Task → Agent Assignment merged in PR #15 as `16628b0` (client/API source identity verified under KAN-11; real database and browser coverage shipped under KAN-13): it records who owns a task, and nothing runs. Owned queued run records/private state transitions are implemented under KAN-17; execution, permission enforcement, handoffs and human approval remain planned. Item-level status lives in [roadmap.md](../roadmap.md#phase-2-ai-workforce-details).
 
 ## Foundation: Work + Projects (complete)
 
@@ -21,7 +21,7 @@ The Agent Registry (PR #10, merged) makes agents a persistent, user-owned domain
 - **Skills:** lowercase slug strings on the agent (for example `research`, `software-development`). No separate Skill collection; that can come later if matching needs more than tags.
 - **Permissions:** identifiers from a fixed catalog (`task.read`, `task.update`, `project.read`, `project.update`, `artifact.draft`). They are metadata for the future permission boundary. **Nothing enforces them yet**, because nothing executes.
 - **Privacy:** the same rules as Projects. Another user's agent looks exactly like a missing one (`404`), and `owner` can't be set from a request.
-- **Not built (still planned):** agent execution, agent-triggered model calls, agent runs, handoffs, approvals, the audit trail, and permission enforcement. The agent detail page lists Runs and Approvals only as labeled "Planned" placeholders, with no data. (Task assignment came next; see below.)
+- **Not built (still planned):** agent execution, agent-triggered model calls, handoffs, approvals, the audit trail, and permission enforcement. The agent detail page lists Runs and Approvals only as labeled "Planned" placeholders, with no data. (Task assignment came next; see below.)
 - **Deferred:** a `tools` field. It will be added when there are real tools to describe.
 
 ## Foundation: Task → Agent Assignment (complete)
@@ -62,10 +62,11 @@ Each agent has a `role`, `description`, `skills`, `permissions`, `tools`, and `s
 
 A TaskForge task can be assigned to an agent. The assignment itself is complete (see above) and only records ownership. **Planned:** starting work on an assigned task creates an agent run.
 
-### Agent run model
+### Agent run model (KAN-17 foundation)
 
 - Fields: `input`, `context`, `result`, and `status` (`queued` → `running` → `awaiting-approval` → `approved` / `rejected` / `failed`).
-- Each run links to its task, its agent, and its owner.
+- Each run links to its owned task, assigned active agent, and owner.
+- [Run foundation](../agent-runs.md) implements owned queued create/read APIs, retry identity and private atomic state transitions, attempt/deadline fencing and explicit expiry failure. Public execution waits for KAN-18; no model call, worker, task write or approval route is enabled here.
 
 ### Handoffs
 
@@ -119,7 +120,7 @@ Run controls, owner permissions, audit and human approval are subsequent tickets
 - [ ] An agent run moves through every planned lifecycle state.
 - [ ] Handoffs create linked child runs.
 - [ ] Every agent result needs human approval. Rejections are recorded.
-- [ ] `AIProvider` exists with a working local provider and a no-provider/demo fallback.
+- [x] `AIProvider` exists with a working local provider and a no-provider/demo fallback (KAN-15/16, PR #25/#26). Production disabled; explicit simulation; actual local smoke validated.
 - [ ] The Chief of Staff, Research, and Developer agents work end to end locally.
 - [ ] The audit trail records every state change.
 - [ ] Permission boundaries are enforced on the server and tested.
