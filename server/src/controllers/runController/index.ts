@@ -1,3 +1,5 @@
+import { createOwnedHandoff, listOwnedHandoffs, HandoffError } from '../../services/handoffService';
+import { ContextUnavailableError } from '../../services/contextService';
 import type { Request, Response } from 'express';
 import { RUN_INPUT_MAX, RUN_KEY_PATTERN } from '../../models/runModel';
 import {
@@ -190,5 +192,74 @@ export const reviewRunHandler = async (req: Request, res: Response) => {
       }
     }
     return executionError(res, error);
+  }
+};
+
+export const handoffRunHandler = async (req: Request, res: Response) => {
+  if (!isObjectIdString(req.params.id)) {
+    try {
+      await recordRunDenial(owner(req), null, 'run-not-found', 'handoff');
+    } catch (error) {
+      return executionError(res, error);
+    }
+    return notFound(res);
+  }
+  const body = req.body as Record<string, unknown> | null;
+  const key = req.get('Idempotency-Key');
+  if (
+    !body ||
+    typeof body !== 'object' ||
+    Array.isArray(body) ||
+    !isObjectIdString(body.taskId) ||
+    !isObjectIdString(body.agentId) ||
+    typeof body.input !== 'string' ||
+    !body.input.trim() ||
+    body.input.length > RUN_INPUT_MAX ||
+    !Number.isSafeInteger(body.version) ||
+    (body.version as number) < 0 ||
+    typeof body.resultDigest !== 'string' ||
+    !/^[a-f0-9]{64}$/.test(body.resultDigest) ||
+    !key ||
+    key !== key.trim() ||
+    !RUN_KEY_PATTERN.test(key)
+  ) {
+    try {
+      await recordRunDenial(owner(req), req.params.id as string, 'invalid-handoff', 'handoff');
+    } catch (error) {
+      return executionError(res, error);
+    }
+    return res.status(400).json({ message: 'Invalid handoff input or retry key' });
+  }
+  try {
+    const result = await createOwnedHandoff(owner(req), req.params.id as string, {
+      taskId: body.taskId as string,
+      agentId: body.agentId as string,
+      input: body.input,
+      version: body.version as number,
+      resultDigest: body.resultDigest,
+      idempotencyKey: key,
+    });
+    return res.status(result.created ? 201 : 200).json({ run: result.run });
+  } catch (error) {
+    if (error instanceof HandoffError)
+      return res.status(error.status).json({ message: error.message });
+    if (error instanceof ContextUnavailableError) {
+      try {
+        await recordRunDenial(owner(req), req.params.id as string, error.reason, 'handoff');
+      } catch (auditError) {
+        return executionError(res, auditError);
+      }
+      return res.status(400).json({ message: 'Approved source context is invalid or too large' });
+    }
+    return executionError(res, error);
+  }
+};
+export const handoffHistoryHandler = async (req: Request, res: Response) => {
+  if (!isObjectIdString(req.params.id)) return notFound(res);
+  try {
+    const runs = await listOwnedHandoffs(owner(req), req.params.id as string);
+    return runs ? res.json({ runs }) : notFound(res);
+  } catch {
+    return res.status(503).json({ message: 'Handoff history is temporarily unavailable' });
   }
 };

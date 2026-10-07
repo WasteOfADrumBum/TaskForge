@@ -71,6 +71,30 @@ const reviewSchema = new Schema<RunReview>(
   { _id: false, strict: 'throw' },
 );
 
+export const HANDOFF_MAX_DEPTH = 3;
+export interface RunHandoff {
+  parent: Types.ObjectId;
+  ancestors: Types.ObjectId[];
+  sourceVersion: number;
+  sourceResultDigest: string;
+}
+const handoffSchema = new Schema<RunHandoff>(
+  {
+    parent: { type: Schema.Types.ObjectId, ref: 'Run', required: true },
+    ancestors: {
+      type: [Schema.Types.ObjectId],
+      required: true,
+      validate: (ids: Types.ObjectId[]) =>
+        ids.length >= 1 &&
+        ids.length <= HANDOFF_MAX_DEPTH &&
+        new Set(ids.map(String)).size === ids.length,
+    },
+    sourceVersion: { type: Number, required: true, min: 0, validate: Number.isSafeInteger },
+    sourceResultDigest: { type: String, required: true, match: /^[a-f0-9]{64}$/ },
+  },
+  { _id: false, strict: 'throw' },
+);
+
 export interface RunLifecycleEvent {
   id: string;
   at: Date;
@@ -82,6 +106,8 @@ export interface RunLifecycleEvent {
   mode: 'demo' | 'local' | null;
   resultDigest?: string | null;
   contextDigest?: string | null;
+  parentRun?: Types.ObjectId | null;
+  sourceResultDigest?: string | null;
   reason: 'expired' | 'interrupted' | 'cancelled' | 'provider-error' | 'permission-denied' | null;
 }
 const lifecycleSchema = new Schema<RunLifecycleEvent>(
@@ -98,6 +124,8 @@ const lifecycleSchema = new Schema<RunLifecycleEvent>(
     to: { type: String, enum: RUN_STATUSES, required: true },
     version: { type: Number, required: true, min: 0, validate: Number.isSafeInteger },
     resultDigest: { type: String, match: /^[a-f0-9]{64}$/, default: null },
+    parentRun: { type: Schema.Types.ObjectId, default: null },
+    sourceResultDigest: { type: String, match: /^[a-f0-9]{64}$/, default: null },
     contextDigest: { type: String, match: /^[a-f0-9]{64}$/, default: null },
     mode: { type: String, enum: ['demo', 'local', null], default: null },
     reason: {
@@ -114,6 +142,7 @@ export interface RunRecord {
   task: Types.ObjectId;
   agent: Types.ObjectId;
   input: string;
+  handoff: RunHandoff | null;
   context: unknown;
   contextDigest: string | null;
   result: unknown;
@@ -138,6 +167,7 @@ const runSchema = new Schema<RunRecord>(
     owner: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     task: { type: Schema.Types.ObjectId, ref: 'Task', required: true },
     agent: { type: Schema.Types.ObjectId, ref: 'Agent', required: true },
+    handoff: { type: handoffSchema, default: null },
     input: { type: String, required: true, maxlength: RUN_INPUT_MAX },
     context: {
       type: Schema.Types.Mixed,
@@ -187,6 +217,14 @@ const runSchema = new Schema<RunRecord>(
 // owner-scoped lifecycle CAS may append an event. Raw database administration is out of scope.
 runSchema.pre('save', function (next) {
   if (!this.isNew) return next(new Error('Run records require audited lifecycle updates'));
+  if (
+    this.handoff &&
+    (String(this.handoff.ancestors.at(-1)) !== String(this.handoff.parent) ||
+      this.handoff.ancestors.some((id) => String(id) === String(this._id)) ||
+      String(this.auditEvents[0]?.parentRun) !== String(this.handoff.parent) ||
+      this.auditEvents[0]?.sourceResultDigest !== this.handoff.sourceResultDigest)
+  )
+    return next(new Error('Handoff identity requires matching creation audit'));
   next();
 });
 for (const operation of [
@@ -266,7 +304,16 @@ runSchema.pre('findOneAndUpdate', function () {
       if ((field === 'auditEvents' || field.startsWith('auditEvents.')) && operator !== '$push')
         throw new Error('Run audit events are append-only');
       if (
-        ['owner', 'task', 'agent', 'input', 'idempotencyKey', 'requestFingerprint'].includes(field)
+        [
+          'owner',
+          'task',
+          'agent',
+          'input',
+          'idempotencyKey',
+          'requestFingerprint',
+          'handoff',
+        ].includes(field) ||
+        field.startsWith('handoff.')
       )
         throw new Error('Run identity is immutable');
     }

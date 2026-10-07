@@ -1,3 +1,4 @@
+import HandoffPanel, { type HandoffRetryIdentity } from '../../components/runs/HandoffPanel';
 import { useEffect, useRef, useState } from 'react';
 import {
   Box,
@@ -61,6 +62,9 @@ function DetailContent({
   const write = useDelayedRequest();
   const { begin } = read;
   const mutation = useRef(false);
+  // Keep retry identity across a failed detail refresh that temporarily removes the panel.
+  // The keyed detail lifetime still retires this identity on route/session replacement.
+  const handoffRetryIdentity = useRef<HandoffRetryIdentity['current']>(null);
   useEffect(() => {
     if (!isCurrentSession(token, sessionVersion)) return;
     const request = begin();
@@ -250,6 +254,16 @@ function DetailContent({
               <Text>Created {runDate(run.createdAt)}</Text>
               <Text overflowWrap="anywhere">Task: {run.task}</Text>
               <Text overflowWrap="anywhere">Agent: {run.agent}</Text>
+              {run.handoff && (
+                <Box>
+                  <Text>Handoff depth: {run.handoff.ancestors.length}</Text>
+                  <Link asChild color="accent.teal">
+                    <RouterLink to={'/workforce/runs/' + run.handoff.parent}>
+                      View parent run
+                    </RouterLink>
+                  </Link>
+                </Box>
+              )}
               {run.failureReason && (
                 <Text color="fg.error">Failure reason: {run.failureReason}</Text>
               )}
@@ -393,6 +407,17 @@ function DetailContent({
               </Text>
             </RunSection>
           )}
+          <HandoffPanel
+            run={run}
+            getRetryKey={(fingerprint) => {
+              if (handoffRetryIdentity.current?.fingerprint !== fingerprint)
+                handoffRetryIdentity.current = { fingerprint, key: crypto.randomUUID() };
+              return handoffRetryIdentity.current.key;
+            }}
+            clearRetryKey={() => {
+              handoffRetryIdentity.current = null;
+            }}
+          />
         </>
       )}
       <RunSection title="Lifecycle audit">
@@ -418,6 +443,16 @@ function DetailContent({
                 </Text>
                 {event.mode && <Text fontSize="sm">Mode: {event.mode}</Text>}
                 {event.reason && <Text fontSize="sm">Reason: {event.reason}</Text>}
+                {event.parentRun && (
+                  <Text fontSize="sm" overflowWrap="anywhere">
+                    Handoff parent: {event.parentRun}
+                  </Text>
+                )}
+                {event.sourceResultDigest && (
+                  <Text fontSize="sm" overflowWrap="anywhere">
+                    Approved source digest: {event.sourceResultDigest}
+                  </Text>
+                )}
                 {event.contextDigest && (
                   <Text fontSize="sm" overflowWrap="anywhere">
                     Context digest: {event.contextDigest}

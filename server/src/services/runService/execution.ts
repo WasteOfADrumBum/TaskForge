@@ -164,6 +164,9 @@ export const createRunExecutor = (
           ...(includeProject && authority.project
             ? [{ kind: 'project', id: String(authority.project._id) }]
             : []),
+          ...(authority.handoffSource
+            ? [{ kind: 'run', id: String(authority.handoffSource._id) }]
+            : []),
         ];
         return (
           Array.isArray(snapshot.sources) &&

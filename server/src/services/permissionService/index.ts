@@ -1,9 +1,11 @@
+import { readHandoffSource } from '../handoffService/authority';
 import { Run } from '../../models/runModel';
 import { Task } from '../../models/taskModel';
 import { Agent, AGENT_PERMISSIONS } from '../../models/agentModel';
 import { Project } from '../../models/projectModel';
 
 export type DraftDenialReason =
+  | 'handoff-source-unavailable'
   | 'run-not-found'
   | 'task-not-assigned'
   | 'agent-not-active'
@@ -31,9 +33,14 @@ export const authorizeRunDraft = async (owner: string, runId: string, includePro
     assigneeAgent: run.agent,
   });
   if (!task) return { allowed: false as const, reason: 'task-not-assigned' as const };
+  const handoffSource = run.handoff
+    ? await readHandoffSource(owner, run.handoff, String(run.agent))
+    : null;
+  if (run.handoff && !handoffSource)
+    return { allowed: false as const, reason: 'handoff-source-unavailable' as const };
   const project =
     includeProject && task.project ? await Project.findOne({ _id: task.project, owner }) : null;
   if (includeProject && task.project && !project)
     return { allowed: false as const, reason: 'project-not-found' as const };
-  return { allowed: true as const, run, task, agent, project };
+  return { allowed: true as const, run, task, agent, project, handoffSource };
 };

@@ -47,7 +47,7 @@ export const createRunIndexGuard = (ensureIndex: () => Promise<unknown>, timeout
     }
   };
 };
-const ensureRunIndex = createRunIndexGuard(() =>
+export const ensureRunIndex = createRunIndexGuard(() =>
   Run.collection.createIndex({ owner: 1, idempotencyKey: 1 }, { unique: true, maxTimeMS: 5000 }),
 );
 
@@ -149,7 +149,7 @@ export const claimRun = async (
   if (mode !== null) {
     const authority = await authorizeRunDraft(owner, id, includeProject);
     if (!authority.allowed) throw new RunAuthorityError(authority.reason);
-    context = buildRunContext(authority.task, authority.project);
+    context = buildRunContext(authority.task, authority.project, authority.handoffSource);
   }
   return Run.findOneAndUpdate(
     { _id: id, owner, status: 'queued', version },

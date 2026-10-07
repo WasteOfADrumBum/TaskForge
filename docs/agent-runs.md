@@ -1,6 +1,6 @@
 # Owned agent runs and draft permissions
 
-KAN-17 introduced owned run records; KAN-18 adds server-enforced text drafting and append-only application audit. KAN-18 is shipped (PR #28, `bb660e2`). KAN-19 shipped exact-draft human review on Agent Detail (PR #29, `978c623`). KAN-20 shipped bounded minimal context (PR #30, `c06dc63`), with full QA, independent review, PR/main CI and matching live builds. Full run/activity and execution controls are locally validated under KAN-21; protected CI and live delivery remain pending. No task or project mutation tool is enabled.
+KAN-17 introduced owned run records; KAN-18 adds server-enforced text drafting and append-only application audit. KAN-18 is shipped (PR #28, `bb660e2`). KAN-19 shipped exact-draft human review on Agent Detail (PR #29, `978c623`). KAN-20 shipped bounded minimal context (PR #30, `c06dc63`), with full QA, independent review, PR/main CI and matching live builds. Full run/activity and execution controls shipped under KAN-21 (PR #31, `9a6ec94`), after protected CI and matching live deployment verification. No task or project mutation tool is enabled.
 
 ## Owned API
 
@@ -70,7 +70,7 @@ The serialized UTF-8 snapshot must fit the existing 16KiB JSON/depth/node limits
 
 Edits to notes on the same source retain the captured as-of content and source update time for reproducibility. Separate MongoDB checks do not provide transactional revocation or a latest-data guarantee. Stored text remains untrusted user data; fixed roles and absent tools prevent privilege promotion/execution, but no general LLM prompt-immunity claim is made. No RAG, ingestion or task/project mutation is added. Full run/context activity UI follows in KAN-21.
 
-## Run activity UI (KAN-21, delivery pending)
+## Run activity UI (KAN-21, shipped)
 
 The Workforce and Agent Detail pages link to `/workforce/runs`; each recorded attempt
 opens `/workforce/runs/:id`. The list is the latest 100 owned records, not an exhaustive
@@ -89,4 +89,27 @@ refreshed. Uncertain writes do not replay automatically: refresh before another 
 an identical manual creation retry retains the same key within that page/session.
 Navigating away retires the request; it does not promise to roll back persisted work.
 
-Full QA and independent review passed: 1141 units, 89 API cases, 7 safety tests, 8 Chromium flows and static/build/audit0 checks. Protected CI/merge/live verification remain required before shipping.
+Full QA and independent review passed: 1141 units, 89 API cases, 7 safety tests, 8 Chromium flows and static/build/audit0 checks. PR #31, main CI and matching live builds are verified.
+
+## Explicit handoffs (KAN-22, in progress)
+
+POST `/api/runs/:id/handoff` binds the exact approved parent version/result digest,
+selected target task/agent, request and Idempotency-Key. GET `/api/runs/:id/handoffs`
+returns the latest 100 owned direct children; foreign parents remain indistinguishable
+from missing ones. Run Detail shows parent/child links and explicit queued creation.
+
+The target task already belongs to the owner and is assigned to the selected active agent.
+This can be another owned task or the same task after an explicit user reassignment;
+the handoff changes no assignment. Three edges maximum, no repeated ancestor agents.
+Every child starts queued with no result or review, waits for explicit execution mode,
+and needs separate human review. Cancellation/failure affects only the selected run.
+
+Immutable server-derived handoff metadata and the child creation audit retain parent,
+source version/digest and ancestry. Execution revalidates those owned approved records at
+existing permission boundaries. Only approved output text is added to bounded untrusted
+context, never source input, review notes or entire source context. Oversize fails closed
+before child creation or model use; ordinary mutations cannot replace the lineage.
+
+Same-owner/key/complete payload returns one child. Uncertain UI creation freezes native
+fields and requires successful read refresh before an identical manual retry. No automatic
+writes/model calls, queue, migration or paid service is introduced. Full local QA/review passed 1233 units, 101 API cases, 7 safety, 9 Chromium and static/build/audit0. Protected CI/merge/live delivery remain pending.
