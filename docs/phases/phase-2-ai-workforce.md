@@ -1,6 +1,6 @@
 # Phase 2: AI Workforce
 
-**Status: IN PROGRESS (foundation only).** Nothing runs an assigned agent. KAN-15 adds the server contract and KAN-16 the explicitly configured local developer adapter; production stays disabled and simulation requires explicit selection. User execution remains planned. The Work + Projects foundation (PR #9), the Agent Registry (persistent agent definitions), and the Workforce summary (PR #10) are complete and merged. Task → Agent Assignment merged in PR #15 as `16628b0` (client/API source identity verified under KAN-11; real database and browser coverage shipped under KAN-13): it records who owns a task, and nothing runs. Owned queued run records/private state transitions are implemented under KAN-17; execution, permission enforcement, handoffs and human approval remain planned. Item-level status lives in [roadmap.md](../roadmap.md#phase-2-ai-workforce-details).
+**Status: IN PROGRESS (foundation only).** Assignment alone starts no work; KAN-18 adds explicitly requested draft execution with permission/audit safeguards, currently undergoing validation. KAN-15 adds the server contract and KAN-16 the explicitly configured local developer adapter; production stays disabled and simulation requires explicit selection. User execution remains planned. The Work + Projects foundation (PR #9), the Agent Registry (persistent agent definitions), and the Workforce summary (PR #10) are complete and merged. Task → Agent Assignment merged in PR #15 as `16628b0` (client/API source identity verified under KAN-11; real database and browser coverage shipped under KAN-13): it records who owns a task, and nothing runs. Owned queued run records/private state transitions are implemented under KAN-17; KAN-18 draft execution, permission enforcement and audit are undergoing validation; handoffs, run controls and human approval remain planned. Item-level status lives in [roadmap.md](../roadmap.md#phase-2-ai-workforce-details).
 
 ## Foundation: Work + Projects (complete)
 
@@ -19,9 +19,9 @@ The Agent Registry (PR #10, merged) makes agents a persistent, user-owned domain
 
 - **Built:** an `Agent` model (name, role, description, status `active`/`paused`/`disabled`, skills, permissions, owner, timestamps); owner-scoped CRUD at `/api/agents`; the Workforce page as a real registry (list, create, edit, delete); an agent detail page at `/workforce/:id`; and a Workforce summary on the Command Center.
 - **Skills:** lowercase slug strings on the agent (for example `research`, `software-development`). No separate Skill collection; that can come later if matching needs more than tags.
-- **Permissions:** identifiers from a fixed catalog (`task.read`, `task.update`, `project.read`, `project.update`, `artifact.draft`). They are metadata for the future permission boundary. **Nothing enforces them yet**, because nothing executes.
+- **Permissions:** identifiers from a fixed catalog (`task.read`, `task.update`, `project.read`, `project.update`, `artifact.draft`). KAN-18 checks current `task.read` and `artifact.draft` for explicit text drafts; project content additionally requires `project.read`. No write tool is enabled.
 - **Privacy:** the same rules as Projects. Another user's agent looks exactly like a missing one (`404`), and `owner` can't be set from a request.
-- **Not built (still planned):** agent execution, agent-triggered model calls, handoffs, approvals, the audit trail, and permission enforcement. The agent detail page lists Runs and Approvals only as labeled "Planned" placeholders, with no data. (Task assignment came next; see below.)
+- **Not built (still planned):** run/activity UI, handoffs and human approval. KAN-18 server draft execution, permissions and audit are undergoing validation. The agent detail page lists Runs and Approvals as labelled "Planned" UI placeholders; owned run records exist through the API. (Task assignment came next; see below.)
 - **Deferred:** a `tools` field. It will be added when there are real tools to describe.
 
 ## Foundation: Task → Agent Assignment (complete)
@@ -32,7 +32,7 @@ Merged in PR #15 as `16628b0`; client/API source identity is verified, and KAN-1
 - **Rules:** a task can be assigned to its owner, to one of the owner's own agents, or to nobody. Another user's agent gets the same `400 Agent not found` as a missing one. Only an **active** agent can take a new task. A paused or disabled agent keeps the tasks it already has, and they stay visible with the agent's status.
 - **Deleting an agent** keeps its tasks: they become unassigned first, then the agent is deleted with post-write agent-existence reconciliation to close the normal concurrent-assignment window. Database failure can still leave a stale reference; see the architecture notes.
 - **UI:** an Assignee field on the task form (Unassigned, Me, or an active agent), the assignee on every task card, an assignee filter on Work, the agent's assigned tasks on its detail page, assigned and open counts on each Workforce card, and open-assignment counts in the Command Center Workforce panel. All counts are derived from the task list; they are workload counts, not performance. Pending or failed task loads show unknown assignment state instead of zero.
-- **Not built:** agent runs, AI execution, permission enforcement, handoffs, and approvals.
+- **Assignment alone:** creates no run or model call. Owned run records are implemented; KAN-18 permission/audit draft execution is undergoing validation. Handoffs and human approval remain planned.
 
 ## Approved delivery boundary
 
@@ -66,7 +66,7 @@ A TaskForge task can be assigned to an agent. The assignment itself is complete 
 
 - Fields: `input`, `context`, `result`, and `status` (`queued` → `running` → `awaiting-approval` → `approved` / `rejected` / `failed`).
 - Each run links to its owned task, assigned active agent, and owner.
-- [Run foundation](../agent-runs.md) implements owned queued create/read APIs, retry identity and private atomic state transitions, attempt/deadline fencing and explicit expiry failure. Public execution waits for KAN-18; no model call, worker, task write or approval route is enabled here.
+- [Run foundation](../agent-runs.md) implements owned queued create/read APIs, retry identity and private atomic state transitions, attempt/deadline fencing and explicit expiry failure. KAN-18 adds explicitly selected draft execution, cancellation and owned audit reads with permission checks and atomic lifecycle events; validation is in progress. No worker, task write or approval route is enabled.
 
 ### Handoffs
 
@@ -104,7 +104,7 @@ The server contract is implemented under KAN-15 in `server/src/ai/provider.ts`: 
 
 Josh approved the production default: disabled execution, with explicitly selected, clearly labelled canned simulation. Even demo configuration does not select simulation automatically. KAN-16 supplies local-only developer Ollama inference; no paid API or production model call is made. Free-tier Render cannot reach an owner's localhost or host a local model. Paid vendors require a separate explicit decision; no vendor SDK or key is accepted here.
 
-Run controls, owner permissions, audit and human approval are subsequent tickets. Nothing executes an assigned agent yet.
+KAN-18 server draft permissions/audit are undergoing validation. Run controls, bounded context assembly and human approval remain subsequent tickets. Assignment alone does not execute an agent.
 
 ## Dependencies
 

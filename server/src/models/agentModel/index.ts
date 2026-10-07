@@ -1,11 +1,12 @@
 import { Schema, model } from 'mongoose';
 
 // An agent is a persistent, user-owned definition of an AI worker. This is registry metadata
-// only: nothing runs an agent, calls a model, or enforces its permissions yet.
+// plus explicitly requested, permission-gated text drafts. Agents never apply task/project changes.
 
 export const AGENT_STATUSES = ['active', 'paused', 'disabled'] as const;
 
-// The permission identifiers an agent may hold. Stored as metadata; nothing executes them yet.
+// The permission catalog for draft execution and future actions. Current drafts require task.read
+// and artifact.draft; project data additionally requires project.read. Write permissions do not apply changes.
 export const AGENT_PERMISSIONS = [
   'task.read',
   'task.update',

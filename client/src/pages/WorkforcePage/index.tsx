@@ -85,10 +85,10 @@ const WorkforcePage = () => {
       <Alert.Root status="info" variant="surface" mb={{ base: 5, md: 6 }}>
         <Alert.Indicator />
         <Alert.Content>
-          <Alert.Title>Agents are saved definitions only.</Alert.Title>
+          <Alert.Title>Assignments do not start runs.</Alert.Title>
           <Alert.Description>
-            You can assign tasks to active agents to plan who owns what, but agents don’t run or
-            call any AI model yet. Runs and approvals are planned. Read the{' '}
+            You can assign tasks to active agents to plan who owns what. Assignment alone does not
+            start a run or call a model. Run and approval controls are planned. Read the{' '}
             <Link href={phase2Url} target="_blank" rel="noreferrer" textDecoration="underline">
               Phase 2 plan
             </Link>

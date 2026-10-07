@@ -10,6 +10,8 @@ All notable changes to TaskForge are recorded here.
 
 ### Changed
 
+- **KAN-18 — draft permissions and audit:** require persisted owned assignment/active-agent/read-and-draft capabilities for explicitly selected simulation or local-only inference. Audit lifecycle transitions atomically, retain immutable safe denial records, fail closed before inference, fence cancellation/late output and expose owned audit reads. Output awaits human approval; no task writes, paid service, cloud fallback or production local inference. Run controls and approval UI remain later tickets.
+
 - **KAN-17 — owned run foundation:** persist owner/task/agent/input/context/result/status with idempotent creation, an acknowledged unique retry-key index, atomic version/attempt/deadline fencing and explicit expiry failure. Add authenticated no-store queued create/read APIs; execution stays blocked until permission/audit safeguards. No worker, provider call, automatic replay, task writes or approval endpoint.
 
 - **KAN-16 — local inference:** add the server-only Ollama adapter for explicitly configured local development, with numeric loopback destinations, cloud/remote model preflight rejection, bounded JSON bodies/deadlines/cancellation and strict normal-completion/runtime-schema validation. Production always stays disabled. Add an explicit local-only synthetic smoke command; no paid provider, download inside the application, execution endpoint or user run controls.
