@@ -11,7 +11,8 @@
     "lint": "eslint src integration jest.integration.config.ts",
     "format": "prettier --write src",
     "seed:demo": "node --loader ts-node/esm ./src/scripts/seedDemo.ts",
-    "test:integration": "jest --config jest.integration.config.ts --runInBand"
+    "test:integration": "jest --config jest.integration.config.ts --runInBand",
+    "smoke:local-ai": "node ../scripts/run-local-ai-smoke.mjs"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

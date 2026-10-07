@@ -1,6 +1,6 @@
 # Phase 2: AI Workforce
 
-**Status: IN PROGRESS (foundation only).** Nothing runs an agent or calls a model. KAN-15 adds the server provider contract, disabled default and explicit labelled canned simulation; local inference and user execution remain planned. The Work + Projects foundation (PR #9), the Agent Registry (persistent agent definitions), and the Workforce summary (PR #10) are complete and merged. Task → Agent Assignment merged in PR #15 as `16628b0` (client/API source identity verified under KAN-11; real database and browser coverage shipped under KAN-13): it records who owns a task, and nothing runs. AI execution, agent runs, permission enforcement, local model integration, handoffs, and approvals are still planned. Item-level status lives in [roadmap.md](../roadmap.md#phase-2-ai-workforce-details).
+**Status: IN PROGRESS (foundation only).** Nothing runs an assigned agent. KAN-15 adds the server contract and KAN-16 the explicitly configured local developer adapter; production stays disabled and simulation requires explicit selection. User execution remains planned. The Work + Projects foundation (PR #9), the Agent Registry (persistent agent definitions), and the Workforce summary (PR #10) are complete and merged. Task → Agent Assignment merged in PR #15 as `16628b0` (client/API source identity verified under KAN-11; real database and browser coverage shipped under KAN-13): it records who owns a task, and nothing runs. AI execution, agent runs, permission enforcement, handoffs, and approvals are still planned. Item-level status lives in [roadmap.md](../roadmap.md#phase-2-ai-workforce-details).
 
 ## Foundation: Work + Projects (complete)
 
@@ -21,7 +21,7 @@ The Agent Registry (PR #10, merged) makes agents a persistent, user-owned domain
 - **Skills:** lowercase slug strings on the agent (for example `research`, `software-development`). No separate Skill collection; that can come later if matching needs more than tags.
 - **Permissions:** identifiers from a fixed catalog (`task.read`, `task.update`, `project.read`, `project.update`, `artifact.draft`). They are metadata for the future permission boundary. **Nothing enforces them yet**, because nothing executes.
 - **Privacy:** the same rules as Projects. Another user's agent looks exactly like a missing one (`404`), and `owner` can't be set from a request.
-- **Not built (still planned):** AI execution, model calls, agent runs, handoffs, approvals, the audit trail, and permission enforcement. The agent detail page lists Runs and Approvals only as labeled "Planned" placeholders, with no data. (Task assignment came next; see below.)
+- **Not built (still planned):** agent execution, agent-triggered model calls, agent runs, handoffs, approvals, the audit trail, and permission enforcement. The agent detail page lists Runs and Approvals only as labeled "Planned" placeholders, with no data. (Task assignment came next; see below.)
 - **Deferred:** a `tools` field. It will be added when there are real tools to describe.
 
 ## Foundation: Task → Agent Assignment (complete)
@@ -36,7 +36,7 @@ Merged in PR #15 as `16628b0`; client/API source identity is verified, and KAN-1
 
 ## Approved delivery boundary
 
-Release readiness and the assignment foundation are shipped. The current approved milestone continues with bounded Phase 2 execution: provider abstraction, a free local provider, runs, server-enforced permissions, an audit trail, human approval, and starter-agent handoffs. The provider contract is implemented under KAN-15; local inference, runs and execution controls remain planned until implemented and validated. Phases 3–8 require a separate milestone decision; the existing task-driven Command Center does not authorize their expansion.
+Release readiness and the assignment foundation are shipped. The current approved milestone continues with bounded Phase 2 execution: provider abstraction, a free local provider, runs, server-enforced permissions, an audit trail, human approval, and starter-agent handoffs. The provider contract is implemented under KAN-15; the local adapter is implemented under KAN-16, while runs and execution controls remain planned until implemented and validated. Phases 3–8 require a separate milestone decision; the existing task-driven Command Center does not authorize their expansion.
 
 ## Objective
 
@@ -101,7 +101,7 @@ An agent can only use the tools and data its registry entry allows. Everything s
 
 The server contract is implemented under KAN-15 in `server/src/ai/provider.ts`: chat, runtime-validated structured output, and an explicit unsupported embeddings capability. [Provider behavior](../ai-provider.md) documents configuration, safe errors, deadlines/cancellation and consumer constraints.
 
-Josh approved the production default: disabled execution, with explicitly selected, clearly labelled canned simulation. Even demo configuration does not select simulation automatically. No model or paid API is called; local Ollama inference is the next adapter (KAN-16). Free-tier Render cannot reach an owner's localhost or host a local model. Paid vendors require a separate explicit decision; no vendor SDK or key is accepted here.
+Josh approved the production default: disabled execution, with explicitly selected, clearly labelled canned simulation. Even demo configuration does not select simulation automatically. KAN-16 supplies local-only developer Ollama inference; no paid API or production model call is made. Free-tier Render cannot reach an owner's localhost or host a local model. Paid vendors require a separate explicit decision; no vendor SDK or key is accepted here.
 
 Run controls, owner permissions, audit and human approval are subsequent tickets. Nothing executes an assigned agent yet.
 

@@ -170,15 +170,17 @@ npm --workspace server run seed:demo   # needs MONGO_URI, DEMO_EMAIL, DEMO_PASSW
 
 **Server** (`server/.env`, see [`.env.example`](server/.env.example)):
 
-| Variable        | Required  | Purpose                                                                                                     |
-| --------------- | --------- | ----------------------------------------------------------------------------------------------------------- |
-| `MONGO_URI`     | Yes       | MongoDB connection string                                                                                   |
-| `JWT_SECRET`    | Yes       | Secret used to sign and verify JWTs                                                                         |
-| `PORT`          | No        | API port (default `5000`)                                                                                   |
-| `CLIENT_ORIGIN` | No        | Comma-separated CORS allowlist (default `http://localhost:5173`)                                            |
-| `AI_PROVIDER`   | No        | Server provider selection; absent/disabled defaults to no execution; simulation requires explicit selection |
-| `DEMO_EMAIL`    | Seed only | Demo account email for `seed:demo`                                                                          |
-| `DEMO_PASSWORD` | Seed only | Demo account password for `seed:demo`                                                                       |
+| Variable          | Required   | Purpose                                                                                      |
+| ----------------- | ---------- | -------------------------------------------------------------------------------------------- |
+| `MONGO_URI`       | Yes        | MongoDB connection string                                                                    |
+| `JWT_SECRET`      | Yes        | Secret used to sign and verify JWTs                                                          |
+| `PORT`            | No         | API port (default `5000`)                                                                    |
+| `CLIENT_ORIGIN`   | No         | Comma-separated CORS allowlist (default `http://localhost:5173`)                             |
+| `AI_PROVIDER`     | No         | Server provider selection; production stays disabled; simulation requires explicit selection |
+| `OLLAMA_MODEL`    | Local only | Installed local model name; no automatic pull or hosted fallback                             |
+| `OLLAMA_BASE_URL` | Local only | Loopback model service (default `http://127.0.0.1:11434`)                                    |
+| `DEMO_EMAIL`      | Seed only  | Demo account email for `seed:demo`                                                           |
+| `DEMO_PASSWORD`   | Seed only  | Demo account password for `seed:demo`                                                        |
 
 **Client** (`client/.env`, see [`.env.example`](client/.env.example)):
 
@@ -193,7 +195,7 @@ Never commit real `.env` files; `.env*` is git-ignored except the `.env.example`
 
 TaskForge is designed to run with **no recurring infrastructure or API cost**. Every service is on a free tier (Vercel, Render, MongoDB Atlas, GitHub Actions), and the tradeoffs — such as Render cold starts — are accepted and designed around rather than paid away.
 
-The server provider contract supports chat and validated structured output with an explicit embeddings capability. Production execution defaults to disabled; canned simulation must be selected explicitly and is labelled as using no model. No paid provider or model call is implemented. Local Ollama inference follows in KAN-16; user run controls, permissions and approvals are later Phase 2 work. See [provider behavior](docs/ai-provider.md) and [Phase 2](docs/phases/phase-2-ai-workforce.md).
+The server provider contract supports chat and validated structured output with an explicit embeddings capability. Production execution defaults to disabled; canned simulation must be selected explicitly and is labelled as using no model. The local Ollama adapter supports explicitly configured developer inference; production stays disabled and no paid provider is implemented. User run controls, permissions and approvals are later Phase 2 work. See [provider behavior](docs/ai-provider.md) and [Phase 2](docs/phases/phase-2-ai-workforce.md).
 
 ## Roadmap and status
 
