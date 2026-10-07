@@ -214,3 +214,7 @@ Fast mocked unit suites remain separate from real MongoDB/API integration and Ch
 ## AI provider boundary (KAN-15)
 
 The server-only contract lives in `server/src/ai/provider.ts`, with no client/provider dependency. Default execution is disabled. Explicit canned simulation is labelled and does not use a model; disabled, unavailable and invalid configurations never silently fall back. `/api/ai/status` is authenticated, read-only, and reports safe capability metadata, not secrets or prompts. No execution route or database operation is added. Runtime output validation, deadline and cancellation semantics apply before future runs consume results. KAN-16 adds local-only developer Ollama inference with bounded protocol, cloud rejection and explicit trusted-daemon constraints. Owner-scoped runs, permission enforcement, audit and human approval remain subsequent tickets. See [provider behavior](ai-provider.md).
+
+## Agent run state foundation (KAN-17)
+
+Owned queued run records use the existing MongoDB stack, a unique owner/retry-key index acknowledged before creation, and atomic status/version/attempt fencing with bounded deadlines/leases. Expired running work can be explicitly marked failed, without replay. Public execution remains blocked until permission/audit safeguards; no worker, AIProvider call, task write or approval route is added. See [run boundaries](agent-runs.md).

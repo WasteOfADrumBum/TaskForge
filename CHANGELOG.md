@@ -10,6 +10,8 @@ All notable changes to TaskForge are recorded here.
 
 ### Changed
 
+- **KAN-17 — owned run foundation:** persist owner/task/agent/input/context/result/status with idempotent creation, an acknowledged unique retry-key index, atomic version/attempt/deadline fencing and explicit expiry failure. Add authenticated no-store queued create/read APIs; execution stays blocked until permission/audit safeguards. No worker, provider call, automatic replay, task writes or approval endpoint.
+
 - **KAN-16 — local inference:** add the server-only Ollama adapter for explicitly configured local development, with numeric loopback destinations, cloud/remote model preflight rejection, bounded JSON bodies/deadlines/cancellation and strict normal-completion/runtime-schema validation. Production always stays disabled. Add an explicit local-only synthetic smoke command; no paid provider, download inside the application, execution endpoint or user run controls.
 
 - **KAN-15 — provider boundary:** add a server-only AIProvider contract with disabled-by-default execution, explicitly selected labelled canned simulation, runtime structured-output validation, bounded cancellation/deadlines and unsupported embeddings errors. Authenticated read-only capability status exposes no model credentials or prompts. Local inference and user run/approval controls remain later Phase 2 tickets; no model calls, paid service or production data writes.

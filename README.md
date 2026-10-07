@@ -203,7 +203,7 @@ The server provider contract supports chat and validated structured output with 
 - [Project status](docs/project-status.md): the current checkpoint, production URLs, and latest validation results.
 - [Changelog](CHANGELOG.md): notable changes.
 
-**Phase 1 — Stabilize TaskForge** is complete: the app is live, verified in production, and on free-tier infrastructure. Current focus: the foundation for **Phase 2 — AI Workforce** (agent registry, runs, human approval, provider abstraction). Work + Projects, the Agent Registry, task assignment, and the approved security/reliability checks are shipped. KAN-13 added required real database and browser verification in PR #23; both live release identities matched `3a8e3c5`. No AI execution, runs, or approvals are built yet.
+**Phase 1 — Stabilize TaskForge** is complete: the app is live, verified in production, and on free-tier infrastructure. Current focus: the foundation for **Phase 2 — AI Workforce** (agent registry, runs, human approval, provider abstraction). Work + Projects, the Agent Registry, task assignment, and the approved security/reliability checks are shipped. KAN-13 added required real database and browser verification in PR #23; both live release identities matched `3a8e3c5`. Owned queued run records and private state transitions are implemented under KAN-17. Agent execution remains gated until permission/audit safeguards; run/activity UI and the human approval workflow remain planned.
 
 ## About this project
 

@@ -100,12 +100,12 @@ These are known minor polish issues found during PR #7. They were never Phase 1 
 - [x] **COMPLETE**: Agent Registry: persistent, user-owned agent definitions (name, role, description, status active/paused/disabled, skills, permission identifiers) with owner-scoped CRUD at `/api/agents`, the Workforce registry page (`/workforce`), an agent detail page (`/workforce/:id`), and a Workforce summary on the Command Center. PR #10, CI green, merged to `main` as `3ccb585`. Definitions only: nothing runs an agent or enforces its permissions. A `tools` field is deferred until there are tools to describe.
 - [x] **COMPLETE**: [KAN-2](https://taskforgejms.atlassian.net/browse/KAN-2): assign TaskForge tasks to agents. Preserved local work is carried into `codex/KAN-2-agent-task-assignment`, with assignment validation, deletion race reconciliation, workload UI, and source-matched Figma states. PR #15 merged as `16628b0`; 471 tests and independent review plus PR/main CI passed. Matching live client/API source identity verified under KAN-11. KAN-3 synthetic browser QA passed; original uncommitted work remains untouched.
 - [ ] **PLANNED**: Shared agent knowledge
-- [ ] **PLANNED**: Agent run model (input, context, result, status)
+- [ ] **IN PROGRESS**: Agent run model (KAN-17): owned persisted states, idempotent creation and bounded attempt/version/lease transitions. Model execution waits for KAN-18 safeguards.
 - [ ] **PLANNED**: Agent handoffs
 - [ ] **PLANNED**: Approval/rejection workflow
 - [ ] **PLANNED**: Agent activity UI
 - [x] **COMPLETE**: AI provider contract (KAN-15): disabled default, explicit labelled simulation, validated structured output and unsupported embeddings. PR #25 merged as `dacbd882`; 915 units, all QA/static/audit/CI/review/deployment gates passed. No real model calls.
-- [ ] **IN PROGRESS**: Local Ollama provider (KAN-16): numeric loopback, production disabled, trusted cloud-disabled daemon, bounded validated output; actual local synthetic smoke passed, final PR/CI/deployment remain.
+- [x] **COMPLETE**: Local Ollama provider (KAN-16): numeric loopback, production disabled and bounded validated output. PR #26 merged as `fda3d1a`; 977 units, real local smoke, full QA/audit/CI/review/deployment pass. Trusted cloud-disabled local daemon; no paid calls.
 - [ ] **PLANNED**: Chief of Staff MVP
 - [ ] **PLANNED**: Research Agent
 - [ ] **PLANNED**: Developer Agent
@@ -210,4 +210,4 @@ Learning:
 
 ## Active bounded Phase 2 work
 
-KAN-14 verified release evidence is complete (PR #24, a84f216). KAN-15 is Done (PR #25, `dacbd882`). KAN-16 local Ollama adapter is active. Josh approved production execution disabled by default with explicitly selected labelled simulation, real inference local through Ollama (KAN-16), and $0 paid AI API calls. Runs, permission enforcement, audit and human approval remain planned.
+KAN-14 verified release evidence is complete (PR #24, a84f216). KAN-15 is Done (PR #25, `dacbd882`). KAN-16 is Done (PR #26, `fda3d1a`); KAN-17 owned run state foundation is active with model execution gated until KAN-18. Josh approved production execution disabled by default with explicitly selected labelled simulation, real inference local through Ollama (KAN-16), and $0 paid AI API calls. Runs, permission enforcement, audit and human approval remain planned.
