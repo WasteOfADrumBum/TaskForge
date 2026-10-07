@@ -1,6 +1,10 @@
 import { Schema, model } from 'mongoose';
 
 export const AUDIT_DENIAL_REASONS = [
+  'invalid-handoff',
+  'handoff-source-unavailable',
+  'handoff-depth',
+  'handoff-loop',
   'run-not-found',
   'task-not-assigned',
   'agent-not-active',
@@ -28,7 +32,7 @@ const auditEventSchema = new Schema(
     attemptedRun: { type: Schema.Types.ObjectId, default: null, immutable: true },
     action: {
       type: String,
-      enum: ['execute', 'cancel', 'review'],
+      enum: ['execute', 'cancel', 'review', 'handoff'],
       required: true,
       immutable: true,
     },

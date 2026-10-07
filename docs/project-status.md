@@ -9,11 +9,11 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | Item                      | Value                                                                                                       |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02)) |
-| Current phase             | Phase 2: context and review shipped; run activity UI active; handoffs planned                               |
-| Current branch            | `codex/KAN-21-run-activity`; original assignment WIP preserved on `feat/agent-task-assignment`              |
+| Current phase             | Phase 2: run activity shipped; bounded handoffs active                                                      |
+| Current branch            | `codex/KAN-22-bounded-handoffs`; original assignment WIP preserved on `feat/agent-task-assignment`          |
 | Current checkpoint        | Release/delivery readiness followed by task → agent assignment and bounded Phase 2                          |
-| Last completed checkpoint | Bounded permission-scoped context (PR #30, `c06dc63`)                                                       |
-| Next recommended          | Verify KAN-21 protected CI and deployment, then KAN-22 bounded handoffs                                     |
+| Last completed checkpoint | Run activity and explicit review UI (PR #31, `9a6ec94`)                                                     |
+| Next recommended          | Verify KAN-22 protected CI/live delivery, then KAN-23 Chief of Staff MVP                                    |
 
 ## Known verification gaps
 
@@ -206,3 +206,15 @@ KAN-21 starts from this verified build on `codex/KAN-21-run-activity`. Owned run
 list/detail, explicit creation/execution and human review controls are implemented and
 locally validated from existing application patterns. No production writes, paid AI, handoff worker,
 new infrastructure or Figma workflow. Full QA passed 1141 units, 89 API cases, 7 safety tests and 8 Chromium flows, all static/build/audit0 checks; independent review reports no findings. Protected PR/main CI, merge and live deployment remain pending.
+
+## Run activity complete / KAN-22 active
+
+KAN-21 is Done: PR #31 merged as `9a6ec94`, after 1141 units, 89 API cases, 7 safety,
+8 Chromium flows, static/build/audit0 and independent review. Exact-head CI `37691691372`
+and main CI `37692077100` passed. Vercel `6921729060` and Render `6921725234` succeeded;
+both served identities match, health/readiness and signed-out guards pass, SPA run route is 200.
+
+KAN-22 begins from this verified build. Explicit approved-parent queued children preserve
+assignments, bind exact source version/digest, derive owned bounded ancestry and keep separate
+execution/review. No transaction, automatic model call, task/project write, paid service or
+Figma gate. Implementation and full local validation passed: 1233 units, 101 real API cases, 7 safety tests, 9 Chromium flows, static/build/audit0 and independent review. Protected CI/merge/live verification remain pending; no delivery claim yet.

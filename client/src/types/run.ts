@@ -7,6 +7,12 @@ export interface AgentRun {
   task: string;
   agent: string;
   input: string;
+  handoff?: {
+    parent: string;
+    ancestors: string[];
+    sourceVersion: number;
+    sourceResultDigest: string;
+  } | null;
   context?: unknown;
   contextDigest?: string | null;
   result: unknown;
@@ -41,6 +47,8 @@ export interface RunAuditEvent {
   reason: string | null;
   resultDigest?: string | null;
   contextDigest?: string | null;
+  parentRun?: string | null;
+  sourceResultDigest?: string | null;
 }
 export interface RunInput {
   taskId: string;

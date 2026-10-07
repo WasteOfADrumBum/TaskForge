@@ -12,8 +12,13 @@ import { clearAuth, setToken } from '../../redux/slices/authSlice';
 import { setTasks } from '../../redux/slices/taskSlice';
 import { setAgents } from '../../redux/slices/agentSlice';
 import * as api from '../../api/runs';
+import * as handoffs from '../../api/handoffs';
 import { UNCERTAIN_CHANGE_MESSAGE } from '../../api/request';
 import type { AgentRun } from '../../types/run';
+vi.mock('../../api/handoffs', () => ({
+  getHandoffs: vi.fn().mockResolvedValue([]),
+  createHandoff: vi.fn(),
+}));
 vi.mock('../../api/runs', () => ({
   createRun: vi.fn(),
   getRuns: vi.fn(),
@@ -92,6 +97,7 @@ const show = (start = '/workforce/runs/run-1') =>
   );
 beforeEach(() => {
   vi.resetAllMocks();
+  vi.mocked(handoffs.getHandoffs).mockResolvedValue([]);
   store.dispatch(clearAuth());
   store.dispatch(setToken('run-token'));
   vi.mocked(api.getRuns).mockResolvedValue([]);
@@ -367,4 +373,34 @@ it('disables the actual execution field during a pending write and preserves its
   expect(screen.queryByRole('button', { name: 'Execute draft' })).not.toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Cancel run' })).not.toBeInTheDocument();
   expect(api.executeRun).toHaveBeenCalledTimes(1);
+});
+it('retains handoff creation identity when a failed parent refresh unmounts the panel', async () => {
+  seed();
+  const approved = run({ status: 'approved', agent: 'source-agent' });
+  vi.mocked(api.getRun).mockResolvedValue(approved);
+  vi.mocked(handoffs.createHandoff)
+    .mockRejectedValueOnce(new Error(UNCERTAIN_CHANGE_MESSAGE))
+    .mockResolvedValueOnce(run({ _id: 'child-1', status: 'queued' }));
+  const user = userEvent.setup();
+  show();
+  await screen.findByLabelText('Handoff target task');
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Refresh run' })).toBeEnabled());
+  await user.selectOptions(screen.getByLabelText('Handoff target task'), 'task-1');
+  await user.type(screen.getByLabelText('Handoff request'), 'Next identical handoff');
+  await user.click(screen.getByRole('button', { name: 'Create queued handoff' }));
+  await screen.findByText(/Refresh handoffs before trying again/);
+  const firstKey = vi.mocked(handoffs.createHandoff).mock.calls[0][3];
+  vi.mocked(api.getRun).mockRejectedValueOnce(new Error('Parent temporarily unavailable'));
+  await user.click(screen.getByRole('button', { name: 'Refresh run' }));
+  await screen.findByText('Parent temporarily unavailable');
+  expect(screen.queryByLabelText('Handoff target task')).not.toBeInTheDocument();
+  await user.click(screen.getByRole('button', { name: 'Refresh run' }));
+  await screen.findByLabelText('Handoff target task');
+  await screen.findByText('No child handoffs.');
+  await user.selectOptions(screen.getByLabelText('Handoff target task'), 'task-1');
+  await user.type(screen.getByLabelText('Handoff request'), 'Next identical handoff');
+  await user.click(screen.getByRole('button', { name: 'Create queued handoff' }));
+  await screen.findByRole('link', { name: 'View child run' });
+  expect(vi.mocked(handoffs.createHandoff).mock.calls[1][3]).toBe(firstKey);
+  expect(handoffs.createHandoff).toHaveBeenCalledTimes(2);
 });

@@ -3,7 +3,7 @@
 **Status: IN PROGRESS.** Work + Projects, Agent Registry, assignment, provider abstraction,
 developer-local Ollama, owned runs, server permissions/audit, human review and bounded
 context are shipped (through PR #30, `c06dc63`). KAN-21 run activity
-and execution UI is locally validated; delivery is pending; handoffs and starter agents remain planned. Production real AI is disabled;
+and execution UI is shipped (PR #31, `9a6ec94`); bounded handoffs are active under KAN-22 and starter agents remain planned. Production real AI is disabled;
 simulation requires explicit selection. Assignment alone starts no work. Item status lives in
 [roadmap.md](../roadmap.md#phase-2-ai-workforce-details).
 
@@ -26,7 +26,7 @@ The Agent Registry (PR #10, merged) makes agents a persistent, user-owned domain
 - **Skills:** lowercase slug strings on the agent (for example `research`, `software-development`). No separate Skill collection; that can come later if matching needs more than tags.
 - **Permissions:** identifiers from a fixed catalog (`task.read`, `task.update`, `project.read`, `project.update`, `artifact.draft`). KAN-18 checks current `task.read` and `artifact.draft` for explicit text drafts; project content additionally requires `project.read`. No write tool is enabled.
 - **Privacy:** the same rules as Projects. Another user's agent looks exactly like a missing one (`404`), and `owner` can't be set from a request.
-- **Not built (still planned):** handoffs and starter specializations. KAN-18 server draft execution, permissions and audit are shipped; KAN-19 shipped pending-draft review on Agent Detail. Full run/execution controls are locally validated under KAN-21, delivery pending. (Task assignment came next; see below.)
+- **Not built (still planned):** starter specializations; KAN-22 bounded handoffs are in progress. KAN-18 server draft execution, permissions and audit are shipped; KAN-19 shipped pending-draft review on Agent Detail. Full run/execution controls are shipped under KAN-21. (Task assignment came next; see below.)
 - **Deferred:** a `tools` field. It will be added when there are real tools to describe.
 
 ## Foundation: Task → Agent Assignment (complete)
@@ -41,7 +41,7 @@ Merged in PR #15 as `16628b0`; client/API source identity is verified, and KAN-1
 
 ## Approved delivery boundary
 
-Release readiness and the assignment foundation are shipped. The current approved milestone continues with bounded Phase 2 execution: provider abstraction, a free local provider, runs, server-enforced permissions, an audit trail, human approval, and starter-agent handoffs. The provider contract is implemented under KAN-15; the local adapter is implemented under KAN-16, with run execution/approval/context APIs shipped and KAN-21 UI locally validated. Phases 3–8 require a separate milestone decision; the existing task-driven Command Center does not authorize their expansion.
+Release readiness and the assignment foundation are shipped. The current approved milestone continues with bounded Phase 2 execution: provider abstraction, a free local provider, runs, server-enforced permissions, an audit trail, human approval, and starter-agent handoffs. The provider contract is implemented under KAN-15; the local adapter is implemented under KAN-16, with run execution/approval/context APIs and KAN-21 UI shipped. Phases 3–8 require a separate milestone decision; the existing task-driven Command Center does not authorize their expansion.
 
 ## Objective
 
@@ -75,7 +75,7 @@ A TaskForge task can be assigned to an agent. The assignment itself is complete 
 
 ### Handoffs
 
-A run can hand off to another agent, which creates a child run. The chain stays visible in the run history.
+KAN-22 is implementing explicit approved-parent queued children for an owned task already assigned to the target active agent. Ancestry is bounded to three edges with no repeated agents; immutable source version/digest and visible parent/child links preserve history. Each child requires separate execution and human review; no assignment changes or automatic cascade. Full QA and delivery are pending.
 
 ### Approval/rejection workflow
 
@@ -83,7 +83,7 @@ Shipped under KAN-19: a human approves or rejects the exact owned result/version
 
 ### Agent activity UI
 
-KAN-21 implements locally validated owned run list/detail, statuses, input/output, frozen context, audit and review display with explicit creation/execution controls. Handoffs remain KAN-22; no synthetic activity or performance claims.
+KAN-21 shipped owned run list/detail, statuses, input/output, frozen context, audit and review display with explicit creation/execution controls. Handoffs are active under KAN-22; no synthetic activity or performance claims.
 
 ### Shared agent knowledge
 
@@ -109,7 +109,7 @@ The server contract is implemented under KAN-15 in `server/src/ai/provider.ts`: 
 
 Josh approved the production default: disabled execution, with explicitly selected, clearly labelled canned simulation. Even demo configuration does not select simulation automatically. KAN-16 supplies local-only developer Ollama inference; no paid API or production model call is made. Free-tier Render cannot reach an owner's localhost or host a local model. Paid vendors require a separate explicit decision; no vendor SDK or key is accepted here.
 
-KAN-18 server draft permissions/audit are shipped. KAN-19 human review is shipped. KAN-20 bounded context is shipped. Full run controls are locally validated under KAN-21, with protected CI/live delivery pending. Assignment alone does not execute an agent.
+KAN-18 server draft permissions/audit are shipped. KAN-19 human review is shipped. KAN-20 bounded context is shipped. Full run controls are shipped under KAN-21 after CI/live verification. Assignment alone does not execute an agent.
 
 ## Dependencies
 
