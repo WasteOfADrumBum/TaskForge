@@ -10,13 +10,13 @@ export const recordRunDenial = async (
   owner: string,
   attemptedRun: string | null,
   reason: (typeof AUDIT_DENIAL_REASONS)[number],
-  action: 'execute' | 'cancel' = 'execute',
+  action: 'execute' | 'cancel' | 'review' = 'execute',
 ) => {
   if (
     !isObjectIdString(owner) ||
     (attemptedRun !== null && !isObjectIdString(attemptedRun)) ||
     !AUDIT_DENIAL_REASONS.includes(reason) ||
-    !['execute', 'cancel'].includes(action)
+    !['execute', 'cancel', 'review'].includes(action)
   )
     throw new AuditUnavailableError();
   try {

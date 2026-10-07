@@ -4,6 +4,8 @@ import {
   createOwnedRun,
   getOwnedRun,
   listOwnedRuns,
+  listPendingRuns,
+  reviewRun,
   RunInputError,
 } from '../../services/runService';
 import { runExecutor, RunExecutionError } from '../../services/runService/execution';
@@ -122,5 +124,66 @@ export const denialAuditHandler = async (req: Request, res: Response) => {
     return res.json({ events: await listOwnedDenials(owner(req)) });
   } catch {
     return res.status(503).json({ message: 'Audit reading is temporarily unavailable' });
+  }
+};
+
+export const pendingReviewsHandler = async (req: Request, res: Response) => {
+  if (Object.keys(req.query).some((key) => key !== 'agentId'))
+    return res.status(400).json({ message: 'Invalid pending review filter' });
+  const agentId = req.query.agentId;
+  if (agentId !== undefined && (!isObjectIdString(agentId) || agentId.length !== 24))
+    return res.status(400).json({ message: 'Invalid agent filter' });
+  try {
+    return res.json({ runs: await listPendingRuns(owner(req), agentId as string | undefined) });
+  } catch {
+    return res.status(503).json({ message: 'Pending reviews are temporarily unavailable' });
+  }
+};
+export const reviewRunHandler = async (req: Request, res: Response) => {
+  try {
+    if (!isObjectIdString(req.params.id)) {
+      await recordRunDenial(owner(req), null, 'run-not-found', 'review');
+      return notFound(res);
+    }
+    const body = req.body as unknown;
+    if (!body || typeof body !== 'object' || Array.isArray(body))
+      return res.status(400).json({ message: 'Invalid review input' });
+    const { decision, version, resultDigest, note } = body as Record<string, unknown>;
+    if (
+      (decision !== 'approved' && decision !== 'rejected') ||
+      typeof version !== 'number' ||
+      !Number.isSafeInteger(version) ||
+      version < 0 ||
+      typeof resultDigest !== 'string' ||
+      resultDigest.length !== 64 ||
+      !/^[a-f0-9]{64}$/.test(resultDigest) ||
+      (note !== undefined && (typeof note !== 'string' || note.length > 2000))
+    )
+      return res.status(400).json({
+        message:
+          'Review requires a decision, exact version/digest, and optional note of at most 2000 characters',
+      });
+    const run = await reviewRun(
+      owner(req),
+      req.params.id as string,
+      version,
+      decision,
+      resultDigest,
+      note as string | undefined,
+    );
+    if (!run) {
+      await recordRunDenial(owner(req), req.params.id as string, 'run-not-found', 'review');
+      return notFound(res);
+    }
+    return res.json({ run });
+  } catch (error) {
+    if (error instanceof RunInputError && error.status === 409) {
+      try {
+        await recordRunDenial(owner(req), req.params.id as string, 'state-conflict', 'review');
+      } catch (auditError) {
+        return executionError(res, auditError);
+      }
+    }
+    return executionError(res, error);
   }
 };

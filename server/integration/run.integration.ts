@@ -222,9 +222,9 @@ it.each(['approved', 'rejected'] as const)(
     await completeRun(aliceId, id, 1, running.attemptId!, { summary: 'Draft only' });
     const reviewed = await reviewRun(aliceId, id, 2, decision);
     expect(reviewed?.status).toBe(decision);
-    expect(
-      await reviewRun(aliceId, id, 2, decision === 'approved' ? 'rejected' : 'approved'),
-    ).toBeNull();
+    await expect(
+      reviewRun(aliceId, id, 2, decision === 'approved' ? 'rejected' : 'approved'),
+    ).rejects.toMatchObject({ status: 409 });
     expect(await claimRun(aliceId, id, 3)).toBeNull();
     expect(await failRun(aliceId, id, 3, 'queued', null, 'interrupted')).toBeNull();
     expect((await Task.findById(taskId))?.status).toBe('todo');

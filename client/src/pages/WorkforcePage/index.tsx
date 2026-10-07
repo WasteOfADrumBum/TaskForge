@@ -88,7 +88,8 @@ const WorkforcePage = () => {
           <Alert.Title>Assignments do not start runs.</Alert.Title>
           <Alert.Description>
             You can assign tasks to active agents to plan who owns what. Assignment alone does not
-            start a run or call a model. Run and approval controls are planned. Read the{' '}
+            start a run or call a model. Run controls are planned; review pending drafts on an
+            agent’s page. Read the{' '}
             <Link href={phase2Url} target="_blank" rel="noreferrer" textDecoration="underline">
               Phase 2 plan
             </Link>
