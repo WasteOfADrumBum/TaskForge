@@ -94,7 +94,7 @@ These are known minor polish issues found during PR #7. They were never Phase 1 
 
 ## Phase 2: AI Workforce ([details](phases/phase-2-ai-workforce.md))
 
-**Status: IN PROGRESS** (foundation only). Work + Projects (PR #9) and the Agent Registry (PR #10) are merged. Agents are saved definitions only: no AI execution, model calls, runs, handoffs, approvals, or permission enforcement exist. Task assignment is shipped; live client/API source identity is verified. Synthetic browser QA passed; real MongoDB integration and browser critical-flow QA shipped under KAN-13 (PR #23).
+**Status: IN PROGRESS** (foundation only). Work + Projects (PR #9) and the Agent Registry (PR #10) are merged. Agents are saved definitions only: no agent execution, runs, handoffs, approvals, or permission enforcement exist. KAN-16 adds local developer model calls; production stays disabled. Task assignment is shipped; live client/API source identity is verified. Synthetic browser QA passed; real MongoDB integration and browser critical-flow QA shipped under KAN-13 (PR #23).
 
 - [x] **COMPLETE**: Work + Projects foundation: user-owned projects (model, owner-scoped CRUD API, optional task → project link, delete keeps tasks), a Projects area in Work, and Active projects on the Command Center (PR #9, merged to `main` as `493f0c3`). A prerequisite only: no agent or AI feature.
 - [x] **COMPLETE**: Agent Registry: persistent, user-owned agent definitions (name, role, description, status active/paused/disabled, skills, permission identifiers) with owner-scoped CRUD at `/api/agents`, the Workforce registry page (`/workforce`), an agent detail page (`/workforce/:id`), and a Workforce summary on the Command Center. PR #10, CI green, merged to `main` as `3ccb585`. Definitions only: nothing runs an agent or enforces its permissions. A `tools` field is deferred until there are tools to describe.
@@ -104,8 +104,8 @@ These are known minor polish issues found during PR #7. They were never Phase 1 
 - [ ] **PLANNED**: Agent handoffs
 - [ ] **PLANNED**: Approval/rejection workflow
 - [ ] **PLANNED**: Agent activity UI
-- [ ] **IN PROGRESS**: AI provider contract (KAN-15): disabled default, explicit labelled simulation, runtime-validated structured output and unsupported embeddings. Local Ollama adapter follows in KAN-16; final validation/review/CI/deployment remain.
-- [ ] **PLANNED**: Local provider (Ollama or another $0-extra-cost option)
+- [x] **COMPLETE**: AI provider contract (KAN-15): disabled default, explicit labelled simulation, validated structured output and unsupported embeddings. PR #25 merged as `dacbd882`; 915 units, all QA/static/audit/CI/review/deployment gates passed. No real model calls.
+- [ ] **IN PROGRESS**: Local Ollama provider (KAN-16): numeric loopback, production disabled, trusted cloud-disabled daemon, bounded validated output; actual local synthetic smoke passed, final PR/CI/deployment remain.
 - [ ] **PLANNED**: Chief of Staff MVP
 - [ ] **PLANNED**: Research Agent
 - [ ] **PLANNED**: Developer Agent
@@ -210,4 +210,4 @@ Learning:
 
 ## Active bounded Phase 2 work
 
-KAN-14 verified release evidence is complete (PR #24, a84f216). KAN-15 provider contract implementation is active. Josh approved production execution disabled by default with explicitly selected labelled simulation, real inference local through Ollama (KAN-16), and $0 paid AI API calls. Runs, permission enforcement, audit and human approval remain planned.
+KAN-14 verified release evidence is complete (PR #24, a84f216). KAN-15 is Done (PR #25, `dacbd882`). KAN-16 local Ollama adapter is active. Josh approved production execution disabled by default with explicitly selected labelled simulation, real inference local through Ollama (KAN-16), and $0 paid AI API calls. Runs, permission enforcement, audit and human approval remain planned.

@@ -10,6 +10,8 @@ All notable changes to TaskForge are recorded here.
 
 ### Changed
 
+- **KAN-16 — local inference:** add the server-only Ollama adapter for explicitly configured local development, with numeric loopback destinations, cloud/remote model preflight rejection, bounded JSON bodies/deadlines/cancellation and strict normal-completion/runtime-schema validation. Production always stays disabled. Add an explicit local-only synthetic smoke command; no paid provider, download inside the application, execution endpoint or user run controls.
+
 - **KAN-15 — provider boundary:** add a server-only AIProvider contract with disabled-by-default execution, explicitly selected labelled canned simulation, runtime structured-output validation, bounded cancellation/deadlines and unsupported embeddings errors. Authenticated read-only capability status exposes no model credentials or prompts. Local inference and user run/approval controls remain later Phase 2 tickets; no model calls, paid service or production data writes.
 
 - **KAN-13 — reproducible critical verification:** add separate isolated real MongoDB/API tests and browser smoke for persistence, assignment, owner isolation, session expiry and mobile navigation. Required CI runs both after fast unit checks. Test runners create only fresh loopback databases, refuse pre-existing data and verify API listener ownership before browser traffic. Keep the full audit gate with a scoped shell-quote patch for the existing build tool.

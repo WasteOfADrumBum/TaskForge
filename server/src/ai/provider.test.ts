@@ -39,9 +39,15 @@ const errorCode = async (operation: Promise<unknown>): Promise<ProviderErrorCode
 };
 
 const originalProvider = process.env.AI_PROVIDER;
+const originalModel = process.env.OLLAMA_MODEL;
+const originalBase = process.env.OLLAMA_BASE_URL;
 afterEach(() => {
   if (originalProvider === undefined) delete process.env.AI_PROVIDER;
   else process.env.AI_PROVIDER = originalProvider;
+  if (originalModel === undefined) delete process.env.OLLAMA_MODEL;
+  else process.env.OLLAMA_MODEL = originalModel;
+  if (originalBase === undefined) delete process.env.OLLAMA_BASE_URL;
+  else process.env.OLLAMA_BASE_URL = originalBase;
   jest.useRealTimers();
   jest.restoreAllMocks();
 });
@@ -99,9 +105,9 @@ it('reads configuration at call time rather than freezing imported environment',
   process.env.AI_PROVIDER = 'demo';
   expect(resolveConfiguredProvider().id).toBe('disabled');
   process.env.AI_PROVIDER = 'ollama';
-  expect(() => resolveConfiguredProvider()).toThrow(
-    expect.objectContaining({ code: 'UNAVAILABLE' }),
-  );
+  process.env.OLLAMA_MODEL = 'synthetic:latest';
+  process.env.OLLAMA_BASE_URL = 'http://127.0.0.1:11434';
+  expect(resolveConfiguredProvider().id).toBe('ollama');
   process.env.AI_PROVIDER = 'disabled';
   expect(resolveConfiguredProvider().id).toBe('disabled');
 });
@@ -125,20 +131,18 @@ it.each(['openai', 'https://secret.example?key=private', ' demo ', 'paid'])(
   },
 );
 
-it('reports local inference unavailable without silently selecting demo', () => {
+it('reports local configuration without claiming the model is online', () => {
+  process.env.OLLAMA_MODEL = 'synthetic:latest';
+  process.env.OLLAMA_BASE_URL = 'http://127.0.0.1:11434';
   expect(getProviderStatus('ollama')).toMatchObject({
     configuredProvider: 'ollama',
-    reason: 'unavailable',
-    defaultMode: 'disabled',
+    reason: 'not_verified',
+    defaultMode: 'local',
     available: false,
     demoSupported: true,
   });
-  expect(() => resolveConfiguredProvider({ configuredProvider: 'ollama' })).toThrow(
-    expect.objectContaining({ code: 'UNAVAILABLE' }),
-  );
-  expect(() => resolveConfiguredProvider({ configuredProvider: 'ollama', mode: 'demo' })).toThrow(
-    expect.objectContaining({ code: 'UNAVAILABLE' }),
-  );
+  expect(resolveConfiguredProvider({ configuredProvider: 'ollama' }).id).toBe('ollama');
+  expect(resolveConfiguredProvider({ configuredProvider: 'ollama', mode: 'demo' }).id).toBe('demo');
 });
 
 it('returns safe disabled status and frozen capability objects', () => {

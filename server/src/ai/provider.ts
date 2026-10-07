@@ -1,34 +1,9 @@
 import { performance } from 'node:perf_hooks';
 
-export type ProviderErrorCode =
-  | 'DISABLED'
-  | 'INVALID_CONFIGURATION'
-  | 'UNAVAILABLE'
-  | 'INVALID_REQUEST'
-  | 'INVALID_OUTPUT'
-  | 'UNSUPPORTED'
-  | 'CANCELLED'
-  | 'TIMEOUT'
-  | 'BUSY';
+import { AIProviderError } from './errors';
+import { createOllamaAdapter, readOllamaConfiguration } from './ollama';
 
-const errorMessages: Record<ProviderErrorCode, string> = {
-  DISABLED: 'AI execution is disabled',
-  INVALID_CONFIGURATION: 'Invalid AI provider configuration',
-  UNAVAILABLE: 'AI provider is unavailable',
-  INVALID_REQUEST: 'Invalid AI request',
-  INVALID_OUTPUT: 'AI output did not match the required schema',
-  UNSUPPORTED: 'AI provider does not support this capability',
-  CANCELLED: 'AI request was cancelled',
-  TIMEOUT: 'AI request deadline exceeded',
-  BUSY: 'AI provider still has an unfinished request',
-};
-
-export class AIProviderError extends Error {
-  constructor(public readonly code: ProviderErrorCode) {
-    super(errorMessages[code]);
-    this.name = 'AIProviderError';
-  }
-}
+export { AIProviderError, type ProviderErrorCode } from './errors';
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -43,6 +18,7 @@ export interface ProviderOptions {
 
 export interface RuntimeSchema<T> {
   validate: (value: unknown) => value is T;
+  jsonSchema?: Record<string, unknown>;
 }
 
 export interface ProviderCapabilities {
@@ -82,6 +58,7 @@ export interface ProviderAdapter {
   structuredOutput(
     messages: readonly ChatMessage[],
     options: { signal: AbortSignal },
+    schema?: Record<string, unknown>,
   ): Promise<unknown>;
 }
 
@@ -199,7 +176,7 @@ export const createAIProvider = (adapter: ProviderAdapter): AIProvider => {
         return Promise.reject(error);
       }
       return invoke(async (signal) => {
-        const value = await adapter.structuredOutput(messages, { signal });
+        const value = await adapter.structuredOutput(messages, { signal }, schema.jsonSchema);
         try {
           if (schema.validate(value) !== true) throw new AIProviderError('INVALID_OUTPUT');
         } catch {
@@ -241,9 +218,9 @@ const createDemoProvider = () =>
 
 export interface ProviderStatus {
   configuredProvider: 'disabled' | 'demo' | 'ollama' | 'invalid';
-  defaultMode: 'disabled';
+  defaultMode: 'disabled' | 'local';
   available: false;
-  reason: 'disabled' | 'unavailable' | 'invalid_configuration';
+  reason: 'disabled' | 'not_verified' | 'invalid_configuration';
   demoSupported: true;
   capabilities: Readonly<ProviderCapabilities>;
   simulationCapabilities: Readonly<ProviderCapabilities>;
@@ -257,14 +234,23 @@ export const getProviderStatus = (configuredProvider = process.env.AI_PROVIDER):
     configured === 'disabled' || configured === 'demo' || configured === 'ollama'
       ? configured
       : 'invalid';
+  let reason: ProviderStatus['reason'] = name === 'invalid' ? 'invalid_configuration' : 'disabled';
+  if (name === 'ollama' && process.env.NODE_ENV !== 'production') {
+    try {
+      readOllamaConfiguration();
+      reason = 'not_verified';
+    } catch {
+      reason = 'invalid_configuration';
+    }
+  }
+  const local = reason === 'not_verified';
   return {
     configuredProvider: name,
-    defaultMode: 'disabled',
+    defaultMode: local ? 'local' : 'disabled',
     available: false,
-    reason:
-      name === 'invalid' ? 'invalid_configuration' : name === 'ollama' ? 'unavailable' : 'disabled',
+    reason,
     demoSupported: true,
-    capabilities: disabledCapabilities,
+    capabilities: local ? supportedCapabilities : disabledCapabilities,
     simulationCapabilities: supportedCapabilities,
   };
 };
@@ -274,9 +260,11 @@ export const resolveConfiguredProvider = (
 ): AIProvider => {
   const status = getProviderStatus(options.configuredProvider);
   if (status.reason === 'invalid_configuration') throw new AIProviderError('INVALID_CONFIGURATION');
-  if (status.reason === 'unavailable') throw new AIProviderError('UNAVAILABLE');
   if (options.mode !== undefined && options.mode !== 'demo')
     throw new AIProviderError('INVALID_REQUEST');
   // Even AI_PROVIDER=demo does not select simulation without this per-call opt-in.
-  return options.mode === 'demo' ? createDemoProvider() : createDisabledProvider();
+  if (options.mode === 'demo') return createDemoProvider();
+  return status.defaultMode === 'local'
+    ? createAIProvider(createOllamaAdapter())
+    : createDisabledProvider();
 };
