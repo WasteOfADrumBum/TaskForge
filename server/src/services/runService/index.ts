@@ -2,6 +2,13 @@ import { createHash, randomUUID } from 'node:crypto';
 import { Run, isBoundedJson, RUN_RESULT_MAX_BYTES, digestRunResult } from '../../models/runModel';
 import { Task } from '../../models/taskModel';
 import { Agent } from '../../models/agentModel';
+import { authorizeRunDraft } from '../permissionService';
+import { buildRunContext } from '../contextService';
+export class RunAuthorityError extends Error {
+  constructor(public readonly reason: import('../permissionService').DraftDenialReason) {
+    super('Run draft permission changed');
+  }
+}
 
 export class RunInputError extends Error {
   constructor(
@@ -119,6 +126,7 @@ export const claimRun = async (
   workMs = 120000,
   now = new Date(),
   mode: 'demo' | 'local' | null = null,
+  includeProject = false,
 ) => {
   assertVersion(version);
   if (mode !== null && !['demo', 'local'].includes(mode))
@@ -137,18 +145,30 @@ export const claimRun = async (
     !(await Agent.exists({ _id: run.agent, owner, status: 'active' }))
   )
     return null;
+  let context: ReturnType<typeof buildRunContext> | undefined;
+  if (mode !== null) {
+    const authority = await authorizeRunDraft(owner, id, includeProject);
+    if (!authority.allowed) throw new RunAuthorityError(authority.reason);
+    context = buildRunContext(authority.task, authority.project);
+  }
   return Run.findOneAndUpdate(
     { _id: id, owner, status: 'queued', version },
     {
       $set: {
         status: 'running',
+        ...(context && { context: context.snapshot, contextDigest: context.digest }),
         executionMode: mode,
         attemptId: randomUUID(),
         workDeadline: new Date(now.getTime() + workMs),
         leaseExpiresAt: new Date(now.getTime() + workMs + 5000),
       },
       $inc: { version: 1 },
-      $push: { auditEvents: lifecycle(owner, 'claimed', 'queued', 'running', version + 1, mode) },
+      $push: {
+        auditEvents: {
+          ...lifecycle(owner, 'claimed', 'queued', 'running', version + 1, mode),
+          ...(context && { contextDigest: context.digest }),
+        },
+      },
     },
     updateOptions,
   );

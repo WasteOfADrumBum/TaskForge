@@ -81,6 +81,7 @@ export interface RunLifecycleEvent {
   version: number;
   mode: 'demo' | 'local' | null;
   resultDigest?: string | null;
+  contextDigest?: string | null;
   reason: 'expired' | 'interrupted' | 'cancelled' | 'provider-error' | 'permission-denied' | null;
 }
 const lifecycleSchema = new Schema<RunLifecycleEvent>(
@@ -97,6 +98,7 @@ const lifecycleSchema = new Schema<RunLifecycleEvent>(
     to: { type: String, enum: RUN_STATUSES, required: true },
     version: { type: Number, required: true, min: 0, validate: Number.isSafeInteger },
     resultDigest: { type: String, match: /^[a-f0-9]{64}$/, default: null },
+    contextDigest: { type: String, match: /^[a-f0-9]{64}$/, default: null },
     mode: { type: String, enum: ['demo', 'local', null], default: null },
     reason: {
       type: String,
@@ -113,6 +115,7 @@ export interface RunRecord {
   agent: Types.ObjectId;
   input: string;
   context: unknown;
+  contextDigest: string | null;
   result: unknown;
   status: RunStatus;
   version: number;
@@ -146,6 +149,7 @@ const runSchema = new Schema<RunRecord>(
       default: null,
       validate: (value: unknown) => isBoundedJson(value, RUN_RESULT_MAX_BYTES),
     },
+    contextDigest: { type: String, match: /^[a-f0-9]{64}$/, default: null },
     executionMode: { type: String, enum: ['demo', 'local', null], default: null },
     auditEvents: {
       type: [lifecycleSchema],
@@ -225,6 +229,25 @@ runSchema.pre('findOneAndUpdate', function () {
   ) {
     throw new Error('Run records require audited lifecycle updates');
   }
+  for (const fields of Object.values(update)) {
+    for (const field of Object.keys(fields)) {
+      if (
+        (field === 'context' || field.startsWith('context.') || field === 'contextDigest') &&
+        (field.startsWith('context.') ||
+          filter.status !== 'queued' ||
+          update.$set?.status !== 'running' ||
+          fields !== update.$set)
+      )
+        throw new Error('Run context is frozen after claim');
+    }
+  }
+  if (
+    (update.$set?.context !== undefined || update.$set?.contextDigest !== undefined) &&
+    (!isBoundedJson(update.$set.context, RUN_CONTEXT_MAX_BYTES) ||
+      digestRunResult(update.$set.context) !== update.$set.contextDigest ||
+      event.contextDigest !== update.$set.contextDigest)
+  )
+    throw new Error('Run context requires a matching audited digest');
   this.setQuery({ ...filter, 'auditEvents.63': { $exists: false } });
   const expectedKind =
     event.to === 'running' ? 'claimed' : event.to === 'awaiting-approval' ? 'drafted' : event.to;

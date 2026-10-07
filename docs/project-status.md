@@ -10,10 +10,10 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02)) |
 | Current phase             | Phase 2: human review locally validated; run controls/handoffs planned                                      |
-| Current branch            | `codex/KAN-19-human-approval`; original assignment WIP preserved on `feat/agent-task-assignment`            |
+| Current branch            | `codex/KAN-20-bounded-context`; original assignment WIP preserved on `feat/agent-task-assignment`           |
 | Current checkpoint        | Release/delivery readiness followed by task → agent assignment and bounded Phase 2                          |
-| Last completed checkpoint | Draft permissions and audit (PR #28, `bb660e2`)                                                             |
-| Next recommended          | Verify KAN-19 PR/main CI and deployment, then KAN-20 bounded context                                        |
+| Last completed checkpoint | Exact human draft review (PR #29, `978c623`)                                                                |
+| Next recommended          | Verify KAN-20 PR/main CI and deployment, then KAN-21 run activity UI                                        |
 
 ## Known verification gaps
 
@@ -191,3 +191,9 @@ KAN-18 is Done: PR #28 merged `bb660e2`; PR CI `37622851265` and main CI `376233
 KAN-19 checkpoint: owned pending-draft reads, exact-result/version approval/rejection CAS, bounded review notes and safe atomic audit are implemented on the active branch. Agent Detail review panel and authenticated API/types are implemented; 62 real API cases and 52 affected client tests passed, with server build/static and client lint/types passing. UI selector locking was corrected after a failing regression. Independent review, the new real Chromium approval flow, full final validation, PR/CI/merge and deployment remain pending. No KAN-19 commit, push or PR; production remains verified KAN-18.
 
 Final KAN-19 local validation passed: 1096 units (508 client/588 server), 70 real API cases, 7 safety tests, 5 Chromium flows including persisted approval/rejection, all static/build/diff checks and audit0. Review corrected generic literal-result equality; fresh Mongo regressions prove unchanged operator/array/scalar output and reject changed read/CAS values. Chakra field disabling is now type-safe with original pending-state assertions retained. Final independent review and PR/main CI/served deployment verification remain delivery gates.
+
+## Minimal context (KAN-20, active)
+
+KAN-19 is Done: PR #29 merged `978c623`; revised PR CI `37655921992` and main CI `37656435346`, Vercel `6915874391`, Render `6915869378`, matching live client/API identities, health/readiness and approval auth/no-store checks passed. The earlier browser CI failure remains recorded; helper ordering/API assertions were strengthened without timeout/retry changes. KAN-20 begins from this verified main. Permission-scoped minimal task/project snapshots are in progress; no RAG, paid service, migration, automatic writes, Figma or production data testing.
+
+Final local KAN-20 implementation/QA passed1104 units (508 client/596 server),89 real API cases,7 safety,5 Chromium and static/types/build/diff/audit0. Independent review found an opted-in no-project→project source race; complete source-set equality plus explicit/default regression cases resolve it. Snapshot/digest remain frozen and audited, hostile notes stay user-role data, all four permission boundaries tested. Final review, PR/main CI and served deployment verification remain before Done. No actual model calls, production data tests, migration or new service.
