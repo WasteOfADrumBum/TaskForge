@@ -2,18 +2,18 @@
 
 A short, living snapshot of where TaskForge is right now. For the full plan, see [roadmap.md](roadmap.md).
 
-**Last updated:** 2026-10-06
+**Last updated:** 2026-10-07
 
 ## Checkpoint
 
 | Item                      | Value                                                                                                       |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02)) |
-| Current phase             | Phase 2: AI Workforce, foundation work (no AI execution yet)                                                |
-| Current branch            | `codex/KAN-17-agent-runs`; original assignment WIP preserved on `feat/agent-task-assignment`                |
+| Current phase             | Phase 2: bounded draft API; run UI and human approval remain planned                                        |
+| Current branch            | `codex/KAN-18-permissions-audit`; original assignment WIP preserved on `feat/agent-task-assignment`         |
 | Current checkpoint        | Release/delivery readiness followed by task → agent assignment and bounded Phase 2                          |
-| Last completed checkpoint | Local provider (PR #26, `fda3d1a`)                                                                          |
-| Next recommended          | Finish KAN-17 PR/deployment; then KAN-18 permission/audit safeguards                                        |
+| Last completed checkpoint | Owned run foundation (PR #27, `9149a81`)                                                                    |
+| Next recommended          | Verify KAN-18 PR/main CI and deployment, then begin KAN-19                                                  |
 
 ## Known verification gaps
 
@@ -176,6 +176,14 @@ KAN-14 is Done: PR #24 merged as `a84f216`; PR CI `37511837148`/main CI `3751238
 
 [Branch task](tasks/KAN-16-local-provider.md) defines server-only loopback inference, cloud rejection, bounded safe protocol and an explicit local smoke. Actual local chat and structured smoke passed with a checksum-verified portable Ollama 0.40.0/qwen3:0.6b, cloud disabled, synthetic inputs and owned loopback listener. Runtime stopped and port closed. 977 units, 7 safety tests, 16 real API and 3 Chromium flows passed; static/build/audit0 and independent code review passed. PR #26 merged as `fda3d1a`; PR CI `37553172384`/main CI `37553541711` passed. Both live identities match; health/readiness and status auth guards pass, Jira Done. No machine-wide service or production calls. Runs, permission enforcement, audit and approvals remain later tickets.
 
-## Agent runs (KAN-17, active)
+## Agent runs (KAN-17, complete)
 
-[Branch task](tasks/KAN-17-agent-runs.md) records persisted owner-scoped run states, idempotent creation and version/attempt/expiry fencing using existing MongoDB. Model execution remains gated until KAN-18; no worker, provider call, task write or approval UI is enabled. No new infrastructure or production migration. Local validation passed 1018 units, 7 safety tests, 32 real API cases, 3 Chromium flows, static/build checks and audit0; index-readiness review correction is covered. PR/CI/deployment remain before Done.
+[Branch task](tasks/KAN-17-agent-runs.md) records persisted owner-scoped run states, idempotent creation and version/attempt/expiry fencing using existing MongoDB. Model execution remains gated until KAN-18; no worker, provider call, task write or approval UI is enabled. No new infrastructure or production migration. Local validation passed 1018 units, 7 safety tests, 32 real API cases, 3 Chromium flows, static/build checks and audit0; index-readiness review correction is covered. PR #27 merged as `9149a81`; PR CI `37555852459`/main CI `37556345853`, deployments, matching live source identities, health/readiness and run auth/no-store guards passed. Jira Done.
+
+## Permissions and audit (KAN-18, active)
+
+[Branch task](tasks/KAN-18-permissions-audit.md) records least-privilege owner-scoped checks, atomic run lifecycle events and immutable denial records using existing MongoDB. Draft execute/cancel/audit routes are implemented and locally validated on the active branch; PR/main CI and deployment verification remain pending. Production is unchanged. No automatic task write, public approval endpoint, new service or production migration is enabled.
+
+Resume inspection on October 7 confirmed the uncommitted permission/audit foundations, no open PR, and successful main CI at `9149a81`. Implementation and independent review resumed after the usage window reset. Existing client copy is being aligned with the draft permission boundary; run/activity and approval controls remain planned. No execution or completion claim is made before validation.
+
+Final local KAN-18 validation passed: 1055 units (474 client, 581 server), 78 targeted server checks, 7 safety tests, 49 real API cases, 3 Chromium flows, format/lint/types/builds/diff and audit0. Independent review passed after closing the audit bulk-operation bypass and correcting obsolete copy/Phase 8 roadmap labelling. QA proved and fixed a timer-driven expiry classification defect with a deterministic red/green test; cancellation denial ordering and audit failure are covered. No production test writes or actual model rerun. Normal PR/main CI and matching served client/API identity remain required before Jira Done.

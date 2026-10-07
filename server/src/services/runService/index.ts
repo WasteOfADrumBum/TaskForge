@@ -44,6 +44,17 @@ const ensureRunIndex = createRunIndexGuard(() =>
   Run.collection.createIndex({ owner: 1, idempotencyKey: 1 }, { unique: true, maxTimeMS: 5000 }),
 );
 
+const lifecycle = (
+  owner: string,
+  kind: 'created' | 'claimed' | 'drafted' | 'failed' | 'expired' | 'approved' | 'rejected',
+  from: 'queued' | 'running' | 'awaiting-approval' | null,
+  to: 'queued' | 'running' | 'awaiting-approval' | 'approved' | 'rejected' | 'failed',
+  version: number,
+  mode: 'demo' | 'local' | null = null,
+  reason:
+    'expired' | 'interrupted' | 'cancelled' | 'provider-error' | 'permission-denied' | null = null,
+) => ({ id: randomUUID(), at: new Date(), actor: owner, kind, from, to, version, mode, reason });
+
 export interface CreateRunInput {
   taskId: string;
   agentId: string;
@@ -84,6 +95,7 @@ export const createOwnedRun = async (owner: string, input: CreateRunInput) => {
       result: null,
       status: 'queued',
       version: 0,
+      auditEvents: [lifecycle(owner, 'created', null, 'queued', 0)],
     });
     return { run, created: true };
   } catch (error) {
@@ -99,15 +111,18 @@ const assertVersion = (version: number) => {
   if (!Number.isSafeInteger(version) || version < 0)
     throw new RunInputError(400, 'Invalid run version');
 };
-const updateOptions = { new: true, runValidators: true };
+const updateOptions = { new: true, runValidators: true, maxTimeMS: 5000 };
 export const claimRun = async (
   owner: string,
   id: string,
   version: number,
   workMs = 120000,
   now = new Date(),
+  mode: 'demo' | 'local' | null = null,
 ) => {
   assertVersion(version);
+  if (mode !== null && !['demo', 'local'].includes(mode))
+    throw new RunInputError(400, 'Invalid execution mode');
   if (!Number.isInteger(workMs) || workMs < 1 || workMs > 120000 || !Number.isFinite(now.getTime()))
     throw new RunInputError(400, 'Invalid run deadline');
   const run = await Run.findOne({ _id: id, owner, status: 'queued', version });
@@ -127,11 +142,13 @@ export const claimRun = async (
     {
       $set: {
         status: 'running',
+        executionMode: mode,
         attemptId: randomUUID(),
         workDeadline: new Date(now.getTime() + workMs),
         leaseExpiresAt: new Date(now.getTime() + workMs + 5000),
       },
       $inc: { version: 1 },
+      $push: { auditEvents: lifecycle(owner, 'claimed', 'queued', 'running', version + 1, mode) },
     },
     updateOptions,
   );
@@ -167,6 +184,9 @@ export const completeRun = (
         leaseExpiresAt: null,
       },
       $inc: { version: 1 },
+      $push: {
+        auditEvents: lifecycle(owner, 'drafted', 'running', 'awaiting-approval', version + 1),
+      },
     },
     updateOptions,
   );
@@ -178,7 +198,7 @@ export const failRun = (
   version: number,
   from: 'queued' | 'running',
   attemptId: string | null,
-  reason: 'interrupted' | 'cancelled' | 'provider-error',
+  reason: 'interrupted' | 'cancelled' | 'provider-error' | 'permission-denied' | 'expired',
 ) => {
   assertVersion(version);
   if (
@@ -198,6 +218,7 @@ export const failRun = (
         leaseExpiresAt: null,
       },
       $inc: { version: 1 },
+      $push: { auditEvents: lifecycle(owner, 'failed', from, 'failed', version + 1, null, reason) },
     },
     updateOptions,
   );
@@ -230,6 +251,9 @@ export const recoverExpiredRun = (
         leaseExpiresAt: null,
       },
       $inc: { version: 1 },
+      $push: {
+        auditEvents: lifecycle(owner, 'expired', 'running', 'failed', version + 1, null, 'expired'),
+      },
     },
     updateOptions,
   );
@@ -247,7 +271,13 @@ export const reviewRun = (
     throw new RunInputError(400, 'Invalid run decision');
   return Run.findOneAndUpdate(
     { _id: id, owner, status: 'awaiting-approval', version },
-    { $set: { status: decision }, $inc: { version: 1 } },
+    {
+      $set: { status: decision },
+      $inc: { version: 1 },
+      $push: {
+        auditEvents: lifecycle(owner, decision, 'awaiting-approval', decision, version + 1),
+      },
+    },
     updateOptions,
   );
 };

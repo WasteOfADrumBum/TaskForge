@@ -362,7 +362,7 @@ const CommandCenterPage = () => {
                 ))}
               </Box>
               <Text fontSize="xs" color="fg.muted" mt={3}>
-                Assignments record who owns the work. Agents don’t run yet.
+                Assignments record who owns the work. Assignments do not start runs.
               </Text>
             </Box>
           )}

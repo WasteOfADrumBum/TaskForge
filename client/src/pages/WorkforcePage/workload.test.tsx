@@ -54,10 +54,10 @@ describe('Workforce workload', () => {
     expect(screen.queryByText(/productivity|performance/i)).not.toBeInTheDocument();
   });
 
-  it('says agents can be assigned tasks but don’t run', async () => {
+  it('says assignment alone does not start a run', async () => {
     await renderWorkforce();
     expect(screen.getByText(/assign tasks to active agents/i)).toHaveTextContent(
-      'agents don’t run or call any AI model yet',
+      'Assignment alone does not start a run or call a model',
     );
   });
 

@@ -276,7 +276,8 @@ const AgentDetailPage = () => {
               count={agent.permissions.length}
             />
             <Text fontSize="sm" color="fg.muted" mb={3}>
-              Recorded for later. Nothing enforces or uses these yet.
+              Drafts require Read tasks and Draft artifacts. Update permissions do not enable
+              automatic changes.
             </Text>
             <Box as="ul" listStyleType="none" m={0} p={0}>
               {AGENT_PERMISSIONS.map((item) => {
@@ -325,7 +326,7 @@ const AgentDetailPage = () => {
               }
             />
             <Text fontSize="sm" color="fg.muted" mb={3}>
-              These are planned and not built. This agent has no runs or activity.
+              Run history and approval controls on this page are planned.
             </Text>
             <SimpleGrid
               as="ul"

@@ -94,13 +94,13 @@ These are known minor polish issues found during PR #7. They were never Phase 1 
 
 ## Phase 2: AI Workforce ([details](phases/phase-2-ai-workforce.md))
 
-**Status: IN PROGRESS** (foundation only). Work + Projects (PR #9) and the Agent Registry (PR #10) are merged. Agents are saved definitions only: no agent execution, runs, handoffs, approvals, or permission enforcement exist. KAN-16 adds local developer model calls; production stays disabled. Task assignment is shipped; live client/API source identity is verified. Synthetic browser QA passed; real MongoDB integration and browser critical-flow QA shipped under KAN-13 (PR #23).
+**Status: IN PROGRESS** (foundation only). Work + Projects (PR #9) and the Agent Registry (PR #10) are merged. The registry, assignment, provider contract, local developer adapter and owned run foundation are shipped. KAN-18 draft permission/audit implementation is locally validated; PR/main CI and deployment verification are pending. Handoffs, human approval and run controls remain planned. Production real inference stays disabled. Task assignment is shipped; live client/API source identity is verified. Synthetic browser QA passed; real MongoDB integration and browser critical-flow QA shipped under KAN-13 (PR #23).
 
 - [x] **COMPLETE**: Work + Projects foundation: user-owned projects (model, owner-scoped CRUD API, optional task → project link, delete keeps tasks), a Projects area in Work, and Active projects on the Command Center (PR #9, merged to `main` as `493f0c3`). A prerequisite only: no agent or AI feature.
 - [x] **COMPLETE**: Agent Registry: persistent, user-owned agent definitions (name, role, description, status active/paused/disabled, skills, permission identifiers) with owner-scoped CRUD at `/api/agents`, the Workforce registry page (`/workforce`), an agent detail page (`/workforce/:id`), and a Workforce summary on the Command Center. PR #10, CI green, merged to `main` as `3ccb585`. Definitions only: nothing runs an agent or enforces its permissions. A `tools` field is deferred until there are tools to describe.
 - [x] **COMPLETE**: [KAN-2](https://taskforgejms.atlassian.net/browse/KAN-2): assign TaskForge tasks to agents. Preserved local work is carried into `codex/KAN-2-agent-task-assignment`, with assignment validation, deletion race reconciliation, workload UI, and source-matched Figma states. PR #15 merged as `16628b0`; 471 tests and independent review plus PR/main CI passed. Matching live client/API source identity verified under KAN-11. KAN-3 synthetic browser QA passed; original uncommitted work remains untouched.
 - [ ] **PLANNED**: Shared agent knowledge
-- [ ] **IN PROGRESS**: Agent run model (KAN-17): owned persisted states, idempotent creation and bounded attempt/version/lease transitions. Model execution waits for KAN-18 safeguards.
+- [x] **COMPLETE**: Agent run foundation (KAN-17): owned queued records, retry identity, atomic state/attempt/deadline fencing and explicit expiry failure. PR #27 merged as `9149a81`; 1018 units, 32 real API cases and all validation/review/CI/live gates passed. Execution stays gated until KAN-18.
 - [ ] **PLANNED**: Agent handoffs
 - [ ] **PLANNED**: Approval/rejection workflow
 - [ ] **PLANNED**: Agent activity UI
@@ -109,8 +109,8 @@ These are known minor polish issues found during PR #7. They were never Phase 1 
 - [ ] **PLANNED**: Chief of Staff MVP
 - [ ] **PLANNED**: Research Agent
 - [ ] **PLANNED**: Developer Agent
-- [ ] **PLANNED**: Audit trail
-- [ ] **PLANNED**: Permission boundaries
+- [x] **COMPLETE (validated branch)**: Audit trail (KAN-18): atomic lifecycle events and immutable owner-scoped denials; 1055 units/49 real API cases and independent review pass. Delivery verification pending.
+- [x] **COMPLETE (validated branch)**: Permission boundaries (KAN-18): persisted owner/assignment/active-agent/capability checks for explicit drafts; no write tools. Full QA and independent review pass; delivery verification pending.
 
 Release readiness is followed by the approved bounded Phase 2 work above. Phases 3–8 remain future roadmap context and require a separate milestone approval before new implementation.
 
@@ -210,4 +210,4 @@ Learning:
 
 ## Active bounded Phase 2 work
 
-KAN-14 verified release evidence is complete (PR #24, a84f216). KAN-15 is Done (PR #25, `dacbd882`). KAN-16 is Done (PR #26, `fda3d1a`); KAN-17 owned run state foundation is active with model execution gated until KAN-18. Josh approved production execution disabled by default with explicitly selected labelled simulation, real inference local through Ollama (KAN-16), and $0 paid AI API calls. Runs, permission enforcement, audit and human approval remain planned.
+KAN-14 verified release evidence is complete (PR #24, a84f216). KAN-15 is Done (PR #25, `dacbd882`). KAN-16 is Done (PR #26, `fda3d1a`); KAN-17 is Done (PR #27, `9149a81`); KAN-18 permission/audit safeguards are active. Execution remains closed until safeguards are validated. Josh approved production execution disabled by default with explicitly selected labelled simulation, real inference local through Ollama (KAN-16), and $0 paid AI API calls. Owned run records are shipped; permission enforcement and audit are active under KAN-18. Human approval remains planned.

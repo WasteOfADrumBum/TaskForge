@@ -146,8 +146,8 @@ const AgentForm = ({ agent, saving, error, onSubmit, onCancel }: AgentFormProps)
       </Heading>
       <Text color="fg.muted" mb={6}>
         {editing
-          ? 'Update this agent’s definition. Agents don’t run yet.'
-          : 'Define an AI worker for later. This saves its definition only; nothing runs.'}
+          ? 'Update this agent’s definition. Saving does not start a run.'
+          : 'Define an AI worker. Saving its definition does not start a run.'}
       </Text>
       <VStack align="stretch" gap={5}>
         <Field.Root required>
@@ -257,7 +257,8 @@ const AgentForm = ({ agent, saving, error, onSubmit, onCancel }: AgentFormProps)
             Permissions
           </Fieldset.Legend>
           <Fieldset.HelperText fontSize="xs">
-            Recorded for later. Nothing enforces or uses these yet.
+            Drafts require Read tasks and Draft artifacts. Update permissions do not enable
+            automatic changes.
           </Fieldset.HelperText>
           <Fieldset.Content>
             <VStack align="stretch" gap={2.5}>

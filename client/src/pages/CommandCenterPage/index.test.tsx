@@ -84,7 +84,7 @@ describe('Command Center active projects', () => {
     expect(panel.getByText('Active').nextSibling).toHaveTextContent('2');
     expect(panel.getByText('Paused').nextSibling).toHaveTextContent('1');
     expect(panel.getByText('Disabled').nextSibling).toHaveTextContent('1');
-    expect(panel.getByText(/agents don’t run yet/i)).toBeInTheDocument();
+    expect(panel.getByText(/assignments do not start runs/i)).toBeInTheDocument();
     await userEvent.click(panel.getByRole('link', { name: 'Open Workforce' }));
     expect(await screen.findByRole('heading', { level: 1, name: 'Workforce' })).toBeInTheDocument();
   });
@@ -112,7 +112,7 @@ describe('Command Center active projects', () => {
     expect(panel.getByText('Agents with open tasks').nextSibling).toHaveTextContent('1');
     expect(panel.getByText('Open tasks on you').nextSibling).toHaveTextContent('1');
     expect(panel.getByText('Unassigned open tasks').nextSibling).toHaveTextContent('2');
-    expect(panel.getByText(/agents don’t run yet/i)).toBeInTheDocument();
+    expect(panel.getByText(/assignments do not start runs/i)).toBeInTheDocument();
   });
 
   it('hides the workforce panel when there are no agents', async () => {

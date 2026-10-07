@@ -2,6 +2,11 @@ import express from 'express';
 import request from 'supertest';
 import jwt from 'jsonwebtoken';
 import routes from './index';
+import { runExecutor, RunExecutionError } from '../../services/runService/execution';
+jest.mock('../../services/runService/execution', () => {
+  const actual = jest.requireActual('../../services/runService/execution');
+  return { ...actual, runExecutor: { execute: jest.fn(), cancel: jest.fn() } };
+});
 import {
   createOwnedRun,
   getOwnedRun,
@@ -82,13 +87,29 @@ it('hides malformed IDs without service work', async () => {
   expect((await request(app).get('/api/runs/not-an-id').set(auth)).status).toBe(404);
   expect(getOwnedRun).not.toHaveBeenCalled();
 });
-it('blocks execution after owner lookup without executing or mutating anything', async () => {
+it('passes only explicit mode and owner to safeguarded execution, with an owned cancellation signal', async () => {
   jest
-    .mocked(getOwnedRun)
-    .mockResolvedValueOnce({ _id: id } as never)
-    .mockResolvedValueOnce(null);
-  expect((await request(app).post(`/api/runs/${id}/execute`).set(auth)).status).toBe(503);
-  expect((await request(app).post(`/api/runs/${id}/execute`).set(auth)).status).toBe(404);
-  expect(getOwnedRun).toHaveBeenCalledWith(owner, id);
-  expect(createOwnedRun).not.toHaveBeenCalled();
+    .mocked(runExecutor.execute)
+    .mockResolvedValue({ _id: id, status: 'awaiting-approval' } as never);
+  const response = await request(app)
+    .post(`/api/runs/${id}/execute`)
+    .set(auth)
+    .send({ mode: 'demo', permissions: ['shell.execute'], owner: agent, context: 'injected' });
+  expect(response.status).toBe(200);
+  expect(runExecutor.execute).toHaveBeenCalledWith(owner, id, 'demo', expect.any(AbortSignal));
+  expect(response.headers['cache-control']).toBe('no-store');
+});
+it('maps foreign execution to404 and unavailable modes to503 without exposing raw errors', async () => {
+  jest
+    .mocked(runExecutor.execute)
+    .mockRejectedValueOnce(new RunExecutionError(404, 'Run not found'))
+    .mockRejectedValueOnce(
+      new RunExecutionError(503, 'Selected run execution mode is unavailable'),
+    );
+  expect(
+    (await request(app).post(`/api/runs/${id}/execute`).set(auth).send({ mode: 'demo' })).status,
+  ).toBe(404);
+  expect(
+    (await request(app).post(`/api/runs/${id}/execute`).set(auth).send({ mode: 'local' })).status,
+  ).toBe(503);
 });

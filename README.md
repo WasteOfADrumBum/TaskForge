@@ -66,7 +66,7 @@ Captured locally from the production-equivalent `3a8e3c5` release with synthetic
 - **Session-expiration handling.** Expired or rejected sessions sign the user out cleanly and explain why (see below).
 - **Dark-first theme.** A dark command-center look with teal, orange, and violet accents. Light and system modes are available on the Settings page.
 - **Polished UI.** Landing page, auth pages, and workspace built with Chakra UI v3; routes are lazy-loaded.
-- **Agent Registry (Workforce).** Define private AI workers with a role, description, status (active / paused / disabled), skill tags, and permission identifiers, each with its own detail page. Task assignment shipped in PR #15, with matching client/API source identity verified under KAN-11. You can assign tasks to yourself or to an active agent, and see each agent's assigned and open tasks. Assignments only record who owns the work: agents don't run or call any AI model yet, and the app says so.
+- **Agent Registry (Workforce).** Define private AI workers with a role, description, status (active / paused / disabled), skill tags, and permission identifiers, each with its own detail page. Task assignment shipped in PR #15, with matching client/API source identity verified under KAN-11. You can assign tasks to yourself or to an active agent, and see each agent's assigned and open tasks. Assignment records ownership and does not start a run. KAN-18 adds permission-checked text drafts through the owned API; run controls and human approval UI remain planned.
 
 ## Tech stack
 
@@ -195,7 +195,7 @@ Never commit real `.env` files; `.env*` is git-ignored except the `.env.example`
 
 TaskForge is designed to run with **no recurring infrastructure or API cost**. Every service is on a free tier (Vercel, Render, MongoDB Atlas, GitHub Actions), and the tradeoffs — such as Render cold starts — are accepted and designed around rather than paid away.
 
-The server provider contract supports chat and validated structured output with an explicit embeddings capability. Production execution defaults to disabled; canned simulation must be selected explicitly and is labelled as using no model. The local Ollama adapter supports explicitly configured developer inference; production stays disabled and no paid provider is implemented. User run controls, permissions and approvals are later Phase 2 work. See [provider behavior](docs/ai-provider.md) and [Phase 2](docs/phases/phase-2-ai-workforce.md).
+The server provider contract supports chat and validated structured output with an explicit embeddings capability. Production execution defaults to disabled; canned simulation must be selected explicitly and is labelled as using no model. The local Ollama adapter supports explicitly configured developer inference; production stays disabled and no paid provider is implemented. KAN-18 adds server draft permissions and audit; user run controls and approvals remain later Phase 2 work. See [provider behavior](docs/ai-provider.md) and [Phase 2](docs/phases/phase-2-ai-workforce.md).
 
 ## Roadmap and status
 
@@ -203,7 +203,7 @@ The server provider contract supports chat and validated structured output with 
 - [Project status](docs/project-status.md): the current checkpoint, production URLs, and latest validation results.
 - [Changelog](CHANGELOG.md): notable changes.
 
-**Phase 1 — Stabilize TaskForge** is complete: the app is live, verified in production, and on free-tier infrastructure. Current focus: the foundation for **Phase 2 — AI Workforce** (agent registry, runs, human approval, provider abstraction). Work + Projects, the Agent Registry, task assignment, and the approved security/reliability checks are shipped. KAN-13 added required real database and browser verification in PR #23; both live release identities matched `3a8e3c5`. Owned queued run records and private state transitions are implemented under KAN-17. Agent execution remains gated until permission/audit safeguards; run/activity UI and the human approval workflow remain planned.
+**Phase 1 — Stabilize TaskForge** is complete: the app is live, verified in production, and on free-tier infrastructure. Current focus: the foundation for **Phase 2 — AI Workforce** (agent registry, runs, human approval, provider abstraction). Work + Projects, the Agent Registry, task assignment, and the approved security/reliability checks are shipped. KAN-13 added required real database and browser verification in PR #23; both live release identities matched `3a8e3c5`. Owned queued run records and private state transitions are implemented under KAN-17. KAN-18 draft permission/audit validation is in progress; run/activity UI and the human approval workflow remain planned.
 
 ## About this project
 

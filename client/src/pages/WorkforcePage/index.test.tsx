@@ -81,7 +81,7 @@ describe('Workforce page (Agent Registry)', () => {
 
   it('says plainly that agents do not run yet', async () => {
     await renderWorkforce();
-    expect(screen.getByText('Agents are saved definitions only.')).toBeInTheDocument();
+    expect(screen.getByText('Assignments do not start runs.')).toBeInTheDocument();
     expect(screen.queryByText(/run history|last run/i)).not.toBeInTheDocument();
   });
 

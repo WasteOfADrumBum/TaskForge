@@ -443,7 +443,7 @@ const WorkPage = () => {
                 </Field.HelperText>
               ) : (
                 <Field.HelperText>
-                  Only active agents can take new tasks. Agents don’t run yet.
+                  Only active agents can take new tasks. Assignment does not start a run.
                 </Field.HelperText>
               )}
             </Field.Root>

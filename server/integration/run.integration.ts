@@ -135,7 +135,7 @@ it('persists queued records with server-owned data and no provider/task executio
   const execute = await request(app)
     .post(`/api/runs/${response.body.run._id}/execute`)
     .set(auth(aliceToken));
-  expect(execute.status).toBe(503);
+  expect(execute.status).toBe(403);
   expect((await Run.findById(response.body.run._id))?.status).toBe('queued');
 });
 
