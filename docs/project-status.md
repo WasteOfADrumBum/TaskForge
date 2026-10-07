@@ -9,11 +9,11 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | Item                      | Value                                                                                                       |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02)) |
-| Current phase             | Phase 2: human review locally validated; run controls/handoffs planned                                      |
-| Current branch            | `codex/KAN-20-bounded-context`; original assignment WIP preserved on `feat/agent-task-assignment`           |
+| Current phase             | Phase 2: context and review shipped; run activity UI active; handoffs planned                               |
+| Current branch            | `codex/KAN-21-run-activity`; original assignment WIP preserved on `feat/agent-task-assignment`              |
 | Current checkpoint        | Release/delivery readiness followed by task → agent assignment and bounded Phase 2                          |
-| Last completed checkpoint | Exact human draft review (PR #29, `978c623`)                                                                |
-| Next recommended          | Verify KAN-20 PR/main CI and deployment, then KAN-21 run activity UI                                        |
+| Last completed checkpoint | Bounded permission-scoped context (PR #30, `c06dc63`)                                                       |
+| Next recommended          | Verify KAN-21 protected CI and deployment, then KAN-22 bounded handoffs                                     |
 
 ## Known verification gaps
 
@@ -184,16 +184,25 @@ KAN-14 is Done: PR #24 merged as `a84f216`; PR CI `37511837148`/main CI `3751238
 
 [Branch task](tasks/KAN-18-permissions-audit.md) records shipped least-privilege checks, atomic lifecycle audit, immutable safe denials and bounded explicit drafts. PR #28 merged as `bb660e2`; 1055 units, 49 real API, 7 safety, 3 Chromium, all static/build/audit checks and independent review passed. PR CI `37622851265`, main CI `37623387663`, Vercel `6910280380`, Render `6910275252`, matching live client/API identities, health/readiness and auth/no-store guards passed. Jira Done. No task/application writes, actual production model calls or paid service.
 
-## Human review (KAN-19, active)
+## Human review (KAN-19, complete)
 
-KAN-18 is Done: PR #28 merged `bb660e2`; PR CI `37622851265` and main CI `37623387663`, Vercel `6910280380`, Render `6910275252`, matching live client/API identities, health/readiness and auth/no-store checks passed. KAN-19 begins from this verified main state. Server exact-result/version review and an Agent Detail draft approval panel are in progress; no task mutation, paid service, production testing or Figma.
+PR #29 merged as `978c623`. 1096 units, 70 isolated API cases, 7 safety tests,
+5 Chromium flows, all static/build/audit checks and independent review passed.
+Literal-result equality was corrected with real Mongo regressions. The first browser CI
+failure was retained and fixed by waiting for Login's unique heading before credentials,
+with no timeout/retry changes. Revised PR CI `37655921992`, main CI `37656435346`,
+Vercel `6915874391`, Render `6915869378` and matching live identities passed. Jira Done.
+Approval records the exact draft decision; it does not apply task/project changes.
 
-KAN-19 checkpoint: owned pending-draft reads, exact-result/version approval/rejection CAS, bounded review notes and safe atomic audit are implemented on the active branch. Agent Detail review panel and authenticated API/types are implemented; 62 real API cases and 52 affected client tests passed, with server build/static and client lint/types passing. UI selector locking was corrected after a failing regression. Independent review, the new real Chromium approval flow, full final validation, PR/CI/merge and deployment remain pending. No KAN-19 commit, push or PR; production remains verified KAN-18.
+## KAN-20 delivery complete / KAN-21 active
 
-Final KAN-19 local validation passed: 1096 units (508 client/588 server), 70 real API cases, 7 safety tests, 5 Chromium flows including persisted approval/rejection, all static/build/diff checks and audit0. Review corrected generic literal-result equality; fresh Mongo regressions prove unchanged operator/array/scalar output and reject changed read/CAS values. Chakra field disabling is now type-safe with original pending-state assertions retained. Final independent review and PR/main CI/served deployment verification remain delivery gates.
+KAN-20 is Done: PR #30 merged as `c06dc63`, after 1104 units, 89 isolated API cases,
+7 safety tests, 5 Chromium flows, static/build/audit0 and independent review.
+Exact-head CI `37660100734` and main CI `37661029030` passed. Vercel `6916638371`
+and Render `6916634960` succeeded; both served identities match, health/readiness
+are 200 and run authentication rejects signed-out access with no-store.
 
-## Minimal context (KAN-20, active)
-
-KAN-19 is Done: PR #29 merged `978c623`; revised PR CI `37655921992` and main CI `37656435346`, Vercel `6915874391`, Render `6915869378`, matching live client/API identities, health/readiness and approval auth/no-store checks passed. The earlier browser CI failure remains recorded; helper ordering/API assertions were strengthened without timeout/retry changes. KAN-20 begins from this verified main. Permission-scoped minimal task/project snapshots are in progress; no RAG, paid service, migration, automatic writes, Figma or production data testing.
-
-Final local KAN-20 implementation/QA passed1104 units (508 client/596 server),89 real API cases,7 safety,5 Chromium and static/types/build/diff/audit0. Independent review found an opted-in no-project→project source race; complete source-set equality plus explicit/default regression cases resolve it. Snapshot/digest remain frozen and audited, hostile notes stay user-role data, all four permission boundaries tested. Final review, PR/main CI and served deployment verification remain before Done. No actual model calls, production data tests, migration or new service.
+KAN-21 starts from this verified build on `codex/KAN-21-run-activity`. Owned run
+list/detail, explicit creation/execution and human review controls are implemented and
+locally validated from existing application patterns. No production writes, paid AI, handoff worker,
+new infrastructure or Figma workflow. Full QA passed 1141 units, 89 API cases, 7 safety tests and 8 Chromium flows, all static/build/audit0 checks; independent review reports no findings. Protected PR/main CI, merge and live deployment remain pending.

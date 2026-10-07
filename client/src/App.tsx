@@ -14,12 +14,14 @@ const ProjectsPage = lazy(() => import('./pages/ProjectsPage'));
 const ProjectDetailPage = lazy(() => import('./pages/ProjectDetailPage'));
 const WorkforcePage = lazy(() => import('./pages/WorkforcePage'));
 const AgentDetailPage = lazy(() => import('./pages/AgentDetailPage'));
+const RunActivityPage = lazy(() => import('./pages/RunActivityPage'));
+const RunDetailPage = lazy(() => import('./pages/RunDetailPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 
 // Public: `/` (landing), `/login`, `/register`.
 // Authenticated, inside the app shell: `/home` (Command Center), `/work` (tasks),
 // `/work/projects`, `/work/projects/:id`, `/workforce` (Agent Registry), `/workforce/:id`,
-// `/settings`.
+// `/workforce/runs`, `/workforce/runs/:id`, `/settings`.
 export const AppRoutes = () => (
   <Suspense fallback={<div>Loading...</div>}>
     <Routes>
@@ -33,6 +35,8 @@ export const AppRoutes = () => (
           <Route path="/work/projects" element={<ProjectsPage />} />
           <Route path="/work/projects/:id" element={<ProjectDetailPage />} />
           <Route path="/workforce" element={<WorkforcePage />} />
+          <Route path="/workforce/runs" element={<RunActivityPage />} />
+          <Route path="/workforce/runs/:id" element={<RunDetailPage />} />
           <Route path="/workforce/:id" element={<AgentDetailPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>

@@ -15,6 +15,10 @@ export interface AgentRun {
   version: number;
   executionMode: 'demo' | 'local' | null;
   createdAt: string;
+  updatedAt?: string;
+  failureReason?: string | null;
+  idempotencyKey?: string;
+  auditEvents?: RunAuditEvent[];
   review?: {
     decision: ReviewDecision;
     note: string;
@@ -24,3 +28,35 @@ export interface AgentRun {
   } | null;
 }
 export const getRunId = (run: AgentRun) => run._id ?? run.id ?? '';
+
+export interface RunAuditEvent {
+  id: string;
+  at: string;
+  actor: string;
+  kind: 'created' | 'claimed' | 'drafted' | 'failed' | 'expired' | 'approved' | 'rejected';
+  from: RunStatus | null;
+  to: RunStatus;
+  version: number;
+  mode: 'demo' | 'local' | null;
+  reason: string | null;
+  resultDigest?: string | null;
+  contextDigest?: string | null;
+}
+export interface RunInput {
+  taskId: string;
+  agentId: string;
+  input: string;
+}
+export interface RunProviderStatus {
+  defaultMode: 'disabled' | 'local';
+  available: false;
+  capabilities: { chat: boolean; structuredOutput: boolean; embeddings: boolean };
+}
+export const runStatusLabel: Record<RunStatus, string> = {
+  queued: 'Queued',
+  running: 'Running',
+  'awaiting-approval': 'Awaiting approval',
+  approved: 'Approved',
+  rejected: 'Rejected',
+  failed: 'Failed',
+};

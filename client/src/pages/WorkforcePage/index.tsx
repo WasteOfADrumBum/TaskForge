@@ -1,6 +1,7 @@
 import { isCurrentSession } from '../../api/authenticatedFetch';
 import { Alert, Box, Heading, Link, SimpleGrid, Text } from '@chakra-ui/react';
 import { useMemo, useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import { LuBot } from 'react-icons/lu';
 import AgentCard from '../../components/agents/AgentCard';
 import AgentForm from '../../components/agents/AgentForm';
@@ -82,14 +83,17 @@ const WorkforcePage = () => {
           Define the AI workers you plan to use: their role, skills, and permissions.
         </Text>
       </Box>
+      <Link asChild mb={4} display="inline-flex" color="accent.teal">
+        <RouterLink to="/workforce/runs">Run activity</RouterLink>
+      </Link>
       <Alert.Root status="info" variant="surface" mb={{ base: 5, md: 6 }}>
         <Alert.Indicator />
         <Alert.Content>
           <Alert.Title>Assignments do not start runs.</Alert.Title>
           <Alert.Description>
             You can assign tasks to active agents to plan who owns what. Assignment alone does not
-            start a run or call a model. Run controls are planned; review pending drafts on an
-            agent’s page. Read the{' '}
+            start a run or call a model. Choose a run and an execution mode explicitly. Review
+            pending drafts before approving them. Read the{' '}
             <Link href={phase2Url} target="_blank" rel="noreferrer" textDecoration="underline">
               Phase 2 plan
             </Link>
