@@ -9,11 +9,11 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | Item                      | Value                                                                                                       |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02)) |
-| Current phase             | Phase 2: bounded draft API; run UI and human approval remain planned                                        |
-| Current branch            | `codex/KAN-18-permissions-audit`; original assignment WIP preserved on `feat/agent-task-assignment`         |
+| Current phase             | Phase 2: human review locally validated; run controls/handoffs planned                                      |
+| Current branch            | `codex/KAN-19-human-approval`; original assignment WIP preserved on `feat/agent-task-assignment`            |
 | Current checkpoint        | Release/delivery readiness followed by task → agent assignment and bounded Phase 2                          |
-| Last completed checkpoint | Owned run foundation (PR #27, `9149a81`)                                                                    |
-| Next recommended          | Verify KAN-18 PR/main CI and deployment, then begin KAN-19                                                  |
+| Last completed checkpoint | Draft permissions and audit (PR #28, `bb660e2`)                                                             |
+| Next recommended          | Verify KAN-19 PR/main CI and deployment, then KAN-20 bounded context                                        |
 
 ## Known verification gaps
 
@@ -180,10 +180,14 @@ KAN-14 is Done: PR #24 merged as `a84f216`; PR CI `37511837148`/main CI `3751238
 
 [Branch task](tasks/KAN-17-agent-runs.md) records persisted owner-scoped run states, idempotent creation and version/attempt/expiry fencing using existing MongoDB. Model execution remains gated until KAN-18; no worker, provider call, task write or approval UI is enabled. No new infrastructure or production migration. Local validation passed 1018 units, 7 safety tests, 32 real API cases, 3 Chromium flows, static/build checks and audit0; index-readiness review correction is covered. PR #27 merged as `9149a81`; PR CI `37555852459`/main CI `37556345853`, deployments, matching live source identities, health/readiness and run auth/no-store guards passed. Jira Done.
 
-## Permissions and audit (KAN-18, active)
+## Permissions and audit (KAN-18, complete)
 
-[Branch task](tasks/KAN-18-permissions-audit.md) records least-privilege owner-scoped checks, atomic run lifecycle events and immutable denial records using existing MongoDB. Draft execute/cancel/audit routes are implemented and locally validated on the active branch; PR/main CI and deployment verification remain pending. Production is unchanged. No automatic task write, public approval endpoint, new service or production migration is enabled.
+[Branch task](tasks/KAN-18-permissions-audit.md) records shipped least-privilege checks, atomic lifecycle audit, immutable safe denials and bounded explicit drafts. PR #28 merged as `bb660e2`; 1055 units, 49 real API, 7 safety, 3 Chromium, all static/build/audit checks and independent review passed. PR CI `37622851265`, main CI `37623387663`, Vercel `6910280380`, Render `6910275252`, matching live client/API identities, health/readiness and auth/no-store guards passed. Jira Done. No task/application writes, actual production model calls or paid service.
 
-Resume inspection on October 7 confirmed the uncommitted permission/audit foundations, no open PR, and successful main CI at `9149a81`. Implementation and independent review resumed after the usage window reset. Existing client copy is being aligned with the draft permission boundary; run/activity and approval controls remain planned. No execution or completion claim is made before validation.
+## Human review (KAN-19, active)
 
-Final local KAN-18 validation passed: 1055 units (474 client, 581 server), 78 targeted server checks, 7 safety tests, 49 real API cases, 3 Chromium flows, format/lint/types/builds/diff and audit0. Independent review passed after closing the audit bulk-operation bypass and correcting obsolete copy/Phase 8 roadmap labelling. QA proved and fixed a timer-driven expiry classification defect with a deterministic red/green test; cancellation denial ordering and audit failure are covered. No production test writes or actual model rerun. Normal PR/main CI and matching served client/API identity remain required before Jira Done.
+KAN-18 is Done: PR #28 merged `bb660e2`; PR CI `37622851265` and main CI `37623387663`, Vercel `6910280380`, Render `6910275252`, matching live client/API identities, health/readiness and auth/no-store checks passed. KAN-19 begins from this verified main state. Server exact-result/version review and an Agent Detail draft approval panel are in progress; no task mutation, paid service, production testing or Figma.
+
+KAN-19 checkpoint: owned pending-draft reads, exact-result/version approval/rejection CAS, bounded review notes and safe atomic audit are implemented on the active branch. Agent Detail review panel and authenticated API/types are implemented; 62 real API cases and 52 affected client tests passed, with server build/static and client lint/types passing. UI selector locking was corrected after a failing regression. Independent review, the new real Chromium approval flow, full final validation, PR/CI/merge and deployment remain pending. No KAN-19 commit, push or PR; production remains verified KAN-18.
+
+Final KAN-19 local validation passed: 1096 units (508 client/588 server), 70 real API cases, 7 safety tests, 5 Chromium flows including persisted approval/rejection, all static/build/diff checks and audit0. Review corrected generic literal-result equality; fresh Mongo regressions prove unchanged operator/array/scalar output and reject changed read/CAS values. Chakra field disabling is now type-safe with original pending-state assertions retained. Final independent review and PR/main CI/served deployment verification remain delivery gates.

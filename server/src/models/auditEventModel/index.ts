@@ -22,7 +22,12 @@ const auditEventSchema = new Schema(
       index: true,
     },
     attemptedRun: { type: Schema.Types.ObjectId, default: null, immutable: true },
-    action: { type: String, enum: ['execute', 'cancel'], required: true, immutable: true },
+    action: {
+      type: String,
+      enum: ['execute', 'cancel', 'review'],
+      required: true,
+      immutable: true,
+    },
     kind: { type: String, enum: ['denied'], required: true, immutable: true },
     reason: { type: String, enum: AUDIT_DENIAL_REASONS, required: true, immutable: true },
     at: { type: Date, default: Date.now, immutable: true, required: true },

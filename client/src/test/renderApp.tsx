@@ -91,6 +91,7 @@ export const stubTaskApi = (
     if (url.endsWith('/api/auth/login')) {
       return json(200, { message: 'Logged in successfully', token: validToken() });
     }
+    if (url.includes('/api/runs/approvals') && method === 'GET') return json(200, { runs: [] });
     const agentMatch = url.match(/\/api\/agents(?:\/([^/]+))?$/);
     if (agentMatch) {
       const agentId = agentMatch[1];

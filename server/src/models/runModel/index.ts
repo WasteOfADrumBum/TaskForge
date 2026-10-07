@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { Schema, model, type Types } from 'mongoose';
 
 export const RUN_STATUSES = [
@@ -36,6 +37,40 @@ export const isBoundedJson = (value: unknown, maxBytes: number): boolean => {
   }
 };
 
+export const digestRunResult = (result: unknown): string | null => {
+  if (result === null || !isBoundedJson(result, RUN_RESULT_MAX_BYTES)) return null;
+  const canonical = (value: unknown): unknown => {
+    if (Array.isArray(value)) return value.map(canonical);
+    if (value && typeof value === 'object')
+      return Object.fromEntries(
+        Object.keys(value)
+          .sort()
+          .map((key) => [key, canonical((value as Record<string, unknown>)[key])]),
+      );
+    return value;
+  };
+  return createHash('sha256')
+    .update(JSON.stringify(canonical(result)))
+    .digest('hex');
+};
+export interface RunReview {
+  decision: 'approved' | 'rejected';
+  note: string;
+  at: Date;
+  reviewedVersion: number;
+  resultDigest: string;
+}
+const reviewSchema = new Schema<RunReview>(
+  {
+    decision: { type: String, enum: ['approved', 'rejected'], required: true },
+    note: { type: String, default: '', maxlength: 2000 },
+    at: { type: Date, required: true },
+    reviewedVersion: { type: Number, required: true, min: 0, validate: Number.isSafeInteger },
+    resultDigest: { type: String, required: true, match: /^[a-f0-9]{64}$/ },
+  },
+  { _id: false, strict: 'throw' },
+);
+
 export interface RunLifecycleEvent {
   id: string;
   at: Date;
@@ -45,6 +80,7 @@ export interface RunLifecycleEvent {
   to: RunStatus;
   version: number;
   mode: 'demo' | 'local' | null;
+  resultDigest?: string | null;
   reason: 'expired' | 'interrupted' | 'cancelled' | 'provider-error' | 'permission-denied' | null;
 }
 const lifecycleSchema = new Schema<RunLifecycleEvent>(
@@ -60,6 +96,7 @@ const lifecycleSchema = new Schema<RunLifecycleEvent>(
     from: { type: String, enum: [...RUN_STATUSES, null], default: null },
     to: { type: String, enum: RUN_STATUSES, required: true },
     version: { type: Number, required: true, min: 0, validate: Number.isSafeInteger },
+    resultDigest: { type: String, match: /^[a-f0-9]{64}$/, default: null },
     mode: { type: String, enum: ['demo', 'local', null], default: null },
     reason: {
       type: String,
@@ -88,6 +125,7 @@ export interface RunRecord {
     'expired' | 'interrupted' | 'cancelled' | 'provider-error' | 'permission-denied' | null;
   executionMode: 'demo' | 'local' | null;
   auditEvents: RunLifecycleEvent[];
+  review: RunReview | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -114,6 +152,7 @@ const runSchema = new Schema<RunRecord>(
       default: () => [],
       validate: (events: RunLifecycleEvent[]) => events.length <= 64,
     },
+    review: { type: reviewSchema, default: null },
     status: { type: String, enum: RUN_STATUSES, default: 'queued', required: true },
     version: { type: Number, default: 0, min: 0, validate: Number.isSafeInteger },
     idempotencyKey: { type: String, required: true, match: RUN_KEY_PATTERN },
@@ -134,6 +173,7 @@ const runSchema = new Schema<RunRecord>(
       transform: (_doc, value) => {
         delete (value as Record<string, unknown>).requestFingerprint;
         delete (value as Record<string, unknown>).attemptId;
+        (value as Record<string, unknown>).resultDigest = digestRunResult(value.result);
         return value;
       },
     },

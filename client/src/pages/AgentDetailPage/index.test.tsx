@@ -74,7 +74,7 @@ describe('Agent detail page', () => {
     await renderDetail();
     const planned = within(await screen.findByRole('region', { name: /coming later/i }));
     expect(planned.getByText('Planned')).toBeInTheDocument();
-    expect(planned.getByText(/run history and approval controls.*planned/i)).toBeInTheDocument();
+    expect(planned.getByText(/run history and execution controls.*planned/i)).toBeInTheDocument();
     expect(planned.queryByText('Assignments')).not.toBeInTheDocument();
     expect(screen.queryByText(/last run|completed run|succeeded/i)).not.toBeInTheDocument();
   });

@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { Run, isBoundedJson, RUN_RESULT_MAX_BYTES } from '../../models/runModel';
+import { Run, isBoundedJson, RUN_RESULT_MAX_BYTES, digestRunResult } from '../../models/runModel';
 import { Task } from '../../models/taskModel';
 import { Agent } from '../../models/agentModel';
 
@@ -259,25 +259,72 @@ export const recoverExpiredRun = (
   );
 };
 
-// Internal state-machine primitive only. No approval route exists before permission/audit gates.
+export const listPendingRuns = (owner: string, agentId?: string) =>
+  Run.find({ owner, status: 'awaiting-approval', ...(agentId && { agent: agentId }) })
+    .sort({ updatedAt: -1 })
+    .limit(100);
+
+// Public callers must send the digest they reviewed. The optional digest supports legacy
+// internal callers, which still bind a fresh owned snapshot exactly in the Mongo CAS.
 export const reviewRun = (
   owner: string,
   id: string,
   version: number,
   decision: 'approved' | 'rejected',
+  resultDigest?: string,
+  note = '',
 ) => {
   assertVersion(version);
   if (!['approved', 'rejected'].includes(decision))
     throw new RunInputError(400, 'Invalid run decision');
-  return Run.findOneAndUpdate(
-    { _id: id, owner, status: 'awaiting-approval', version },
-    {
-      $set: { status: decision },
-      $inc: { version: 1 },
-      $push: {
-        auditEvents: lifecycle(owner, decision, 'awaiting-approval', decision, version + 1),
+  if (typeof note !== 'string' || note.length > 2000)
+    throw new RunInputError(400, 'Review note must be at most 2000 characters');
+  if (
+    resultDigest !== undefined &&
+    (resultDigest.length !== 64 || !/^[a-f0-9]{64}$/.test(resultDigest))
+  )
+    throw new RunInputError(400, 'Invalid reviewed result digest');
+  return (async () => {
+    const current = await Run.findOne({ _id: id, owner });
+    if (!current) return null;
+    const digest = digestRunResult(current.result);
+    if (
+      current.status !== 'awaiting-approval' ||
+      current.version !== version ||
+      !digest ||
+      (resultDigest !== undefined && digest !== resultDigest)
+    )
+      throw new RunInputError(409, 'Draft changed or was already reviewed');
+    const event = {
+      ...lifecycle(owner, decision, 'awaiting-approval', decision, version + 1),
+      resultDigest: digest,
+    };
+    const reviewed = await Run.findOneAndUpdate(
+      {
+        _id: id,
+        owner,
+        status: 'awaiting-approval',
+        version,
+        // Expression equality compares the whole JSON value, including arrays and operator keys.
+        $expr: { $eq: ['$result', { $literal: current.result }] },
       },
-    },
-    updateOptions,
-  );
+      {
+        $set: {
+          status: decision,
+          review: {
+            decision,
+            note,
+            at: new Date(),
+            reviewedVersion: version,
+            resultDigest: digest,
+          },
+        },
+        $inc: { version: 1 },
+        $push: { auditEvents: event },
+      },
+      updateOptions,
+    );
+    if (!reviewed) throw new RunInputError(409, 'Draft changed or was already reviewed');
+    return reviewed;
+  })();
 };

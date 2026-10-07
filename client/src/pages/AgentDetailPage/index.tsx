@@ -14,6 +14,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { LuArrowLeft, LuBotOff, LuListChecks, LuPencil, LuPlus, LuTrash2 } from 'react-icons/lu';
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
 import AgentForm from '../../components/agents/AgentForm';
+import ApprovalPanel from '../../components/runs/ApprovalPanel';
 import AgentStatusBadge from '../../components/agents/AgentStatusBadge';
 import DeleteAgentDialog from '../../components/agents/DeleteAgentDialog';
 import SkillTags from '../../components/agents/SkillTags';
@@ -41,7 +42,6 @@ const statusOrder = { 'in-progress': 0, todo: 1, done: 2 } as const;
 // Future sections, shown so the page's direction is clear. None of them has data yet.
 const plannedSections = [
   { title: 'Runs', text: 'Each attempt, with its input, result, and status.' },
-  { title: 'Approvals', text: 'Your approve or reject decision on every result.' },
 ];
 
 const BackLink = () => (
@@ -315,6 +315,8 @@ const AgentDetailPage = () => {
             </Box>
           </Box>
 
+          <ApprovalPanel key={id + ':' + sessionVersion} agentId={id} />
+
           <Box {...panelProps} aria-labelledby="agent-planned-heading">
             <SectionHeader
               id="agent-planned-heading"
@@ -326,7 +328,7 @@ const AgentDetailPage = () => {
               }
             />
             <Text fontSize="sm" color="fg.muted" mb={3}>
-              Run history and approval controls on this page are planned.
+              Full run history and execution controls on this page are planned.
             </Text>
             <SimpleGrid
               as="ul"
