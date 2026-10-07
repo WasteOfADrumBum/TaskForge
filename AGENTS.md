@@ -65,7 +65,7 @@ The request flow is `routes → controllers → services → models`:
 
 - `App.tsx` exports `AppRoutes` and lazy-loads pages from `src/pages/<Name>/index.tsx`.
   - Public: `/` (landing), `/login`, `/register`.
-  - Authenticated, behind `ProtectedRoute` inside `components/layout/AppShell`: `/home` (`CommandCenterPage`), `/work` (`WorkPage`, the task workspace), `/work/projects`, `/work/projects/:id`, `/workforce` (Agent Registry definitions only), `/workforce/:id`, and `/settings`. AI execution is not built.
+  - Authenticated, behind `ProtectedRoute` inside `components/layout/AppShell`: `/home` (`CommandCenterPage`), `/work` (`WorkPage`, the task workspace), `/work/projects`, `/work/projects/:id`, `/workforce` (Agent Registry), `/workforce/:id`, `/workforce/runs`, `/workforce/runs/:id`, and `/settings`. Server draft execution and human review use owned Run APIs; run UI is implemented under KAN-21 and requires explicit creation/mode selection.
 - `AppShell` owns the sidebar (`Sidebar`; a drawer below `lg`), `TopBar`, and task/project/agent loading (`hooks/useTaskLoader`, `useProjectLoader`, `useAgentLoader`). List pages read resources from Redux; detail pages may load their requested resource.
 - Command Center insights are pure functions in `utils/commandCenter.ts`. They are rule-based; never present them as AI.
 - Theme: `assets/theme/theme.ts` overrides Chakra's dark semantic tokens (`bg.*`, `fg.*`, `border.*`) with the v2 palette and adds `accent.{teal,orange,violet}` and `shell.*`. Use these tokens, not hex values. Dark is the default color mode.

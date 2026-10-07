@@ -4,6 +4,8 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+- Add owned run activity and detail views with explicit creation/execution, context and audit display, and human review using the existing permission and session safeguards (KAN-21; delivery pending).
+
 ### Documentation
 
 - **KAN-14 — release evidence:** reconcile shipped assignment and readiness status, publish a concise Jira-to-deployment walkthrough, and refresh the application gallery with explicitly synthetic local capture provenance. AI execution, providers, runs, enforced agent permissions, audit and approvals remain planned; no runtime behavior or production data changes.

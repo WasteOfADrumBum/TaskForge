@@ -1,6 +1,6 @@
 # Owned agent runs and draft permissions
 
-KAN-17 introduced owned run records; KAN-18 adds server-enforced text drafting and append-only application audit. KAN-18 is shipped (PR #28, `bb660e2`). KAN-19 shipped exact-draft human review on Agent Detail (PR #29, `978c623`). KAN-20 adds locally validated minimal context; delivery verification is pending. Full run/activity and execution controls remain KAN-21. No task or project mutation tool is enabled.
+KAN-17 introduced owned run records; KAN-18 adds server-enforced text drafting and append-only application audit. KAN-18 is shipped (PR #28, `bb660e2`). KAN-19 shipped exact-draft human review on Agent Detail (PR #29, `978c623`). KAN-20 shipped bounded minimal context (PR #30, `c06dc63`), with full QA, independent review, PR/main CI and matching live builds. Full run/activity and execution controls are locally validated under KAN-21; protected CI and live delivery remain pending. No task or project mutation tool is enabled.
 
 ## Owned API
 
@@ -69,3 +69,24 @@ The serialized UTF-8 snapshot must fit the existing 16KiB JSON/depth/node limits
 `includeProject` must be a boolean and defaults to false. Explicit selection requires current task.read, artifact.draft and project.read. Missing/deleted/foreign records or revoked permissions fail closed. Checks run initially, during the fresh claim, before invocation and before output persistence. Compare the full task/project source identity set, including no-project state: an opted-in null-to-project change or project switch rejects the attempt. Unrequested project changes remain irrelevant to task-only runs.
 
 Edits to notes on the same source retain the captured as-of content and source update time for reproducibility. Separate MongoDB checks do not provide transactional revocation or a latest-data guarantee. Stored text remains untrusted user data; fixed roles and absent tools prevent privilege promotion/execution, but no general LLM prompt-immunity claim is made. No RAG, ingestion or task/project mutation is added. Full run/context activity UI follows in KAN-21.
+
+## Run activity UI (KAN-21, delivery pending)
+
+The Workforce and Agent Detail pages link to `/workforce/runs`; each recorded attempt
+opens `/workforce/runs/:id`. The list is the latest 100 owned records, not an exhaustive
+history. A client agent filter is labelled a subset of that latest-100 window.
+
+Create a queued run for a task assigned to an active agent. Creating or assigning work
+calls no provider. Open its detail, choose a mode explicitly, and request execution.
+Simulation is canned output with no model call; local inference appears only where the
+server reports a configured local capability, with availability explicitly unverified.
+Project notes default off and still require persisted server permission.
+
+Detail shows the stored request/output, frozen as-of context, status/failure reason,
+review decision and lifecycle audit. Stored text is escaped plain text. Approval records
+a decision, with no task/project changes. Safe reads can be cancelled and manually
+refreshed. Uncertain writes do not replay automatically: refresh before another action;
+an identical manual creation retry retains the same key within that page/session.
+Navigating away retires the request; it does not promise to roll back persisted work.
+
+Full QA and independent review passed: 1141 units, 89 API cases, 7 safety tests, 8 Chromium flows and static/build/audit0 checks. Protected CI/merge/live verification remain required before shipping.

@@ -70,13 +70,15 @@ describe('Agent detail page', () => {
     expect(details.getByText('Updated').nextSibling).toHaveTextContent('Mar 4, 2026');
   });
 
-  it('labels future sections as planned and shows no fake activity', async () => {
+  it('links to recorded run activity without fabricated metrics', async () => {
     await renderDetail();
-    const planned = within(await screen.findByRole('region', { name: /coming later/i }));
-    expect(planned.getByText('Planned')).toBeInTheDocument();
-    expect(planned.getByText(/run history and execution controls.*planned/i)).toBeInTheDocument();
-    expect(planned.queryByText('Assignments')).not.toBeInTheDocument();
-    expect(screen.queryByText(/last run|completed run|succeeded/i)).not.toBeInTheDocument();
+    const activity = within(await screen.findByRole('region', { name: /^run activity$/i }));
+    expect(activity.getByRole('link', { name: 'View run activity' })).toHaveAttribute(
+      'href',
+      '/workforce/runs',
+    );
+    expect(activity.getByText(/assignment alone starts no work/i)).toBeInTheDocument();
+    expect(activity.queryByText('Planned')).not.toBeInTheDocument();
   });
 
   it('shows a not-found state for an unknown or another user’s agent', async () => {

@@ -39,11 +39,6 @@ const dateFormat = new Intl.DateTimeFormat('en-US', {
 // Assigned tasks: in progress first, then to do, then done.
 const statusOrder = { 'in-progress': 0, todo: 1, done: 2 } as const;
 
-// Future sections, shown so the page's direction is clear. None of them has data yet.
-const plannedSections = [
-  { title: 'Runs', text: 'Each attempt, with its input, result, and status.' },
-];
-
 const BackLink = () => (
   <Link asChild fontSize="sm" color="fg.muted" _hover={{ color: 'accent.teal' }}>
     <RouterLink to="/workforce">
@@ -317,38 +312,15 @@ const AgentDetailPage = () => {
 
           <ApprovalPanel key={id + ':' + sessionVersion} agentId={id} />
 
-          <Box {...panelProps} aria-labelledby="agent-planned-heading">
-            <SectionHeader
-              id="agent-planned-heading"
-              title="Coming later"
-              aside={
-                <Badge variant="outline" size="sm" colorPalette="purple">
-                  Planned
-                </Badge>
-              }
-            />
+          <Box {...panelProps} aria-labelledby="agent-runs-heading">
+            <SectionHeader id="agent-runs-heading" title="Run activity" />
             <Text fontSize="sm" color="fg.muted" mb={3}>
-              Full run history and execution controls on this page are planned.
+              View recorded attempts, results, context and review decisions. Assignment alone starts
+              no work.
             </Text>
-            <SimpleGrid
-              as="ul"
-              listStyleType="none"
-              m={0}
-              p={0}
-              columns={{ base: 1, md: 2 }}
-              gap={3}
-            >
-              {plannedSections.map((section) => (
-                <Box as="li" key={section.title} bg="bg.muted" borderRadius="md" p={3}>
-                  <Text fontSize="sm" fontWeight="medium">
-                    {section.title}
-                  </Text>
-                  <Text fontSize="xs" color="fg.muted" mt={1}>
-                    {section.text}
-                  </Text>
-                </Box>
-              ))}
-            </SimpleGrid>
+            <Link asChild color="accent.teal">
+              <RouterLink to="/workforce/runs">View run activity</RouterLink>
+            </Link>
           </Box>
         </VStack>
 
