@@ -10,10 +10,10 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02)) |
 | Current phase             | Phase 2: AI Workforce, foundation work (no AI execution yet)                                                |
-| Current branch            | `codex/KAN-14-release-evidence`; original assignment WIP preserved on `feat/agent-task-assignment`          |
+| Current branch            | `codex/KAN-15-ai-provider`; original assignment WIP preserved on `feat/agent-task-assignment`               |
 | Current checkpoint        | Release/delivery readiness followed by task → agent assignment and bounded Phase 2                          |
-| Last completed checkpoint | Required integration/browser verification (PR #23, `3a8e3c5`)                                               |
-| Next recommended          | Finish KAN-14 release evidence; then bounded Phase 2 provider work (KAN-15)                                 |
+| Last completed checkpoint | Portfolio/release evidence (PR #24, `a84f216`)                                                              |
+| Next recommended          | Finish KAN-15 PR/deployment; then local Ollama adapter (KAN-16)                                             |
 
 ## Known verification gaps
 
@@ -160,6 +160,14 @@ Settings planned sections, accessible theme selection, public heading semantics 
 - Vercel deployment `6891689707` and Render deployment `6891682887` reported success. Both live release identities matched the merge; health/readiness passed.
 - [Testing boundaries](testing.md): no production test writes, no data reset, and no new recurring service or architecture change.
 
-## Release evidence (KAN-14, active)
+## Release evidence (KAN-14, complete)
 
-The [release walkthrough](release-walkthrough.md) connects an approved requirement to Jira, existing patterns, PR, QA, review, and deployment evidence. The gallery uses production-equivalent `3a8e3c5` source with synthetic local fixtures, not production account data. Capture verification, documentation review, final PR/CI and deployed source checks remain required before KAN-14 is Done. This closes the readiness portion only; bounded Phase 2 execution remains approved work ahead, with Phases 3–8 outside the milestone.
+The [release walkthrough](release-walkthrough.md) connects an approved requirement to Jira, existing patterns, PR, QA, review, and deployment evidence. The gallery uses production-equivalent `3a8e3c5` source with synthetic local fixtures, not production account data. Capture verification, independent review, PR/main CI and deployed source checks passed; KAN-14 is Done. This closes the readiness portion only; bounded Phase 2 execution remains approved work ahead, with Phases 3–8 outside the milestone.
+
+## Verified portfolio release and approved provider decision
+
+KAN-14 is Done: PR #24 merged as `a84f216`; PR CI `37511837148`/main CI `37512380619`, deployments, matching served client/API identities, health/readiness and unauthenticated guards passed. KAN-15 implementation is active. Josh approved disabled-by-default production AI with explicit, clearly labelled simulation; local Ollama inference follows in KAN-16. No paid API calls; execution/run UI and approvals remain later tickets.
+
+## Provider contract (KAN-15, active)
+
+[Branch task](tasks/KAN-15-ai-provider.md) records the approved production decision and server-only contract. Authenticated read-only status reports safe capabilities; no execution endpoint or model call is added. Independent review identified and corrected a final result cancellation/deadline boundary. Monotonic deadline and public promise checks reject pending interruption and overdue validation; 915 unit tests (474 client, 441 server), 3 fixture safety, 16 real API cases and 3 Chromium flows passed. Static/build/audit gates and independent review passed; PR/CI/deployment remain delivery gates. No paid service or production writes.

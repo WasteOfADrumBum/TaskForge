@@ -200,13 +200,17 @@ The [release runbook](release-runbook.md) covers source verification, preview AP
 
 TaskForge must add **$0 in recurring cost** unless explicitly approved. The free tiers shape the design:
 
-| Constraint                                                     | Impact                                           | How TaskForge handles it                                    |
-| -------------------------------------------------------------- | ------------------------------------------------ | ----------------------------------------------------------- |
-| Render free web services sleep after inactivity                | First request after idle can take up to a minute | Documented; improving this is tracked as "demo reliability" |
-| Render free instances have limited CPU and memory              | No heavy background work in the API process      | API stays a thin, stateless REST layer                      |
-| MongoDB Atlas free tier has limited storage and shared compute | Not suited to large data or heavy analytics      | Small per-user documents; indexes on `owner`                |
-| No paid AI APIs                                                | AI features can't depend on a hosted model       | Planned provider abstraction with a local (Ollama) default  |
+| Constraint                                                     | Impact                                           | How TaskForge handles it                                                    |
+| -------------------------------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------- |
+| Render free web services sleep after inactivity                | First request after idle can take up to a minute | Documented; improving this is tracked as "demo reliability"                 |
+| Render free instances have limited CPU and memory              | No heavy background work in the API process      | API stays a thin, stateless REST layer                                      |
+| MongoDB Atlas free tier has limited storage and shared compute | Not suited to large data or heavy analytics      | Small per-user documents; indexes on `owner`                                |
+| No paid AI APIs                                                | AI features can't depend on a hosted model       | Disabled production default; explicit simulation; local Ollama adapter next |
 
 ## Isolated critical verification
 
 Fast mocked unit suites remain separate from real MongoDB/API integration and Chromium smoke. Test runners create fresh loopback databases and synthetic accounts, refuse existing data/API listeners, and never load production database configuration. Required CI includes startup safety, persisted CRUD/assignment, two-user isolation, session expiry and mobile navigation checks. See [testing](testing.md) for commands and limits; this adds test tooling only and does not change application hosting/database architecture.
+
+## AI provider boundary (KAN-15)
+
+The server-only contract lives in `server/src/ai/provider.ts`, with no client/provider dependency. Default execution is disabled. Explicit canned simulation is labelled and does not use a model; disabled, unavailable and invalid configurations never silently fall back. `/api/ai/status` is authenticated, read-only, and reports safe capability metadata, not secrets or prompts. No execution route or database operation is added. Runtime output validation, deadline and cancellation semantics apply before future runs consume results. Local Ollama, owner-scoped runs, permission enforcement, audit and human approval remain subsequent tickets. See [provider behavior](ai-provider.md).

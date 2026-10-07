@@ -76,7 +76,7 @@ AI features go through a provider abstraction and are never hard-wired to one pa
 - [x] **COMPLETE**: [KAN-12](https://taskforgejms.atlassian.net/browse/KAN-12): truthful Settings controls, public headings and existing hero contrast. PR #22 merged as `401a7d1`; 875 tests, local checks/audit0, independent review/browser QA, PR/main CI and deployments passed. Both live release identities matched after an explicitly approved corrective cache-cleared API redeploy. No account-management APIs or added cost.
 
 - [x] **COMPLETE**: [KAN-13](https://taskforgejms.atlassian.net/browse/KAN-13): required isolated real MongoDB/API and browser critical-flow checks. PR #23 merged as `3a8e3c5`; 875 units, 3 safety tests, 16 real database/API cases, 3 browser flows, audit0, independent review, PR/main CI and provider deployments passed. Both live release identities matched; health/readiness passed.
-- [ ] **IN PROGRESS**: [KAN-14](https://taskforgejms.atlassian.net/browse/KAN-14): release walkthrough, current screenshot provenance, and accurate shipped/planned documentation. Documentation and local capture work only; final validation/review/PR/deployment evidence remain.
+- [x] **COMPLETE**: [KAN-14](https://taskforgejms.atlassian.net/browse/KAN-14): release walkthrough, current screenshot provenance, and accurate shipped/planned documentation. Eight synthetic local captures and release documentation validated; PR #24 merged as `a84f216`, with independent review, PR/main CI and matching live client/API release identities passed.
 
 ### Phase 1 maintenance (deferred; does not block Phase 1)
 
@@ -104,7 +104,7 @@ These are known minor polish issues found during PR #7. They were never Phase 1 
 - [ ] **PLANNED**: Agent handoffs
 - [ ] **PLANNED**: Approval/rejection workflow
 - [ ] **PLANNED**: Agent activity UI
-- [ ] **PLANNED**: AI provider abstraction (`AIProvider`: chat, embed, structured output)
+- [ ] **IN PROGRESS**: AI provider contract (KAN-15): disabled default, explicit labelled simulation, runtime-validated structured output and unsupported embeddings. Local Ollama adapter follows in KAN-16; final validation/review/CI/deployment remain.
 - [ ] **PLANNED**: Local provider (Ollama or another $0-extra-cost option)
 - [ ] **PLANNED**: Chief of Staff MVP
 - [ ] **PLANNED**: Research Agent
@@ -207,3 +207,7 @@ Learning:
 - [ ] **PLANNED**: Audit trail
 - [ ] **PLANNED**: No unrestricted production access (guardrail)
 - [ ] **PLANNED**: No automatic merging of `main` (guardrail)
+
+## Active bounded Phase 2 work
+
+KAN-14 verified release evidence is complete (PR #24, a84f216). KAN-15 provider contract implementation is active. Josh approved production execution disabled by default with explicitly selected labelled simulation, real inference local through Ollama (KAN-16), and $0 paid AI API calls. Runs, permission enforcement, audit and human approval remain planned.
