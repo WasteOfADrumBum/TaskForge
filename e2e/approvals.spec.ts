@@ -52,9 +52,17 @@ const registerAndLogin = async (page: Page) => {
   await page.getByLabel(/^Password/).fill(password);
   await page.getByRole('button', { name: 'Create account', exact: true }).click();
   await expect(page).toHaveURL(/\/login$/);
+  // URL changes before the lazy login page necessarily replaces the registration form.
+  // Both forms share input labels, so wait for the login-specific UI before filling.
+  await expect(page.getByRole('heading', { name: 'Welcome back', exact: true })).toBeVisible();
   await page.getByLabel(/^Email/).fill(email);
   await page.getByLabel(/^Password/).fill(password);
+  const loginResponse = page.waitForResponse(
+    (response) =>
+      response.url() === apiURL + '/api/auth/login' && response.request().method() === 'POST',
+  );
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  expect((await loginResponse).status(), 'Browser sign-in must succeed at the API').toBe(200);
   await expect(page).toHaveURL(/\/home$/);
   const token = await page.evaluate(() => localStorage.getItem('token'));
   expect(token).toBeTruthy();
