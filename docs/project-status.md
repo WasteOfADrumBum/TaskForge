@@ -9,11 +9,11 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | Item                      | Value                                                                                                       |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02)) |
-| Current phase             | Phase 2: Chief of Staff shipped; supplied-source Research active                                            |
-| Current branch            | `codex/KAN-25-supplied-research`; original assignment WIP preserved on `feat/agent-task-assignment`         |
+| Current phase             | Phase 2: Research shipped; Developer acceptance active                                                      |
+| Current branch            | `codex/KAN-26-developer-drafts`; original assignment WIP preserved on `feat/agent-task-assignment`          |
 | Current checkpoint        | Release/delivery readiness followed by task → agent assignment and bounded Phase 2                          |
-| Last completed checkpoint | Chief of Staff (PR #34, `1c7d784`)                                                                          |
-| Next recommended          | Complete KAN-25 Research QA, review and protected delivery                                                  |
+| Last completed checkpoint | Supplied-source Research (PR #35, `faf2c6c`)                                                                |
+| Next recommended          | Complete KAN-26 QA/review/protected delivery; then owner Phase2 closure                                     |
 
 ## Known verification gaps
 
@@ -248,3 +248,17 @@ labelled text excerpts plus owned notes/approved parent output are frozen under1
 reference URLs are metadata only. Quotes must match captured text, while interpretations
 and inferences remain unverified and subject to human review. No task writes, paid calls,
 new service, production inference or Figma. QA/review/protected delivery are pending.
+
+## KAN-25 complete / KAN-26 active
+
+Research shipped as PR #35/`faf2c6c`, with1310 units/120 real API/11 browser/7 safety,
+static/types/build/audit0, actual local Ollama smoke and independent review passed.
+PR/main CI, provider statuses and matching served identities passed; health/ready200,
+invalid-auth research401/no-store. Original assignment WIP and production data preserved.
+
+KAN-26 Developer proposes bounded technical plans/code suggestions as unexecuted text,
+with existing explicit mode/current permission/exact human review controls. Targeted schema,
+real API (including the separately approved Chief→Research→Developer handoff chain) and
+browser passed. Actual local Ollama all-three starter smoke passed, simulationfalse,
+database/productioncalls0; owned runtime66112 stopped. Full units/127 real API/12 browser/7 safety/static/types/build/audit0 and independent review
+passed. Protected delivery remains pending. Owner milestone closure is required afterward; Phases3–8 remain unapproved.

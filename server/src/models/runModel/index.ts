@@ -9,7 +9,7 @@ export const RUN_STATUSES = [
   'rejected',
   'failed',
 ] as const;
-export const RUN_WORKFLOWS = ['draft', 'chief-of-staff', 'research'] as const;
+export const RUN_WORKFLOWS = ['draft', 'chief-of-staff', 'research', 'developer'] as const;
 export type RunWorkflow = (typeof RUN_WORKFLOWS)[number];
 export type RunStatus = (typeof RUN_STATUSES)[number];
 export const RUN_INPUT_MAX = 8000;

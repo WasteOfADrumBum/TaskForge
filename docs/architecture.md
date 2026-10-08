@@ -227,7 +227,7 @@ Owned pending draft reads feed the Agent Detail approval panel. Decisions bind c
 
 A small server allowlist copies owned task/project notes and source identifiers/update times into the existing Run context, bounded to16KiB. Project inclusion is explicit and saved-permission gated before data reads. Snapshot/digest and claim audit are atomic; ordinary later replacement is blocked. Full source sets and current permissions are rechecked around provider use, while same-source note edits preserve captured as-of content. Notes are serialized untrusted user data, never audit text or new prompt roles. Existing MongoDB/JWT/local-only provider architecture stays; no RAG/ingestion, migration, service or task write. PR #30/main CI and matching live builds are verified.
 
-## Bounded handoffs (KAN-22, implementation pending delivery)
+## Bounded handoffs (KAN-22, shipped)
 
 Explicit owner-requested children reference an approved parent and exact source version/digest.
 Existing target-task assignment and read/draft permission checks remain mandatory. Owned ancestry
@@ -237,3 +237,12 @@ parent remains unchanged. Parent output text is an attributable untrusted contex
 the existing total byte bound; source private fields and review notes are not transferred.
 Every child waits for separate execution and review, with no cascade or data-write tool.
 This reuses existing MongoDB/JWT/provider architecture and nontransactional permission limits.
+
+### Starter workflow boundaries
+
+Chief of Staff and supplied-source Research shipped under KAN-23/25; Developer (KAN-26) extends
+the same Run draft executor with strict technical-plan/code-text output. All use current owned
+permissions, frozen bounded context, safe audit and exact review. Reference URLs are never fetched;
+code text is never executed and no repository is read/written. Production real inference remains
+disabled, simulation explicit, and real inference developer-local through the provider abstraction.
+No worker, new service, migration or hosting/security architecture change is introduced.

@@ -4,6 +4,10 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+- KAN-26: explicit Developer workflow drafts a bounded technical plan, optional code text,
+  proposed checks and limitations for human review. Code is never executed or applied;
+  repository access and task changes stay disabled. Three-starter handoff acceptance added.
+
 - KAN-25: explicit supplied-source research drafts cite captured verbatim text and separate
   interpretations/inferences/limitations. Optional reference URLs are never fetched; existing
   permission, simulation/local mode and exact human-review controls remain.

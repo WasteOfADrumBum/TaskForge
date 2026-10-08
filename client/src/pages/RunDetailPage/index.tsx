@@ -299,6 +299,12 @@ function DetailContent({
                   require human review. No URLs fetched.
                 </Text>
               )}
+              {run.workflow === 'developer' && (
+                <Text>
+                  Developer plan: unexecuted, unverified text only. No repository access or task
+                  changes.
+                </Text>
+              )}
               <Text overflowWrap="anywhere">Task: {run.task}</Text>
               <Text overflowWrap="anywhere">Agent: {run.agent}</Text>
               {run.handoff && (
@@ -369,6 +375,7 @@ function DetailContent({
                       <option value="draft">Task draft</option>
                       <option value="chief-of-staff">Chief of Staff triage</option>
                       <option value="research">Supplied-source research</option>
+                      <option value="developer">Developer text plan</option>
                     </NativeSelect.Field>
                     <NativeSelect.Indicator />
                   </NativeSelect.Root>
@@ -575,6 +582,9 @@ function DetailContent({
                 )}
                 {event.workflow === 'research' && (
                   <Text fontSize="sm">Workflow: supplied-source research</Text>
+                )}
+                {event.workflow === 'developer' && (
+                  <Text fontSize="sm">Workflow: Developer text plan</Text>
                 )}
                 {event.reason && <Text fontSize="sm">Reason: {event.reason}</Text>}
                 {event.parentRun && (

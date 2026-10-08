@@ -1,4 +1,9 @@
 import {
+  executeDeveloper,
+  developerSchema,
+  DEVELOPER_SYSTEM_INSTRUCTION,
+} from '../services/developerService';
+import {
   executeResearch,
   makeResearchSchema,
   RESEARCH_SYSTEM_INSTRUCTION,
@@ -129,6 +134,25 @@ const smoke = async () => {
   assert.equal(research.provider, 'ollama');
   assert.equal(research.simulation, false);
   assert.ok(makeResearchSchema(researchSnapshot).validate(research.value));
+  stage = 'Developer text plan';
+  const developer = await executeDeveloper(
+    provider,
+    [
+      { role: 'system', content: DEVELOPER_SYSTEM_INSTRUCTION },
+      {
+        role: 'user',
+        content: JSON.stringify({
+          request:
+            'Suggest a minimal TypeScript function double(value: number): number that returns twice its input. Include a short plan, text code and boundary checks. No repository access or execution.',
+          untrustedContext: researchSnapshot,
+        }),
+      },
+    ],
+    { timeoutMs: 120000 },
+  );
+  assert.equal(developer.provider, 'ollama');
+  assert.equal(developer.simulation, false);
+  assert.ok(developerSchema.validate(developer.value));
   await assert.rejects(
     provider.embed(['synthetic local fixture']),
     (error: unknown) => error instanceof AIProviderError && error.code === 'UNSUPPORTED',
@@ -142,6 +166,7 @@ const smoke = async () => {
       structuredOutput: 'passed',
       chiefOfStaffProposal: 'validated',
       suppliedSourceResearch: 'validated',
+      developerTextPlan: 'validated',
       embeddings: 'unsupported',
       productionCalls: 0,
       databaseCalls: 0,

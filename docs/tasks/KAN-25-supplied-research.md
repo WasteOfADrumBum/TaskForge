@@ -37,3 +37,11 @@ provider/hosting/auth/database architecture. Production real AI disabled; actual
 Native generation quotes bounded source openings; it is not exhaustive document citation or
 factual verification. Larger/invalid local responses still fail closed under existing deadlines,
 without automatic replay, quote repair, tool calls or task changes.
+
+## Delivery complete
+
+PR [#35](https://github.com/WasteOfADrumBum/TaskForge/pull/35) merged as `faf2c6c`.
+Final local1310 units,120 real API,11 browser,7 safety/static/types/build/audit0 and actual
+local Ollama smoke passed. Independent review, PR CI37790639954/main CI37791386821 and
+both providers succeeded. Live client/API identities matched `faf2c6c`; health/ready200,
+invalidJWT research execute401/no-store. Jira Done; production data/model writes0.

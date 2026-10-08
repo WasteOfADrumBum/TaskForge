@@ -91,7 +91,7 @@ Navigating away retires the request; it does not promise to roll back persisted 
 
 Full QA and independent review passed: 1141 units, 89 API cases, 7 safety tests, 8 Chromium flows and static/build/audit0 checks. PR #31, main CI and matching live builds are verified.
 
-## Explicit handoffs (KAN-22, in progress)
+## Explicit handoffs (KAN-22, shipped)
 
 POST `/api/runs/:id/handoff` binds the exact approved parent version/result digest,
 selected target task/agent, request and Idempotency-Key. GET `/api/runs/:id/handoffs`
@@ -112,9 +112,9 @@ before child creation or model use; ordinary mutations cannot replace the lineag
 
 Same-owner/key/complete payload returns one child. Uncertain UI creation freezes native
 fields and requires successful read refresh before an identical manual retry. No automatic
-writes/model calls, queue, migration or paid service is introduced. Full local QA/review passed 1233 units, 101 API cases, 7 safety, 9 Chromium and static/build/audit0. Protected CI/merge/live delivery remain pending.
+writes/model calls, queue, migration or paid service is introduced. Full local QA/review passed 1233 units, 101 API cases, 7 safety, 9 Chromium and static/build/audit0. Protected CI, PR #32/`ff1393e` and matching live builds passed.
 
-## Chief of Staff workflow (KAN-23, delivery pending)
+## Chief of Staff workflow (KAN-23, shipped)
 
 Explicit execute requests may choose workflow chief-of-staff; omitted workflow stays draft.
 The audited claim freezes selection. Chief snapshots task priority/status and a deterministic
@@ -123,6 +123,21 @@ with field allowlisting and current permission/source
 rechecks. Structured proposals are restricted to that task, captured candidate IDs or null,
 known priorities and bounded exact-key text. Local inference uses structured output; explicit
 rule-based simulation calls no model. Proposal review records a decision, never applies priority
-or assignment changes. Actual local Ollama proposal smoke and local QA passed; protected delivery
-remains pending. The bounded window is not exhaustive; corrupt/legacy definitions can consume
+or assignment changes. Actual local Ollama proposal smoke, local QA, protected PR #34/`1c7d784`
+and matching live builds passed. The bounded window is not exhaustive; corrupt/legacy definitions can consume
 slots. A proposal never grants permission to reassign, run or hand off work.
+
+## Supplied-source Research (KAN-25, shipped) / Developer (KAN-26, active)
+
+Execute selects workflow research or developer; omitted workflow is still draft. Research accepts
+up to3 explicit title/text/optional HTTP(S) referenceUrl excerpts, each text≤4000 characters,
+under the same16KiB immutable context. URLs are metadata only, never fetched. Native quote enums
+use source openings≤400 characters after leading whitespace; consumer validation checks captured
+source IDs and exact text. Matching a quote establishes attribution, not factual correctness.
+
+Developer returns strict bounded summary/plan/codeSuggestion/checks/limitations as data. Its
+formatted output labels code unexecuted/unverified and checks as proposed, not run. No repository
+read/write, execution, tool, task/project write or automatic action exists. Both workflows require
+current owned active read/draft permissions, optional project.read, structured capability, explicit
+simulation/local mode and exact human review. Production real inference stays disabled. Local
+structured output is bounded512 tokens/chat256; truncation/invalid output fails without replay.
