@@ -6,6 +6,19 @@ import { root } from './qa-runtime.mjs';
 
 const cases = [
   {
+    name: 'index opt-in without pinned model',
+    args: ['--local-only', '--index-only'],
+    nodeEnv: 'development',
+    provider: 'ollama',
+  },
+  {
+    name: 'production index opt-in',
+    args: ['--local-only', '--index-only'],
+    nodeEnv: 'production',
+    provider: 'ollama',
+    embedding: 'all-minilm:l6-v2',
+  },
+  {
     name: 'embedding opt-in without pinned model',
     args: ['--local-only', '--embeddings-only'],
     nodeEnv: 'development',

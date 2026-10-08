@@ -1,3 +1,4 @@
+import { validKnowledgeIndex } from '../../services/knowledgeIndexService/primitives';
 import { isObjectIdString } from '../../utils/objectId';
 import { Schema, model, type HydratedDocument, type InferSchemaType } from 'mongoose';
 import {
@@ -7,12 +8,13 @@ import {
   normalizeKnowledgeInput,
 } from '../../services/knowledgeService/primitives';
 export const KNOWLEDGE_VERSION_MAX = 100;
+export const KNOWLEDGE_AUDIT_MAX = 201;
 const eventSchema = new Schema(
   {
     id: { type: String, required: true },
     at: { type: Date, required: true },
     actor: { type: Schema.Types.ObjectId, required: true },
-    kind: { type: String, enum: ['created', 'updated', 'deleted'], required: true },
+    kind: { type: String, enum: ['created', 'updated', 'deleted', 'indexed'], required: true },
     version: { type: Number, required: true, min: 1, max: 101 },
     contentDigest: { type: String, required: true, match: /^[a-f0-9]{64}$/ },
   },
@@ -35,10 +37,12 @@ const schema = new Schema(
     version: { type: Number, required: true, min: 1, max: 101, validate: Number.isSafeInteger },
     contentDigest: { type: String, required: true, match: /^[a-f0-9]{64}$/ },
     deleted: { type: Boolean, required: true, default: false },
+    // Native atomic co-location; private vectors are excluded from ordinary CRUD/keyword queries.
+    embeddingIndex: { type: Schema.Types.Mixed, select: false, validate: validKnowledgeIndex },
     auditEvents: {
       type: [eventSchema],
       required: true,
-      validate: (events: unknown[]) => events.length >= 1 && events.length <= 101,
+      validate: (events: unknown[]) => events.length >= 1 && events.length <= KNOWLEDGE_AUDIT_MAX,
     },
   },
   { timestamps: true, strict: 'throw' },
@@ -53,6 +57,7 @@ schema.pre('validate', function () {
   });
   const event = this.auditEvents[0];
   if (
+    this.embeddingIndex !== undefined ||
     this.version !== 1 ||
     this.deleted ||
     !Number.isInteger(this.slot) ||
@@ -73,6 +78,45 @@ schema.pre('findOneAndUpdate', function () {
   const event = update?.$push?.auditEvents as Record<string, unknown> | undefined;
   const set = update?.$set;
   const version = filter.version;
+  const indexing = set && Object.hasOwn(set, 'embeddingIndex');
+  if (indexing) {
+    const index = set.embeddingIndex;
+    if (
+      !validKnowledgeIndex(index) ||
+      !isObjectIdString(String(filter.owner)) ||
+      !isObjectIdString(String(filter._id)) ||
+      filter.deleted !== false ||
+      index.sourceId !== String(filter._id) ||
+      index.sourceVersion !== version ||
+      index.sourceDigest !== filter.contentDigest ||
+      !event ||
+      event.kind !== 'indexed' ||
+      event.version !== version ||
+      event.contentDigest !== filter.contentDigest ||
+      String(event.actor) !== String(filter.owner) ||
+      this.getOptions().upsert ||
+      JSON.stringify(filter.embeddingIndex) !== '{"$exists":false}'
+    )
+      throw new Error('Knowledge indexing requires exact active source and audit');
+    for (const [operator, fields] of Object.entries(update!)) {
+      const allowed =
+        operator === '$set'
+          ? ['embeddingIndex', 'updatedAt']
+          : operator === '$push'
+            ? ['auditEvents']
+            : operator === '$setOnInsert'
+              ? ['createdAt']
+              : [];
+      if (
+        !allowed.length ||
+        !fields ||
+        Object.keys(fields).some((field) => !allowed.includes(field))
+      )
+        throw new Error('Knowledge index cannot change source identity/content');
+    }
+    this.setQuery({ ...filter, 'auditEvents.200': { $exists: false } });
+    return;
+  }
   if (
     !update ||
     Array.isArray(update) ||
@@ -86,6 +130,7 @@ schema.pre('findOneAndUpdate', function () {
     !event ||
     !set ||
     update.$inc?.version !== 1 ||
+    update.$unset?.embeddingIndex !== 1 ||
     event.version !== version + 1 ||
     String(event.actor) !== String(filter.owner) ||
     event.contentDigest !== set.contentDigest ||
@@ -98,11 +143,13 @@ schema.pre('findOneAndUpdate', function () {
         ? ['title', 'content', 'kind', 'project', 'contentDigest', 'deleted', 'slot', 'updatedAt']
         : operator === '$inc'
           ? ['version']
-          : operator === '$push'
-            ? ['auditEvents']
-            : operator === '$setOnInsert'
-              ? ['createdAt']
-              : [];
+          : operator === '$unset'
+            ? ['embeddingIndex']
+            : operator === '$push'
+              ? ['auditEvents']
+              : operator === '$setOnInsert'
+                ? ['createdAt']
+                : [];
     if (!allowed.length || !fields || Object.keys(fields).some((field) => !allowed.includes(field)))
       throw new Error('Knowledge identity/audit cannot be replaced');
   }
@@ -133,7 +180,7 @@ schema.pre('findOneAndUpdate', function () {
     if (knowledgeDigest(input) !== set.contentDigest)
       throw new Error('Knowledge update requires matching digest');
   }
-  this.setQuery({ ...filter, 'auditEvents.100': { $exists: false } });
+  this.setQuery({ ...filter, 'auditEvents.200': { $exists: false } });
 });
 for (const operation of [
   'updateOne',

@@ -19,7 +19,7 @@ Demo output is fixed canned text, unrelated to the input. Structured demo output
 
 ## Capabilities and errors
 
-`AIProvider` exposes chat, structured output and embeddings. Structured output requires a caller-supplied runtime type validator; TypeScript types alone do not validate model data. Adapter errors are sanitized, and invalid/mismatched output is rejected before returning results. Embeddings require explicit pinned developer-local configuration under KAN-46 (branch delivery pending); disabled and demo providers remain unsupported. No retrieval/indexing endpoint is added here.
+`AIProvider` exposes chat, structured output and embeddings. Structured output requires a caller-supplied runtime type validator; TypeScript types alone do not validate model data. Adapter errors are sanitized, and invalid/mismatched output is rejected before returning results. Embeddings require explicit pinned developer-local configuration under shipped KAN-46; disabled and demo providers remain unsupported. No retrieval/indexing endpoint is added here.
 
 Calls accept an AbortSignal and a bounded deadline (30 seconds by default, allowed range 1–120,000 milliseconds). The signal reaches the adapter, and interrupted results cannot be returned to the caller. A reusable provider instance holds its BUSY guard until underlying adapter work settles, even if the adapter ignores cancellation. Reuse the instance; do not create a new one for every retry. An uncooperative adapter may require restarting that instance/process; the contract cannot kill arbitrary adapter work or preempt synchronous code. There is no automatic retry.
 
@@ -53,7 +53,7 @@ Local calls use non-streaming JSON, thinking disabled, temperature 0, 256 genera
 
 Actual QA used a checksum-verified portable Ollama 0.40.0 process bound to 127.0.0.1:11435 with cloud disabled and an isolated model cache. Synthetic chat and structured output passed with qwen3:0.6b; this small fixture is not a quality benchmark or production model recommendation. The portable archive is approximately 1.5GB compressed, with additional binary/model disk and memory needs; [official resource guidance](https://docs.ollama.com/windows) explains installation requirements. QA starts no permanent service or cloud account.
 
-## Pinned developer-local embeddings (KAN-46, delivery pending)
+## Pinned developer-local embeddings (shipped KAN-46, PR #40)
 
 Explicitly set `OLLAMA_EMBEDDING_MODEL=all-minilm:l6-v2` only after manually provisioning the
 [official model](https://ollama.com/library/all-minilm:l6-v2). The application never pulls/downloads
@@ -100,3 +100,9 @@ Actual smoke returned3 finite normalized384-vectors: related cosine0.8335, unrel
 This is a capability/sanity check, not the Phase3 relevance evaluation or a production quality claim.
 Hosted keyword retrieval remains available without any model; semantic/Ask follows later tickets.
 $0 paidcalls/new recurringcost; no Figma/Phase4–8 expansion.
+
+KAN-46 is Done:PR #40 (`f45fb86`), full required QA/independent review/PR+mainCI and matching
+Vercel/Render served identities passed. Production status authorization was probed read-only;
+production disabling is covered by deployed configuration and negative tests, not a production
+inference attempt. KAN-47 adds a separate explicitly selected fresh-Mongo index smoke; ordinary
+chat/embedding-only smoke commands still load no application database.

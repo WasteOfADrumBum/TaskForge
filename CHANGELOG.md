@@ -4,6 +4,8 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+- KAN-47: bounded versioned Unicode chunks and private current local embedding indexes co-located with owned sources for atomic audited installation/edit-delete invalidation; guarded local indexing, current provenance/model fences, bounded corpus reads and explicit fresh-Mongo/real-Ollama smoke. No hosted indexing or public semantic endpoint.
+
 - KAN-46: optional explicitly configured pinned developer-local embeddings through AIProvider, with exact model manifest/dimension identity, bounded UTF8 batches, metadata/cloud/production/output/deadline/capacity guards and an explicit synthetic embedding smoke; no production inference or automatic model downloads.
 
 - KAN-45: private notes/text workspace, owned project associations, bounded keyword excerpts with current-source citation verification, guarded versioned edits and confirmed deletion; honest hosted no-model capability labels.

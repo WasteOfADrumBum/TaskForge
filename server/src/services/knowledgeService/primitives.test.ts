@@ -93,3 +93,12 @@ it('rejects corrupt digest/version or excessive candidate windows without silent
     KnowledgeInputError,
   );
 });
+
+it('rejects malformed Unicode source text/title instead of letting BSON silently change provenance', () => {
+  const valid = { title: 'Unicode note', content: 'Valid 😀 text', kind: 'note', project: null };
+  expect(normalizeKnowledgeInput(valid).content).toBe(valid.content);
+  for (const malformed of ['\ud800', '\udfff']) {
+    expect(() => normalizeKnowledgeInput({ ...valid, content: malformed })).toThrow();
+    expect(() => normalizeKnowledgeInput({ ...valid, title: malformed })).toThrow();
+  }
+});

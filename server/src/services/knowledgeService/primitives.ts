@@ -4,6 +4,8 @@ export const KNOWLEDGE_CONTENT_MAX_BYTES = 20000;
 export const KNOWLEDGE_SOURCE_WINDOW = 50;
 export const KNOWLEDGE_QUERY_MAX_BYTES = 120;
 export const KNOWLEDGE_RESULT_MAX = 10;
+// BSON stores Unicode UTF8, not lone UTF16 surrogates; reject rather than silently alter provenance.
+export const isWellFormedKnowledgeText = (value: string) => !/[\uD800-\uDFFF]/u.test(value);
 export interface KnowledgeInput {
   title: string;
   content: string;
@@ -27,9 +29,11 @@ export const normalizeKnowledgeInput = (value: unknown): KnowledgeInput => {
   if (
     Object.keys(body).some((key) => !['title', 'content', 'kind', 'project'].includes(key)) ||
     typeof body.title !== 'string' ||
+    !isWellFormedKnowledgeText(body.title) ||
     !body.title.trim() ||
     body.title.length > 120 ||
     typeof body.content !== 'string' ||
+    !isWellFormedKnowledgeText(body.content) ||
     !body.content.trim() ||
     Buffer.byteLength(body.content, 'utf8') > KNOWLEDGE_CONTENT_MAX_BYTES ||
     !['note', 'text'].includes(body.kind as string) ||

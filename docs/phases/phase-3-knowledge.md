@@ -101,6 +101,10 @@ KAN-44 source API is shipped and Done (PR #38, `7fe3aaf`), with required QA, ind
 protected CI and matching hosted identities. KAN-45 hosted private note/text workspace is shipped (PR #39, `aea061a`), with required QA/review/CI/live verification. Semantic retrieval, agent knowledge
 permissions and Ask remain planned under KAN-46–50. No Phase4–8 authority is implied.
 
-KAN-46 guarded pinned local embedding capability is implemented on its branch, actual synthetic
-Ollama QA passed; protected delivery pending. It adds no public semantic endpoint or stored vectors.
+KAN-46 guarded pinned local embeddings are shipped (PR #40, `f45fb86`), with actual local QA, independent review, protected CI and matching live identities. It adds no public semantic endpoint or stored vectors.
 KAN-47 must persist/validate full model manifest/dimension and current source/chunk provenance.
+
+KAN-47 co-locates private current chunk vectors with source version/digest for atomic edit/delete
+invalidation using existing native MongoDB. Targeted real Mongo races and actual local Mongo+Ollama
+synthetic smoke pass; final QA/review/protected delivery pending. No public semantic endpoint or
+hosted worker added. Owner/project/current citation enforcement continues under KAN-48.

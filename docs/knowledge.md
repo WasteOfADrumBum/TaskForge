@@ -80,3 +80,42 @@ Uncertain saves require a successful list refresh and an explicit manual retry o
 check existing sources before explicitly starting another source. There are no automatic retries.
 Changing route/session retires pending operations and loaded private text. All server limits and
 free-tier metadata-growth/local-only AI limitations above still apply.
+
+## Versioned local indexes (KAN-47 branch, delivery pending)
+
+Explicit developer-local indexing uses KAN-46's pinned384-dimensional embeddings. A source has
+one private current index stored in the same MongoDB document, excluded from ordinary source/
+keyword queries and API output. Native atomic source version/digest checks install chunks+vectors
+and an indexed audit event; source edits/deletes clear vectors in the same update. Concurrent stale
+completion fails; no historic vectors are retained. Wrong model/source/chunk provenance fails closed.
+
+Chunking preserves exact source offsets/digests, Unicode code points and untrusted plain text. Malformed lone Unicode surrogates are rejected before BSON can silently replace them; valid paired emoji remains supported.
+Each nonblank chunk is at most480UTF8bytes; at most48per20kbyte source,4per embedding batch,
+50active sources/2,400chunks per owner. A reusable explicit local indexer has a60second default/
+120second max operation budget and bounded Mongo work; cancellation/uncertain commit does not
+trigger retry. Re-indexing an already valid current source reuses its vectors without a model call.
+The source edit limit remains100; success audits are capped at201events including source versions,
+one index per version and final deletion. Metadata tombstones continue to consume the shared quota.
+
+This avoids a hosted worker/service and Atlas Search/Vector Search dependency. Actual Atlas Free
+metadata eligibility is already verified; no live Search index was built/benchmarked. Native BSON,
+owner indexes and atomic updates are exercised against real isolated MongoDB. Vectors increase
+storage usage inside the existing512MB shared Free allowance, not the allowance itself. No automatic
+cloud inference, downloads, pruning, production data migration, paid scaling or background indexing.
+
+Current-index reads are owner/project scoped and validate full pinned identity and source text
+provenance. They are snapshots; KAN-48 must recheck current source/permission/citation state before
+publishing grounded results. Semantic scoring/agent knowledge permissions/Ask UI are still planned.
+Actual synthetic local Mongo+Ollama end-to-end QA covers persistence/foreign owner/edit/delete
+invalidation; it does not prove hosted inference or production CRUD. Figma remains excluded.
+
+To verify locally with the pinned daemon already running/cloud disabled (same local environment
+as [embedding smoke](ai-provider.md#pinned-developer-local-embeddings-shipped-kan-46-pr-40)):
+
+```powershell
+npm run test:local-ai -- --local-only --index-only
+```
+
+The harness provisions only a fresh loopback Mongo namespace, strips normal Mongo/demo credentials,
+refuses existing collections and performs synthetic index/update/delete checks. It never reads
+production configuration or resets an existing database. It starts no permanent daemon/service.

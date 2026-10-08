@@ -23,7 +23,7 @@ export class KnowledgeError extends Error {
     super(message);
   }
 }
-export type KnowledgeAction = 'create' | 'read' | 'update' | 'delete' | 'search';
+export type KnowledgeAction = 'create' | 'read' | 'update' | 'delete' | 'search' | 'index';
 export const denyKnowledge = async (
   owner: string,
   source: string | null,
@@ -269,6 +269,7 @@ export const changeKnowledge = async (
             deleted: true,
             contentDigest: digest,
           },
+      $unset: { embeddingIndex: 1 },
       $inc: { version: 1 },
       $push: { auditEvents: event(owner, input ? 'updated' : 'deleted', version + 1, digest) },
     },
