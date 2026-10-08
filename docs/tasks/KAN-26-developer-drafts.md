@@ -31,3 +31,18 @@ no implementation issues; two stale documentation paragraphs were corrected. Pro
 CI and matching live provider deployment identities remain before engineering completion.
 Owner approval of milestone closure is explicitly required by Jira; it will be requested only
 after the complete engineering result is reviewable. Phase2 remains In Progress until then.
+
+## Delivered and owner accepted
+
+Engineering [PR #36](https://github.com/WasteOfADrumBum/TaskForge/pull/36) merged as
+`13d34d117dc369119ec15786afeab476b783187a`;1330 units/127 API/12 browser/7 safety,
+static/types/build/audit0, actual local three-starter smoke and independent review passed.
+PR CI37793805940/main CI37794532087, Vercel6938571013/Render6938568845 succeeded;
+both served identities matched13d34d1, health/ready200, invalidJWT Developer401/no-store.
+
+Josh approved formal Phase2 closure on2026-10-08; owner acceptance is recorded in Jira,
+KAN-26 is Done, and prior checkpoints are historical. Full evidence and limitations are
+retained in [Phase closure](../phases/phase-2-ai-workforce.md#closure-summary-2026-10-08).
+This documentation-only closure branch changes no application behavior. Phases3–8 remain
+unapproved; $0 additional recurring cost, optimized workflow, WIP preservation and Figma
+exclusion remain. No production data/model write, paid service or migration is introduced.

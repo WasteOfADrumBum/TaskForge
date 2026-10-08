@@ -9,11 +9,11 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | Item                      | Value                                                                                                       |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02)) |
-| Current phase             | Phase 2: Research shipped; Developer acceptance active                                                      |
-| Current branch            | `codex/KAN-26-developer-drafts`; original assignment WIP preserved on `feat/agent-task-assignment`          |
-| Current checkpoint        | Release/delivery readiness followed by task → agent assignment and bounded Phase 2                          |
-| Last completed checkpoint | Supplied-source Research (PR #35, `faf2c6c`)                                                                |
-| Next recommended          | Complete KAN-26 QA/review/protected delivery; then owner Phase2 closure                                     |
+| Current phase             | Phase 2 COMPLETE; owner accepted 2026-10-08                                                                 |
+| Current branch            | `codex/KAN-26-phase-2-closure`; original assignment WIP preserved on `feat/agent-task-assignment`           |
+| Current checkpoint        | Approved release readiness, assignment and bounded Phase 2 milestone complete                               |
+| Last completed checkpoint | Developer / Phase 2 acceptance (PR #36, `13d34d1`)                                                          |
+| Next recommended          | Review the Phase 3 proposal; implementation awaits explicit approval                                        |
 
 ## Known verification gaps
 
@@ -262,3 +262,20 @@ real API (including the separately approved Chief→Research→Developer handoff
 browser passed. Actual local Ollama all-three starter smoke passed, simulationfalse,
 database/productioncalls0; owned runtime66112 stopped. Full units/127 real API/12 browser/7 safety/static/types/build/audit0 and independent review
 passed. Protected delivery remains pending. Owner milestone closure is required afterward; Phases3–8 remain unapproved.
+
+## Phase 2 formally closed (owner acceptance, 2026-10-08)
+
+Josh explicitly approved: "Formally close Phase 2 — AI Workforce." [KAN-26](https://taskforgejms.atlassian.net/browse/KAN-26)
+is Done; earlier checkpoints above are historical. [PR #36](https://github.com/WasteOfADrumBum/TaskForge/pull/36)
+shipped Developer text plans and final acceptance as `13d34d117dc369119ec15786afeab476b783187a`.
+[Phase closure evidence and limits](phases/phase-2-ai-workforce.md#closure-summary-2026-10-08)
+retain tests/review/PR-main CI/provider/release proof. Documentation closure is a separate
+reviewed PR; application behavior is unchanged. Phases3–8 remain unapproved.
+
+Keep the KAN-43 optimized delivery procedure, $0 additional recurring cost, production real-AI
+disabled/explicit labelled simulation, original assignment WIP and Figma exclusion. Free-tier
+sleep/cold-start/resource limits and manual recovery remain; no paid uptime guarantee. Actual
+inference requires a trusted local Ollama daemon; Render cannot reach an owner's localhost.
+Quotes establish attribution, not factual truth; generated code is unexecuted/unverified text.
+No autonomous repository/data action is enabled. Production CRUD and private restore are not
+established by the read-only live probes or isolated local fixtures.

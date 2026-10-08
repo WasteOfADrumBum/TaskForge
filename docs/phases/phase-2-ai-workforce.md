@@ -1,11 +1,11 @@
 # Phase 2: AI Workforce
 
-**Status: IN PROGRESS.** Work + Projects, Agent Registry, assignment, provider abstraction,
-developer-local Ollama, owned runs, server permissions/audit, human review and bounded
-context are shipped (through PR #30, `c06dc63`). KAN-21 run activity
-and execution UI is shipped (PR #31, `9a6ec94`); bounded handoffs (PR #32), Chief of Staff (PR #34) and supplied-source Research (PR #35) are shipped. KAN-26 Developer text plans/acceptance are active; owner milestone closure is pending. Production real AI is disabled;
-simulation requires explicit selection. Assignment alone starts no work. Item status lives in
-[roadmap.md](../roadmap.md#phase-2-ai-workforce-details).
+**Status: COMPLETE — owner accepted 2026-10-08.** Work + Projects, registry, assignment,
+provider abstraction, developer-local Ollama, owned runs, permissions/audit, human review,
+bounded context, explicit handoffs and all three starter workflows are shipped through
+PR #36 (`13d34d1`). Production real AI remains disabled; simulation requires explicit selection.
+Assignment starts no work, review applies no task/repository changes, and no Phase3–8 approval
+is implied. [Closure evidence](#closure-summary-2026-10-08) and [roadmap](../roadmap.md#phase-2-ai-workforce-details).
 
 ## Foundation: Work + Projects (complete)
 
@@ -26,7 +26,7 @@ The Agent Registry (PR #10, merged) makes agents a persistent, user-owned domain
 - **Skills:** lowercase slug strings on the agent (for example `research`, `software-development`). No separate Skill collection; that can come later if matching needs more than tags.
 - **Permissions:** identifiers from a fixed catalog (`task.read`, `task.update`, `project.read`, `project.update`, `artifact.draft`). KAN-18 checks current `task.read` and `artifact.draft` for explicit text drafts; project content additionally requires `project.read`. No write tool is enabled.
 - **Privacy:** the same rules as Projects. Another user's agent looks exactly like a missing one (`404`), and `owner` can't be set from a request.
-- **Starter workflows:** Chief of Staff and Research are shipped; Developer acceptance is active. KAN-22 bounded handoffs are shipped. KAN-18 server draft execution, permissions and audit are shipped; KAN-19 shipped pending-draft review on Agent Detail. Full run/execution controls are shipped under KAN-21. (Task assignment came next; see below.)
+- **Starter workflows:** Chief of Staff and Research are shipped; Developer is shipped (PR #36). KAN-22 bounded handoffs are shipped. KAN-18 server draft execution, permissions and audit are shipped; KAN-19 shipped pending-draft review on Agent Detail. Full run/execution controls are shipped under KAN-21. (Task assignment came next; see below.)
 - **Deferred:** a `tools` field. It will be added when there are real tools to describe.
 
 ## Foundation: Task → Agent Assignment (complete)
@@ -93,7 +93,7 @@ Agents can read a minimal shared context (task and project notes). Full RAG come
 
 - **Chief of Staff MVP (KAN-23, shipped):** proposes priority and eligible agent recommendations for one owned assigned task, without applying changes.
 - **Research Agent (KAN-25, shipped):** summarizes supplied excerpts and owned notes with captured quote attribution, labelled interpretations/inferences and limitations. Optional URLs are metadata only; no browsing/retrieval. Native quotes use source opening≤400 chars, not exhaustive extraction or factual verification.
-- **Developer Agent (KAN-26, active):** drafts bounded structured technical plans and optional code as unexecuted text, with proposed checks and limitations. It has no repository access or code execution; autonomous repository work remains Phase 8.
+- **Developer Agent (KAN-26, shipped):** drafts bounded structured technical plans and optional code as unexecuted text, with proposed checks and limitations. It has no repository access or code execution; autonomous repository work remains Phase 8.
 
 ### Audit trail
 
@@ -126,14 +126,13 @@ KAN-18 server draft permissions/audit are shipped. KAN-19 human review is shippe
 - [x] Handoffs create linked child runs.
 - [x] Every agent result needs human approval. Rejections are recorded.
 - [x] `AIProvider` exists with a working local provider and a no-provider/demo fallback (KAN-15/16, PR #25/#26). Production disabled; explicit simulation; actual local smoke validated.
-- [x] The Chief of Staff, Research, and Developer agents work end to end locally (actual local Ollama structured smoke plus real Mongo separately approved three-agent handoff chain under KAN-26; protected delivery/owner closure pending).
+- [x] The Chief of Staff, Research, and Developer agents work end to end locally (actual local Ollama structured smoke plus real Mongo separately approved three-agent handoff chain under KAN-26; protected delivery passed and owner closure accepted).
 - [x] The audit trail records every state change.
 - [x] Permission boundaries are enforced on the server and tested.
 - [x] Recurring cost is still $0.
 
-KAN-26 verifies all three workflows and the explicit approved-parent chain locally. Developer
-full local validation and independent review passed; protected delivery and owner acceptance
-remain before milestone closure.
+KAN-26 verified all three workflows and the separately approved handoff chain locally. Full
+validation, independent review, protected delivery and owner milestone acceptance are complete.
 No approved phase expansion follows automatically.
 
 ## Portfolio/career value
@@ -148,3 +147,46 @@ $0 by default. Use local inference (Ollama) for development. Paid APIs are optio
 
 - Human approval is mandatory in this phase. Agents never write to user data without it.
 - Keep it to a few starter agents. Prove the run, handoff, and approval loop before adding more agents.
+
+## Closure summary (2026-10-08)
+
+Owner acceptance: Josh explicitly approved formal Phase2 closure; [KAN-26](https://taskforgejms.atlassian.net/browse/KAN-26)
+is Done. [PR #36](https://github.com/WasteOfADrumBum/TaskForge/pull/36) merged as
+`13d34d117dc369119ec15786afeab476b783187a`. Research shipped in [PR #35](https://github.com/WasteOfADrumBum/TaskForge/pull/35)
+(`faf2c6c`); Chief of Staff in [PR #34](https://github.com/WasteOfADrumBum/TaskForge/pull/34)
+(`1c7d784`). Existing ticket histories and task checkpoints retain earlier evidence.
+
+- QA:1330 units (574client/756server),127 real Mongo/API cases across9 suites,12 Chromium
+  flows,7 fixture safeguards, format/lint/types/both builds and dependency audit0 passed.
+- Actual cached Ollama0.40.0/qwen3:0.6b chat/structured/Chief/Research/Developer smoke passed,
+  simulationfalse, database/productioncalls0; owned runtime stopped. The real Mongo approved
+  three-agent chain used explicit simulation; it is distinct from the actual model smoke.
+- [Independent review](https://github.com/WasteOfADrumBum/TaskForge/pull/36#issuecomment-6062256755)
+  found no implementation issues; minor stale documentation corrected.
+- [Exact-head PR CI](https://github.com/WasteOfADrumBum/TaskForge/actions/runs/37793805940)
+  and [main CI](https://github.com/WasteOfADrumBum/TaskForge/actions/runs/37794532087) passed.
+- Vercel6938571013/Render6938568845 succeeded. Served frontend `/release.json` and API
+  `/release` matched `13d34d1`; health/readiness200 and invalidJWT Developer execute401/no-store.
+  Probes made no production data/model writes. Render GitHub ref metadata remained stale;
+  served build identity was verified independently.
+
+### Remaining limits
+
+Free-tier service sleep/cold starts, resource/storage limits and manual recovery remain; this
+milestone does not provide paid uptime/SLA or prove private backup/restore. Local API/browser
+fixtures do not establish production CRUD, Atlas concurrency or exhaustive accessibility.
+
+Production real inference is disabled. Explicit labelled simulation calls no model; actual
+inference requires a trusted, cloud-disabled loopback Ollama daemon and a suitable local model.
+Render cannot access an owner's localhost. Invalid/truncated local output fails closed without
+automatic replay; chat256/structured512 token ceilings and execution deadlines remain.
+
+Research uses supplied text/owned notes only, never URL retrieval. Native quotes choose source
+openings≤400 characters after leading whitespace; quote matching establishes attribution, not
+truth or exhaustive extraction. Chief recommendations are bounded to a first20 candidate window.
+Developer plans/code are unexecuted/unverified text. Approval records a decision, never applies
+content to tasks or repositories. All handoffs require separate execution and human review.
+
+KAN-43 usage-efficient delivery remains in force; no repeated setup, weakened validation or
+additional recurring cost. Original assignment WIP is preserved; Figma remains excluded.
+Phases3–8 require separate explicit approval; Phase3 discussion is proposal-only.
