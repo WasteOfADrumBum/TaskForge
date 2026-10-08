@@ -323,6 +323,7 @@ it('unaudited writes, content-digest corruption and audit replacement are reject
       { _id: source.id, owner, deleted: false, version: 1, contentDigest: source.contentDigest },
       {
         $set: { ...input, deleted: false, contentDigest: 'a'.repeat(64) },
+        $unset: { embeddingIndex: 1 },
         $inc: { version: 1 },
         $push: {
           auditEvents: {
@@ -529,4 +530,10 @@ it('identical competing creates at the final slot recheck the retry identity bef
   expect(allocations).toBe(2);
   expect(responses[0].body.source.id).toBe(responses[1].body.source.id);
   expect(await KnowledgeSource.countDocuments({ owner, deleted: false })).toBe(50);
+});
+
+it('rejects lone UTF16 surrogates before BSON can alter source text and invalidate provenance', async () => {
+  const response = await create({ ...input, content: 'Lone surrogate \ud800 text' });
+  expect(response.status).toBe(400);
+  expect(await KnowledgeSource.countDocuments({ owner })).toBe(0);
 });

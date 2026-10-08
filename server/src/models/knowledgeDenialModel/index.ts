@@ -12,7 +12,7 @@ const schema = new Schema(
     source: { type: Schema.Types.ObjectId, default: null, immutable: true },
     action: {
       type: String,
-      enum: ['create', 'read', 'update', 'delete', 'search'],
+      enum: ['create', 'read', 'update', 'delete', 'search', 'index'],
       required: true,
       immutable: true,
     },
