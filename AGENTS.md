@@ -124,3 +124,15 @@ One-time setup: KAN-43. Do not repeat it on continuations; use the detailed
 - Keep Jira authoritative and traceability intact; use concise evidence-linked completion records and update only affected docs truthfully.
 - Where controls exist, use efficient models/moderate reasoning for routine work and stronger reasoning for complex/security work; escalate uncertainty, without interrupting productive tasks merely to switch models or adding paid services.
 - Finish active work first. Check usage before another substantial task; require a useful safe checkpoint. Before stopping, save ticket/branch/worktree, edits, applicable checks, outstanding gates and exact next action. Existing approval and release boundaries remain mandatory.
+
+## Current milestone authority (2026-10-08)
+
+Phase2 is owner-closed. Josh approved bounded Phase3 Knowledge & Cited Retrieval under KAN-27:
+private notes/text, optional projects, bounded versioned ingestion/chunking/indexing/retrieval,
+local Ollama embeddings and verifiable cited Ask TaskForge with existing owner/permission/audit/
+human review controls. Deliver storage/keyword search first; verify actual Atlas Free compatibility.
+Hosted capabilities must be honest; production real AI remains disabled and paidcalls0.
+Use the existing optimized workflow; this updates authority, not one-time workflow setup.
+No paid service, major architecture/core-security change, risky production operation or Phase4–8
+without approval. Formal Phase3 closure requires owner acceptance after engineering delivery.
+Figma remains excluded; preserve original assignment WIP.

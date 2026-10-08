@@ -9,11 +9,11 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | Item                      | Value                                                                                                       |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02)) |
-| Current phase             | Phase 2 COMPLETE; owner accepted 2026-10-08                                                                 |
-| Current branch            | `codex/KAN-26-phase-2-closure`; original assignment WIP preserved on `feat/agent-task-assignment`           |
-| Current checkpoint        | Approved release readiness, assignment and bounded Phase 2 milestone complete                               |
-| Last completed checkpoint | Developer / Phase 2 acceptance (PR #36, `13d34d1`)                                                          |
-| Next recommended          | Review the Phase 3 proposal; implementation awaits explicit approval                                        |
+| Current phase             | Phase 2 COMPLETE; bounded Phase 3 approved/in progress                                                      |
+| Current branch            | `codex/KAN-44-private-knowledge`; original assignment WIP preserved on `feat/agent-task-assignment`         |
+| Current checkpoint        | Approved bounded Phase3: storage/keyword retrieval first                                                    |
+| Last completed checkpoint | Owner-accepted Phase2 closure (PR #37, `77d8adc`)                                                           |
+| Next recommended          | Resume KAN-44 source persistence/controllers/routes and real Mongo QA                                       |
 
 ## Known verification gaps
 
@@ -279,3 +279,16 @@ inference requires a trusted local Ollama daemon; Render cannot reach an owner's
 Quotes establish attribution, not factual truth; generated code is unexecuted/unverified text.
 No autonomous repository/data action is enabled. Production CRUD and private restore are not
 established by the read-only live probes or isolated local fixtures.
+
+## Phase 3 approved / KAN-44 active (2026-10-08)
+
+Josh approved bounded Knowledge & Cited Retrieval; [KAN-27](https://taskforgejms.atlassian.net/browse/KAN-27)
+is active with seven coherent tickets KAN-44–50 and dependency links. Phases4–8 remain unapproved.
+Actual Atlas FREE/version8.0.34/search workflow eligibility verified read-only; no index/service
+or production data change. See [Phase3 checkpoint](phases/phase-3-knowledge.md).
+
+KAN-44 source/query validation and pure keyword matching have18 targeted passing tests and
+format/lint checks. No API/storage/UI is shipped. Continue owner-scoped persistence, atomic
+version/bounds/deletion, routes and real Mongo QA, then required full validation/independent
+review/protected PR-main CI/deployment. Pause at insufficient usage, preserving the checkpoint.
+Original assignment WIP, KAN43 optimized delivery, $0 recurring cost and Figma exclusion remain.

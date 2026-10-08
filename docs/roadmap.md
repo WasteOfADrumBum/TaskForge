@@ -112,11 +112,11 @@ These are known minor polish issues found during PR #7. They were never Phase 1 
 - [x] **COMPLETE**: Audit trail (KAN-18): atomic lifecycle events and immutable owner-scoped denials; 1055 units/49 real API cases and independent review pass. PR #28 merged as `bb660e2`; PR/main CI and matching live builds passed.
 - [x] **COMPLETE**: Permission boundaries (KAN-18): persisted owner/assignment/active-agent/capability checks for explicit drafts; no write tools. Full QA and independent review pass; PR #28/main CI and matching live builds passed.
 
-Release readiness and the approved bounded Phase 2 milestone are complete. Phases 3–8 are not approved; Phase 3 is proposal-only until Josh approves a new milestone.
+Release readiness and the approved bounded Phase 2 milestone are complete. Josh approved bounded Phase3 on2026-10-08; Phases4–8 remain unapproved.
 
 ## Phase 3: Knowledge ([details](phases/phase-3-knowledge.md))
 
-**Status: PLANNED**
+**Status: IN PROGRESS (approved 2026-10-08, KAN-27).** Private storage and keyword search first; local embeddings/semantic retrieval/cited answers next, with existing safeguards and $0 additional recurring cost. KAN-44 active; no knowledge API/UI shipped yet. Jira KAN-44–50 track dependencies and delivery. Phases4–8 remain unapproved.
 
 - [ ] **PLANNED**: Shared Knowledge system
 - [ ] **PLANNED**: Text documents

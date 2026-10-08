@@ -24,14 +24,14 @@ gh api --method PUT repos/WasteOfADrumBum/TaskForge/branches/main/protection --i
 
 This is a solo-owner repository. GitHub requires zero approval votes because the PR author cannot approve their own PR. This does **not** remove the independent review requirement: a reviewer separate from the implementer must inspect the final diff, with findings and their resolution recorded on the PR. GitHub branch protection does not enforce that evidence; the delivery operator checks it before every merge.
 
-Josh approved autonomous merges within release readiness and bounded Phase 2 on 2026-10-05. Merge only after ticket acceptance, automated validation, relevant QA, independent review, and the exact final head's required checks pass. Use the final head SHA to prevent merging an unreviewed later push:
+Josh approved autonomous merges within release readiness/bounded Phase2 on2026-10-05 and bounded Phase3 Knowledge & Cited Retrieval on2026-10-08. Phase2 is owner-closed; Phase3 authority is recorded in KAN-27. Merge only after ticket acceptance, automated validation, relevant QA, independent review, and the exact final head's required checks pass. Use the final head SHA to prevent merging an unreviewed later push:
 
 ```powershell
 gh pr checks <PR_NUMBER> --required
 gh pr merge <PR_NUMBER> --merge --match-head-commit <REVIEWED_HEAD_SHA>
 ```
 
-Do not use `--admin`, weaken checks, or bypass a failed gate. Re-review changed code and repeat affected validation after corrections. A new scope, meaningful cost, major architecture or core security change, risky data operation, material UX direction change, or Phases 3–8 needs Josh's decision before implementation.
+Do not use `--admin`, weaken checks, or bypass a failed gate. Re-review changed code and repeat affected validation after corrections. A new scope, meaningful cost, major architecture or core security change, risky data operation, material UX direction change, or Phases4–8 needs Josh's decision before implementation.
 
 ## Deployment boundaries
 
