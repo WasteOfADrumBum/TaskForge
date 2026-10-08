@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const repo = dirname(dirname(fileURLToPath(import.meta.url)));
 if (
-  process.argv.slice(2).join(' ') !== '--local-only' ||
+  !['--local-only', '--local-only --embeddings-only'].includes(process.argv.slice(2).join(' ')) ||
   process.env.NODE_ENV === 'production' ||
   process.env.AI_PROVIDER !== 'ollama'
 ) {
@@ -19,14 +19,22 @@ if (
   await mkdir(cache, { recursive: true });
   const outfile = join(cache, 'smoke.mjs');
   await build({
-    entryPoints: [join(repo, 'server', 'src', 'scripts', 'smokeLocalAI.ts')],
+    entryPoints: [
+      join(
+        repo,
+        'server',
+        'src',
+        'scripts',
+        process.argv.includes('--embeddings-only') ? 'smokeLocalEmbeddings.ts' : 'smokeLocalAI.ts',
+      ),
+    ],
     outfile,
     bundle: true,
     platform: 'node',
     format: 'esm',
     packages: 'external',
   });
-  const child = spawn(process.execPath, [outfile, '--local-only'], {
+  const child = spawn(process.execPath, [outfile, ...process.argv.slice(2)], {
     cwd: repo,
     stdio: 'inherit',
     windowsHide: true,

@@ -66,7 +66,7 @@ Targeted22 units (original18 retained) and26 real Mongo/API scenarios pass, incl
 idempotency/capacity/atomic races, owner/project isolation, current/deleted/stale provenance,
 audit storage/index failures and literal hostile text. Full local QA passed, with affected reruns after two independently reviewed concurrency fixes. Protected CI/live gates remain.
 
-## Private workspace (KAN-45 branch, delivery pending)
+## Private workspace (shipped KAN-45, PR #39)
 
 Use **Knowledge** in the sidebar to paste private notes or text documents and optionally associate
 an owned project. Keyword search returns exact source excerpts and version-linked detail pages;

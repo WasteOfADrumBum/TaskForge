@@ -4,6 +4,8 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+- KAN-46: optional explicitly configured pinned developer-local embeddings through AIProvider, with exact model manifest/dimension identity, bounded UTF8 batches, metadata/cloud/production/output/deadline/capacity guards and an explicit synthetic embedding smoke; no production inference or automatic model downloads.
+
 - KAN-45: private notes/text workspace, owned project associations, bounded keyword excerpts with current-source citation verification, guarded versioned edits and confirmed deletion; honest hosted no-model capability labels.
 
 - KAN-44: owned notes/text API with bounded active sources, exact version/digest edits,

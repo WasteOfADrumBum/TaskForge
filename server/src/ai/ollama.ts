@@ -1,4 +1,5 @@
 import { AIProviderError } from './errors';
+import { PINNED_EMBEDDING, readEmbeddingModel } from './embedding';
 import type { ChatMessage, ProviderAdapter } from './provider';
 
 export const OLLAMA_RESPONSE_MAX_BYTES = 1024 * 1024;
@@ -100,10 +101,16 @@ const readJson = async (
 };
 
 export const createOllamaAdapter = (
-  options: { baseUrl?: string; model?: string; fetch?: typeof globalThis.fetch } = {},
+  options: {
+    baseUrl?: string;
+    model?: string;
+    embeddingModel?: string;
+    fetch?: typeof globalThis.fetch;
+  } = {},
 ): ProviderAdapter => {
   if (process.env.NODE_ENV === 'production') throw new AIProviderError('DISABLED');
   const config = readOllamaConfiguration(options);
+  const embeddingModel = readEmbeddingModel(options.embeddingModel);
   const fetchRequest = options.fetch ?? globalThis.fetch;
   const post = async (path: string, body: Record<string, unknown>, signal: AbortSignal) => {
     if (process.env.NODE_ENV === 'production') throw new AIProviderError('DISABLED');
@@ -120,6 +127,57 @@ export const createOllamaAdapter = (
       signal.throwIfAborted();
     }
     return readJson(response, signal);
+  };
+  const embed = async (texts: readonly string[], { signal }: { signal: AbortSignal }) => {
+    if (process.env.NODE_ENV === 'production') throw new AIProviderError('DISABLED');
+    signal.throwIfAborted();
+    // Tags verify the full model manifest without ever pulling or sending document text.
+    const response = await fetchRequest(config.baseUrl + '/api/tags', {
+      redirect: 'error',
+      signal,
+    });
+    if (signal.aborted) {
+      void response.body?.cancel().catch(() => {});
+      signal.throwIfAborted();
+    }
+    const tags = await readJson(response, signal);
+    if (hasRemote(tags) || !Array.isArray(tags.models) || tags.models.length > 100)
+      throw new AIProviderError('UNAVAILABLE');
+    const models = tags.models.filter((model) => isRecord(model) && model.name === embeddingModel);
+    if (
+      models.length !== 1 ||
+      !isRecord(models[0]) ||
+      hasRemote(models[0]) ||
+      models[0].digest !== PINNED_EMBEDDING.digest
+    )
+      throw new AIProviderError('UNAVAILABLE');
+    const details = await post('/api/show', { model: embeddingModel }, signal);
+    if (
+      hasRemote(details) ||
+      !isRecord(details.details) ||
+      details.details.format !== 'gguf' ||
+      !isRecord(details.model_info) ||
+      details.model_info['general.architecture'] !== 'bert' ||
+      details.model_info['bert.embedding_length'] !== PINNED_EMBEDDING.dimensions ||
+      details.model_info['bert.context_length'] !== 512 ||
+      !Array.isArray(details.capabilities) ||
+      !details.capabilities.includes('embedding')
+    )
+      throw new AIProviderError('UNAVAILABLE');
+    const result = await post(
+      '/api/embed',
+      {
+        model: embeddingModel,
+        input: [...texts],
+        truncate: false,
+        keep_alive: 0,
+        options: { num_ctx: 512 },
+      },
+      signal,
+    );
+    if (hasRemote(result) || result.model !== embeddingModel)
+      throw new AIProviderError('INVALID_OUTPUT');
+    return result.embeddings;
   };
   const generate = async (
     messages: readonly ChatMessage[],
@@ -163,6 +221,7 @@ export const createOllamaAdapter = (
     return result.message.content;
   };
   return {
+    ...(embeddingModel && { embedding: { identity: PINNED_EMBEDDING, embed } }),
     id: 'ollama',
     simulation: false,
     label: 'Local Ollama inference; no hosted provider.',
