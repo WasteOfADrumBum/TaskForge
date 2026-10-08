@@ -106,7 +106,7 @@ These are known minor polish issues found during PR #7. They were never Phase 1 
 - [x] **COMPLETE**: Agent activity UI (KAN-21): latest owned runs, detail, explicit execution and human review using existing API contracts; 1141 units/89 API/8 Chromium, static/build/audit0 and independent review passed. PR #31 merged as `9a6ec94`; protected PR/main CI and matching live builds passed.
 - [x] **COMPLETE**: AI provider contract (KAN-15): disabled default, explicit labelled simulation, validated structured output and unsupported embeddings. PR #25 merged as `dacbd882`; 915 units, all QA/static/audit/CI/review/deployment gates passed. No real model calls.
 - [x] **COMPLETE**: Local Ollama provider (KAN-16): numeric loopback, production disabled and bounded validated output. PR #26 merged as `fda3d1a`; 977 units, real local smoke, full QA/audit/CI/review/deployment pass. Trusted cloud-disabled local daemon; no paid calls.
-- [ ] **IN PROGRESS**: Chief of Staff MVP (KAN-23): explicit bounded task/owned-agent recommendations, strict structured local output or labelled deterministic simulation, exact human review/no silent writes; validation and delivery pending.
+- [x] **COMPLETE (validated branch)**: Chief of Staff MVP (KAN-23): bounded owned task/agent proposals, strict structured local output or labelled simulation and exact human review/no writes. 1291 units/110 real API/full browser/local Ollama smoke passed; final review/protected delivery pending.
 - [ ] **PLANNED**: Research Agent
 - [ ] **PLANNED**: Developer Agent
 - [x] **COMPLETE**: Audit trail (KAN-18): atomic lifecycle events and immutable owner-scoped denials; 1055 units/49 real API cases and independent review pass. PR #28 merged as `bb660e2`; PR/main CI and matching live builds passed.

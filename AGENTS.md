@@ -38,7 +38,7 @@ npm --workspace server run test -- -t "lists tasks"          # Jest, by test nam
 npm --workspace server run seed:demo                         # resets demo password/tasks/projects/agents; development database only
 ```
 
-CI (`.github/workflows/ci.yml`, on push/PR to `main`) runs, in order: `npm ci` → `format:check` → `lint` → `typecheck` → `test` → `build` → `npm audit` → QA safety → real DB integration → browser installation/smoke. Run the same checks locally before pushing; see [isolated test commands and boundaries](docs/testing.md).
+CI (`.github/workflows/ci.yml`, on push/PR to `main`) runs, in order: `npm ci` → `format:check` → `lint` → `typecheck` → `test` → `build` → `npm audit` → QA safety → real DB integration → browser installation/smoke. Run full local validation once production changes are stable; documentation-only changes use relevant static checks locally. Required GitHub CI always applies; see [isolated test commands and boundaries](docs/testing.md).
 
 ## Environment
 
@@ -111,3 +111,16 @@ Work in this pattern: Jira ticket → branch → implementation → tests/QA →
 - For substantial branches, start from `.codex/templates/branch-task.md`. It holds the full validation list, stop conditions, and report format.
 - The `reviewer` and `tester` agents (`.codex/agents/*.toml`) are available for branch review.
 - **$0 extra cost:** add no recurring infrastructure or API cost without explicit approval. Stay on free tiers. All AI goes through a provider abstraction, never a single hard-wired paid provider (see `docs/phases/phase-2-ai-workforce.md`).
+
+## Usage-efficient delivery
+
+One-time setup: KAN-43. Do not repeat it on continuations; use the detailed
+[branch procedure](.codex/templates/branch-task.md).
+
+- Reuse verified context and concise checkpoints; inspect only relevant files/diffs/Jira with short output.
+- Make the smallest acceptance-complete change using existing patterns. Preserve working code, architecture, ownership/security, $0 additional cost and the Figma exclusion.
+- Use targeted tests/static checks while editing, full required local validation when stable, then affected reruns after corrections; repeat full checks when risk requires. Documentation-only local checks stay relevant; protected GitHub CI always applies. Never weaken assertions, hide failures or replace necessary real integration tests with mocks.
+- Review the stable final diff independently with focused security/concurrency scrutiny. The implementer handles routine tests; use a tester for justified risk/coverage gaps and avoid unnecessary simultaneous agents.
+- Keep Jira authoritative and traceability intact; use concise evidence-linked completion records and update only affected docs truthfully.
+- Where controls exist, use efficient models/moderate reasoning for routine work and stronger reasoning for complex/security work; escalate uncertainty, without interrupting productive tasks merely to switch models or adding paid services.
+- Finish active work first. Check usage before another substantial task; require a useful safe checkpoint. Before stopping, save ticket/branch/worktree, edits, applicable checks, outstanding gates and exact next action. Existing approval and release boundaries remain mandatory.

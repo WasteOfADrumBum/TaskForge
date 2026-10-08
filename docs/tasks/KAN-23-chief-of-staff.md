@@ -36,9 +36,23 @@ live deployment before Done. No production data testing or paid AI.
 
 ## Current checkpoint
 
-Implementation present, uncommitted; no PR or delivery claim. Server build and client/QA types
-pass. Targeted tests passed; focused real API/browser and independent review are in progress.
-Fresh owner per real scenario prevents roster state leakage without data resets.
-Actual Ollama Chief smoke and full frozen QA/CI/deployment remain outstanding.
-Initial strict compile diagnostics were corrected (enum-derived types and task-specific fields);
-prior tests now assert the explicit default workflow argument without weakening attempt fences.
+Implementation checkpoint committed locally as `3b37766`; KAN-43 policy merge is being
+reconciled without changing application code. No PR or deployment claim yet.
+
+- Recovered unchanged full QA: 1291 units (574 client/717 server), lint/types/both builds,
+  audit0; unfiltered full-browser artifact passed (10 configured cases; console count lost).
+- Completed missing evidence: 7 safety tests and all 110 real API cases/7 suites passed.
+  Smoke-script lint/format and server build passed after its later extension.
+- Actual cached Ollama0.40.0/qwen3:0.6b chat/structured/Chief proposal smoke passed with
+  explicit local-only settings and synthetic context; simulation false, production/database
+  calls0. Owned runtime64216 and its children stopped; port11435 closed.
+- Focused Chief real API9 and browser1 passed. Independent code review found no blockers;
+  final affected smoke/docs/merge review and protected delivery remain outstanding.
+- Roster window is first20 owned active read/draft candidates in stable ID order, then filters
+  unsupported permissions. Legacy/corrupt definitions can consume slots; this is bounded
+  advisory context, not an exhaustive roster or permission grant.
+
+Initial strict compile diagnostics were corrected (enum-derived types/task-specific fields);
+prior tests assert the explicit default workflow without weakening fences. No production data
+changes, paid service/model calls, architecture expansion or Figma. Exact next action: final
+review of smoke/docs merge, commit merge, push/PR, required CI, protected merge, main/live proof.

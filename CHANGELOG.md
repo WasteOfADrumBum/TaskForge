@@ -6,6 +6,8 @@ All notable changes to TaskForge are recorded here.
 
 - Add explicit Chief of Staff triage proposals with bounded owned context, strict structured output and human review without automatic task changes (KAN-23; delivery pending).
 
+- Document usage-efficient delivery: targeted implementation checks, stable final validation/review, concise Jira checkpoints and usage budgeting without weakening release gates (KAN-43).
+
 - Add explicit approved-parent queued handoffs with bounded owned lineage, idempotent retries, target permissions and independent child execution/review (KAN-22; delivery pending).
 
 - Add owned run activity and detail views with explicit creation/execution, context and audit display, and human review using the existing permission and session safeguards (KAN-21; delivery pending).

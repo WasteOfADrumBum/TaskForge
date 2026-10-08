@@ -114,12 +114,15 @@ Same-owner/key/complete payload returns one child. Uncertain UI creation freezes
 fields and requires successful read refresh before an identical manual retry. No automatic
 writes/model calls, queue, migration or paid service is introduced. Full local QA/review passed 1233 units, 101 API cases, 7 safety, 9 Chromium and static/build/audit0. Protected CI/merge/live delivery remain pending.
 
-## Chief of Staff workflow (KAN-23, validation pending)
+## Chief of Staff workflow (KAN-23, delivery pending)
 
 Explicit execute requests may choose workflow chief-of-staff; omitted workflow stays draft.
 The audited claim freezes selection. Chief snapshots task priority/status and a deterministic
-first-20 eligible owned agent window, with field allowlisting and current permission/source
+first-20 owned active read/draft candidate window, filtered for known permissions after the limit,
+with field allowlisting and current permission/source
 rechecks. Structured proposals are restricted to that task, captured candidate IDs or null,
 known priorities and bounded exact-key text. Local inference uses structured output; explicit
 rule-based simulation calls no model. Proposal review records a decision, never applies priority
-or assignment changes. Actual local smoke and full delivery remain pending.
+or assignment changes. Actual local Ollama proposal smoke and local QA passed; protected delivery
+remains pending. The bounded window is not exhaustive; corrupt/legacy definitions can consume
+slots. A proposal never grants permission to reassign, run or hand off work.

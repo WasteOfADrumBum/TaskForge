@@ -2,7 +2,7 @@
 
 A short, living snapshot of where TaskForge is right now. For the full plan, see [roadmap.md](roadmap.md).
 
-**Last updated:** 2026-10-07
+**Last updated:** 2026-10-08
 
 ## Checkpoint
 
@@ -13,7 +13,7 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | Current branch            | `codex/KAN-23-chief-of-staff`; original assignment WIP preserved on `feat/agent-task-assignment`            |
 | Current checkpoint        | Release/delivery readiness followed by task → agent assignment and bounded Phase 2                          |
 | Last completed checkpoint | Bounded explicit handoffs (PR #32, `ff1393e`)                                                               |
-| Next recommended          | Complete KAN-23 validation, actual local triage smoke and protected delivery                                |
+| Next recommended          | Complete KAN-23 final review and protected CI/live delivery                                                 |
 
 ## Known verification gaps
 
@@ -227,6 +227,14 @@ static/build/audit0 and independent review passed. Exact-head CI `37694886733` a
 identities match, health/readiness200 and invalid-auth handoff history401/no-store.
 
 KAN-23 implements explicit bounded Chief of Staff draft recommendations. No task changes
-are applied by review. Targeted tests/types/build pass; realAPI/browser and independent review
-are running. Actual Ollama triage smoke, full frozen QA and protected delivery remain pending.
-No commit/PR or production feature claim yet.
+are applied by review. 1291 units, 110 real API cases, 7 safety and full browser artifact
+passed; local Ollama Chief structured smoke passed with no database/production calls and owned
+runtime shutdown. Initial independent code review passed. Final affected review and protected
+CI/merge/live deployment remain before Done; implementation checkpoint is `3b37766`.
+
+## One-time delivery optimization (KAN-43, 2026-10-08)
+
+Complete: PR #33 merged `a76feed` after docs/static checks, independent review, PR CI
+`37782581764`/main CI `37783095581` and matching live frontend/API identities. No production
+code/data, hosting/security or cost change. The preserved KAN-23 work resumes under this policy;
+do not repeat the one-time setup on continuations.
