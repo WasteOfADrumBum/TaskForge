@@ -39,3 +39,9 @@ it('rejects cyclic/deep JSON and allows valid structured results', () => {
   expect(isBoundedJson(cyclic, 10000)).toBe(false);
   expect(isBoundedJson({ values: [1, false, null, 'text'] }, 10000)).toBe(true);
 });
+it('defaults legacy/new queued runs to ordinary draft workflow', () => {
+  expect(new Run(valid).workflow).toBe('draft');
+});
+it('rejects unknown stored workflows rather than introducing implicit execution modes', () => {
+  expect(new Run({ ...valid, workflow: 'autonomous-all' }).validateSync()).toBeDefined();
+});

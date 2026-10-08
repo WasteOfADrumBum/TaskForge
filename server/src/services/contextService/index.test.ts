@@ -102,3 +102,91 @@ it.each([{ text: { tool: 'shell.execute' } }, { text: null }, {}])(
     ).toThrow('Selected context cannot be used');
   },
 );
+it('adds only bounded captured agent attribution and task priority/status for triage', () => {
+  const candidate = {
+    _id: '507f1f77bcf86cd799439012',
+    updatedAt: new Date('2026-01-02Z'),
+    name: 'Candidate',
+    role: 'Researcher',
+    skills: ['research'],
+    description: 'SECRET_AGENT_DESCRIPTION',
+    owner: 'SECRET_OWNER',
+    permissions: ['SECRET_PERMISSION'],
+  };
+  const context = buildRunContext({ ...task, priority: 'medium', status: 'todo' }, null, null, [
+    candidate,
+  ]);
+  expect(context.snapshot.sources[0]).toMatchObject({ priority: 'medium', status: 'todo' });
+  expect(context.snapshot.sources[1]).toEqual({
+    kind: 'agent',
+    id: candidate._id,
+    updatedAt: candidate.updatedAt.toISOString(),
+    name: 'Candidate',
+    description: '',
+    role: 'Researcher',
+    skills: ['research'],
+  });
+  expect(JSON.stringify(context.snapshot)).not.toContain('SECRET');
+  candidate.skills.push('changed');
+  expect(context.snapshot.sources[1].skills).toEqual(['research']);
+});
+it('rejects more than20 captured triage agents without silently truncating', () => {
+  const candidate = {
+    _id: '507f1f77bcf86cd799439012',
+    updatedAt: new Date('2026-01-02Z'),
+    name: 'Candidate',
+    role: 'Researcher',
+    skills: [],
+  };
+  expect(() =>
+    buildRunContext(
+      { ...task, priority: 'medium', status: 'todo' },
+      null,
+      null,
+      Array.from({ length: 21 }, () => candidate),
+    ),
+  ).toThrow('Selected context cannot be used');
+});
+it.each([
+  { role: null, skills: [] },
+  { role: 'Research', skills: [null] },
+  { role: 'Research', skills: { tool: 'shell' } },
+])('rejects malformed captured agent metadata %s', (extra) => {
+  const candidate = {
+    _id: '507f1f77bcf86cd799439012',
+    updatedAt: new Date('2026-01-02Z'),
+    name: 'Candidate',
+    ...extra,
+  };
+  expect(() =>
+    buildRunContext({ ...task, priority: 'medium', status: 'todo' }, null, null, [
+      candidate,
+    ] as never),
+  ).toThrow('Selected context cannot be used');
+});
+it('preserves getter-backed model candidate attribution without spreading away getters', () => {
+  const candidate = Object.create({
+    _id: '507f1f77bcf86cd799439012',
+    get updatedAt() {
+      return new Date('2026-01-02Z');
+    },
+    get name() {
+      return 'Getter candidate';
+    },
+    get role() {
+      return 'Researcher';
+    },
+    get skills() {
+      return ['research'];
+    },
+  });
+  const result = buildRunContext({ ...task, priority: 'medium', status: 'todo' }, null, null, [
+    candidate,
+  ]);
+  expect(result.snapshot.sources[1]).toMatchObject({
+    id: '507f1f77bcf86cd799439012',
+    name: 'Getter candidate',
+    role: 'Researcher',
+    skills: ['research'],
+  });
+});

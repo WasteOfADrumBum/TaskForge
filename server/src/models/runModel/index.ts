@@ -9,6 +9,8 @@ export const RUN_STATUSES = [
   'rejected',
   'failed',
 ] as const;
+export const RUN_WORKFLOWS = ['draft', 'chief-of-staff'] as const;
+export type RunWorkflow = (typeof RUN_WORKFLOWS)[number];
 export type RunStatus = (typeof RUN_STATUSES)[number];
 export const RUN_INPUT_MAX = 8000;
 export const RUN_CONTEXT_MAX_BYTES = 16384;
@@ -104,6 +106,7 @@ export interface RunLifecycleEvent {
   to: RunStatus;
   version: number;
   mode: 'demo' | 'local' | null;
+  workflow?: RunWorkflow | null;
   resultDigest?: string | null;
   contextDigest?: string | null;
   parentRun?: Types.ObjectId | null;
@@ -128,6 +131,7 @@ const lifecycleSchema = new Schema<RunLifecycleEvent>(
     sourceResultDigest: { type: String, match: /^[a-f0-9]{64}$/, default: null },
     contextDigest: { type: String, match: /^[a-f0-9]{64}$/, default: null },
     mode: { type: String, enum: ['demo', 'local', null], default: null },
+    workflow: { type: String, enum: [...RUN_WORKFLOWS, null], default: null },
     reason: {
       type: String,
       enum: ['expired', 'interrupted', 'cancelled', 'provider-error', 'permission-denied', null],
@@ -142,6 +146,7 @@ export interface RunRecord {
   task: Types.ObjectId;
   agent: Types.ObjectId;
   input: string;
+  workflow: RunWorkflow;
   handoff: RunHandoff | null;
   context: unknown;
   contextDigest: string | null;
@@ -167,6 +172,7 @@ const runSchema = new Schema<RunRecord>(
     owner: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     task: { type: Schema.Types.ObjectId, ref: 'Task', required: true },
     agent: { type: Schema.Types.ObjectId, ref: 'Agent', required: true },
+    workflow: { type: String, enum: RUN_WORKFLOWS, default: 'draft' },
     handoff: { type: handoffSchema, default: null },
     input: { type: String, required: true, maxlength: RUN_INPUT_MAX },
     context: {
@@ -269,6 +275,16 @@ runSchema.pre('findOneAndUpdate', function () {
   }
   for (const fields of Object.values(update)) {
     for (const field of Object.keys(fields)) {
+      if (
+        (field === 'workflow' || field.startsWith('workflow.')) &&
+        (field !== 'workflow' ||
+          fields !== update.$set ||
+          filter.status !== 'queued' ||
+          update.$set?.status !== 'running' ||
+          event.workflow !== update.$set.workflow ||
+          !RUN_WORKFLOWS.includes(update.$set.workflow as RunWorkflow))
+      )
+        throw new Error('Run workflow is frozen with its audited claim');
       if (
         (field === 'context' || field.startsWith('context.') || field === 'contextDigest') &&
         (field.startsWith('context.') ||

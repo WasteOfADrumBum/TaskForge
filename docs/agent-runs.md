@@ -113,3 +113,13 @@ before child creation or model use; ordinary mutations cannot replace the lineag
 Same-owner/key/complete payload returns one child. Uncertain UI creation freezes native
 fields and requires successful read refresh before an identical manual retry. No automatic
 writes/model calls, queue, migration or paid service is introduced. Full local QA/review passed 1233 units, 101 API cases, 7 safety, 9 Chromium and static/build/audit0. Protected CI/merge/live delivery remain pending.
+
+## Chief of Staff workflow (KAN-23, validation pending)
+
+Explicit execute requests may choose workflow chief-of-staff; omitted workflow stays draft.
+The audited claim freezes selection. Chief snapshots task priority/status and a deterministic
+first-20 eligible owned agent window, with field allowlisting and current permission/source
+rechecks. Structured proposals are restricted to that task, captured candidate IDs or null,
+known priorities and bounded exact-key text. Local inference uses structured output; explicit
+rule-based simulation calls no model. Proposal review records a decision, never applies priority
+or assignment changes. Actual local smoke and full delivery remain pending.

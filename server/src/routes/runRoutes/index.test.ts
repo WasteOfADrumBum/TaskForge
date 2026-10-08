@@ -102,6 +102,7 @@ it('passes only explicit mode and owner to safeguarded execution, with an owned 
     'demo',
     expect.any(AbortSignal),
     false,
+    'draft',
   );
   expect(response.headers['cache-control']).toBe('no-store');
 });
@@ -118,4 +119,32 @@ it('maps foreign execution to404 and unavailable modes to503 without exposing ra
   expect(
     (await request(app).post(`/api/runs/${id}/execute`).set(auth).send({ mode: 'local' })).status,
   ).toBe(503);
+});
+it('passes only explicitly selected workflow alongside owned mode/context flags', async () => {
+  jest.mocked(runExecutor.execute).mockResolvedValue({
+    _id: id,
+    status: 'awaiting-approval',
+    workflow: 'chief-of-staff',
+  } as never);
+  const response = await request(app)
+    .post(`/api/runs/${id}/execute`)
+    .set(auth)
+    .send({
+      mode: 'demo',
+      workflow: 'chief-of-staff',
+      includeProject: true,
+      owner: agent,
+      proposal: { agentId: agent },
+      context: 'injected',
+    });
+  expect(response.status).toBe(200);
+  expect(runExecutor.execute).toHaveBeenCalledWith(
+    owner,
+    id,
+    'demo',
+    expect.any(AbortSignal),
+    true,
+    'chief-of-staff',
+  );
+  expect(response.headers['cache-control']).toBe('no-store');
 });

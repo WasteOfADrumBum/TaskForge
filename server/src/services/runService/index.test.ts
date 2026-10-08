@@ -182,3 +182,20 @@ it('bounds index waits and coalesces stalled work until the driver settles witho
     jest.useRealTimers();
   }
 });
+it.each(['automatic', null, 42])(
+  'rejects unsupported claimed workflow %s before reading records',
+  async (workflow) => {
+    const find = jest.spyOn(Run, 'findOne');
+    await expect(
+      claimRun(owner, id, 0, 30000, new Date(), 'demo', false, workflow as never),
+    ).rejects.toThrow('Invalid run workflow');
+    expect(find).not.toHaveBeenCalled();
+  },
+);
+it('requires explicit provider mode for Chief of Staff claims', async () => {
+  const find = jest.spyOn(Run, 'findOne');
+  await expect(
+    claimRun(owner, id, 0, 30000, new Date(), null, false, 'chief-of-staff'),
+  ).rejects.toThrow('Invalid run workflow');
+  expect(find).not.toHaveBeenCalled();
+});

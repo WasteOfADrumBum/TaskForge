@@ -185,3 +185,23 @@ it.each([200, 401])('discards a delayed HTTP %s from an older same-JWT session',
   expect(store.getState().auth.error).toBeNull();
   expect(localStorage.getItem('token')).toBe(token);
 });
+it('sends explicitly selected Chief of Staff workflow without changing the legacy signal argument', async () => {
+  fetchMock.mockResolvedValue(json({ run: { id: 'proposal', status: 'awaiting-approval' } }));
+  const controller = new AbortController();
+  await executeRun(token, 'run', 'demo', true, controller.signal, 'chief-of-staff');
+  expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+    mode: 'demo',
+    includeProject: true,
+    workflow: 'chief-of-staff',
+  });
+  expect(fetchMock.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal);
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+});
+it('keeps an explicitly selected ordinary draft body compatible with existing callers', async () => {
+  fetchMock.mockResolvedValue(json({ run: { id: 'draft' } }));
+  await executeRun(token, 'run', 'demo', false, undefined, 'draft');
+  expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+    mode: 'demo',
+    includeProject: false,
+  });
+});

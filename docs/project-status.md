@@ -9,11 +9,11 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | Item                      | Value                                                                                                       |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02)) |
-| Current phase             | Phase 2: run activity shipped; bounded handoffs active                                                      |
-| Current branch            | `codex/KAN-22-bounded-handoffs`; original assignment WIP preserved on `feat/agent-task-assignment`          |
+| Current phase             | Phase 2: handoffs shipped; Chief of Staff active                                                            |
+| Current branch            | `codex/KAN-23-chief-of-staff`; original assignment WIP preserved on `feat/agent-task-assignment`            |
 | Current checkpoint        | Release/delivery readiness followed by task → agent assignment and bounded Phase 2                          |
-| Last completed checkpoint | Run activity and explicit review UI (PR #31, `9a6ec94`)                                                     |
-| Next recommended          | Verify KAN-22 protected CI/live delivery, then KAN-23 Chief of Staff MVP                                    |
+| Last completed checkpoint | Bounded explicit handoffs (PR #32, `ff1393e`)                                                               |
+| Next recommended          | Complete KAN-23 validation, actual local triage smoke and protected delivery                                |
 
 ## Known verification gaps
 
@@ -218,3 +218,15 @@ KAN-22 begins from this verified build. Explicit approved-parent queued children
 assignments, bind exact source version/digest, derive owned bounded ancestry and keep separate
 execution/review. No transaction, automatic model call, task/project write, paid service or
 Figma gate. Implementation and full local validation passed: 1233 units, 101 real API cases, 7 safety tests, 9 Chromium flows, static/build/audit0 and independent review. Protected CI/merge/live verification remain pending; no delivery claim yet.
+
+## Handoffs complete / KAN-23 active
+
+KAN-22 is Done: PR #32 merged `ff1393e`; 1233 units,101 realAPI,7 safety,9 Chromium,
+static/build/audit0 and independent review passed. Exact-head CI `37694886733` and main CI
+`37695477556` passed. Vercel `6922259119` and Render `6922255006` succeeded; both served
+identities match, health/readiness200 and invalid-auth handoff history401/no-store.
+
+KAN-23 implements explicit bounded Chief of Staff draft recommendations. No task changes
+are applied by review. Targeted tests/types/build pass; realAPI/browser and independent review
+are running. Actual Ollama triage smoke, full frozen QA and protected delivery remain pending.
+No commit/PR or production feature claim yet.

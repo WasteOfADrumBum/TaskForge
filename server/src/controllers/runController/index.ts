@@ -97,6 +97,11 @@ export const executeRunGuard = async (req: Request, res: Response) => {
           ? false
           : (body as Record<string, unknown>).includeProject
         : false,
+      body && typeof body === 'object' && !Array.isArray(body)
+        ? (body as Record<string, unknown>).workflow === undefined
+          ? 'draft'
+          : (body as Record<string, unknown>).workflow
+        : 'draft',
     );
     if (!res.destroyed && !res.writableEnded) return res.json({ run });
   } catch (error) {

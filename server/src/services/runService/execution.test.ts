@@ -47,7 +47,16 @@ const fixture = (
   const claim = jest
     .spyOn(runs, 'claimRun')
     .mockImplementation(
-      async (_owner, _id, _version, workMs = 30000, _now = new Date(), mode = null) => {
+      async (
+        _owner,
+        _id,
+        _version,
+        workMs = 30000,
+        _now = new Date(),
+        mode = null,
+        _includeProject = false,
+        workflow = 'draft',
+      ) => {
         state = new Run({
           ...state.toObject(),
           status: 'running',
@@ -56,6 +65,7 @@ const fixture = (
           workDeadline: new Date(Date.now() + workMs),
           leaseExpiresAt: new Date(Date.now() + workMs + 5000),
           executionMode: mode,
+          workflow,
           context: {
             schemaVersion: 1,
             untrusted: true,
@@ -66,6 +76,7 @@ const fixture = (
                 updatedAt: '2026-01-01T00:00:00.000Z',
                 title: 'Synthetic task',
                 description: '',
+                ...(workflow === 'chief-of-staff' ? { priority: 'medium', status: 'todo' } : {}),
               },
             ],
           },
@@ -116,7 +127,16 @@ it('commits an audited claim and rechecks authority before a draft-only call and
   expect(result.status).toBe('awaiting-approval');
   expect(result.result).toMatchObject({ text: 'Simulated draft', simulation: true });
   expect(f.authority).toHaveBeenCalledTimes(3);
-  expect(f.claim).toHaveBeenCalledWith(owner, id, 0, 30000, expect.any(Date), 'demo', false);
+  expect(f.claim).toHaveBeenCalledWith(
+    owner,
+    id,
+    0,
+    30000,
+    expect.any(Date),
+    'demo',
+    false,
+    'draft',
+  );
   expect(f.claim.mock.invocationCallOrder[0]).toBeLessThan(f.modelCall.mock.invocationCallOrder[0]);
   expect(f.modelCall.mock.calls[0][0]).toEqual([
     expect.objectContaining({ role: 'system' }),
@@ -260,7 +280,16 @@ it('routes explicitly selected local drafts through the reused local adapter wit
     text: 'Synthetic local draft',
   });
   expect(result.executionMode).toBe('local');
-  expect(f.claim).toHaveBeenCalledWith(owner, id, 0, 30000, expect.any(Date), 'local', false);
+  expect(f.claim).toHaveBeenCalledWith(
+    owner,
+    id,
+    0,
+    30000,
+    expect.any(Date),
+    'local',
+    false,
+    'draft',
+  );
 });
 
 it('rejects disabled local configuration without claiming work or making network calls', async () => {
@@ -395,4 +424,65 @@ it('records timer-driven expiry even when the wall clock remains before the work
   expect(f.modelCall.mock.calls[0][1]!.signal!.aborted).toBe(true);
   expect(f.complete).not.toHaveBeenCalled();
   expect(f.state().failureReason).toBe('expired');
+});
+it.each([null, 'automatic', {}, [], 0, true])(
+  'audits invalid workflow %s before claims or providers',
+  async (workflow) => {
+    const f = fixture();
+    await expect(
+      f.executor.execute(owner, id, 'demo', undefined, false, workflow),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(f.denied).toHaveBeenCalledWith(owner, id, 'invalid-workflow', 'execute');
+    expect(f.claim).not.toHaveBeenCalled();
+    expect(f.modelCall).not.toHaveBeenCalled();
+  },
+);
+it('requires structured capability before claiming Chief of Staff work', async () => {
+  const f = fixture();
+  const provider: AIProvider = {
+    id: 'demo',
+    capabilities: { chat: true, structuredOutput: false, embeddings: false },
+    chat: f.modelCall,
+    structuredOutput: jest.fn(),
+    embed: jest.fn(),
+  };
+  f.resolve.mockReturnValue(provider);
+  await expect(
+    f.executor.execute(owner, id, 'demo', undefined, false, 'chief-of-staff'),
+  ).rejects.toMatchObject({ status: 503 });
+  expect(f.claim).not.toHaveBeenCalled();
+  expect(provider.chat).not.toHaveBeenCalled();
+  expect(provider.structuredOutput).not.toHaveBeenCalled();
+});
+it('stores a separately reviewable Chief of Staff simulation proposal without chat/tool/task writes', async () => {
+  const f = fixture();
+  const structured = jest.fn().mockResolvedValue({
+    value: { summary: 'Canned', simulated: true },
+    provider: 'demo',
+    simulation: true,
+    label: 'Simulation: no model',
+  });
+  const provider: AIProvider = {
+    id: 'demo',
+    capabilities: { chat: true, structuredOutput: true, embeddings: false },
+    chat: f.modelCall,
+    structuredOutput: structured,
+    embed: jest.fn(),
+  };
+  f.resolve.mockReturnValue(provider);
+  const result = await f.executor.execute(owner, id, 'demo', undefined, false, 'chief-of-staff');
+  expect(result.status).toBe('awaiting-approval');
+  expect(result.workflow).toBe('chief-of-staff');
+  expect(result.result).toMatchObject({
+    proposal: { taskId: id, agentId: null, priority: 'medium' },
+    simulation: true,
+    provider: 'demo',
+  });
+  expect(result.result).toMatchObject({
+    text: expect.stringContaining('no task changes are applied'),
+  });
+  expect(structured).toHaveBeenCalledTimes(1);
+  expect(f.modelCall).not.toHaveBeenCalled();
+  expect(f.complete).toHaveBeenCalledTimes(1);
+  expect(f.claim.mock.calls[0][7]).toBe('chief-of-staff');
 });

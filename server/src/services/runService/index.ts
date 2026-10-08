@@ -1,5 +1,12 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { Run, isBoundedJson, RUN_RESULT_MAX_BYTES, digestRunResult } from '../../models/runModel';
+import {
+  Run,
+  isBoundedJson,
+  RUN_RESULT_MAX_BYTES,
+  digestRunResult,
+  type RunWorkflow,
+  RUN_WORKFLOWS,
+} from '../../models/runModel';
 import { Task } from '../../models/taskModel';
 import { Agent } from '../../models/agentModel';
 import { authorizeRunDraft } from '../permissionService';
@@ -127,8 +134,11 @@ export const claimRun = async (
   now = new Date(),
   mode: 'demo' | 'local' | null = null,
   includeProject = false,
+  workflow: RunWorkflow = 'draft',
 ) => {
   assertVersion(version);
+  if (!RUN_WORKFLOWS.includes(workflow) || (workflow === 'chief-of-staff' && mode === null))
+    throw new RunInputError(400, 'Invalid run workflow');
   if (mode !== null && !['demo', 'local'].includes(mode))
     throw new RunInputError(400, 'Invalid execution mode');
   if (!Number.isInteger(workMs) || workMs < 1 || workMs > 120000 || !Number.isFinite(now.getTime()))
@@ -147,9 +157,14 @@ export const claimRun = async (
     return null;
   let context: ReturnType<typeof buildRunContext> | undefined;
   if (mode !== null) {
-    const authority = await authorizeRunDraft(owner, id, includeProject);
+    const authority = await authorizeRunDraft(owner, id, includeProject, workflow);
     if (!authority.allowed) throw new RunAuthorityError(authority.reason);
-    context = buildRunContext(authority.task, authority.project, authority.handoffSource);
+    context = buildRunContext(
+      authority.task,
+      authority.project,
+      authority.handoffSource,
+      authority.triageAgents,
+    );
   }
   return Run.findOneAndUpdate(
     { _id: id, owner, status: 'queued', version },
@@ -158,6 +173,7 @@ export const claimRun = async (
         status: 'running',
         ...(context && { context: context.snapshot, contextDigest: context.digest }),
         executionMode: mode,
+        ...(mode !== null && { workflow }),
         attemptId: randomUUID(),
         workDeadline: new Date(now.getTime() + workMs),
         leaseExpiresAt: new Date(now.getTime() + workMs + 5000),
@@ -166,6 +182,7 @@ export const claimRun = async (
       $push: {
         auditEvents: {
           ...lifecycle(owner, 'claimed', 'queued', 'running', version + 1, mode),
+          ...(mode !== null && { workflow }),
           ...(context && { contextDigest: context.digest }),
         },
       },

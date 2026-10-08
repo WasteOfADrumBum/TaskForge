@@ -4,6 +4,7 @@ import {
   getRunId,
   type AgentRun,
   type ReviewDecision,
+  type RunWorkflow,
   type RunAuditEvent,
   type RunInput,
   type RunProviderStatus,
@@ -123,11 +124,12 @@ export const executeRun = (
   mode: 'demo' | 'local',
   includeProject = false,
   signal?: AbortSignal,
+  workflow: RunWorkflow = 'draft',
 ) =>
   writeRunEndpoint(
     token,
     '/api/runs/' + encodeURIComponent(id) + '/execute',
-    { mode, includeProject },
+    { mode, includeProject, ...(workflow !== 'draft' && { workflow }) },
     signal,
   );
 export const cancelRun = (token: string, id: string, signal?: AbortSignal) =>
