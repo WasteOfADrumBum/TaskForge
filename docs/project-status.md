@@ -218,3 +218,11 @@ KAN-22 begins from this verified build. Explicit approved-parent queued children
 assignments, bind exact source version/digest, derive owned bounded ancestry and keep separate
 execution/review. No transaction, automatic model call, task/project write, paid service or
 Figma gate. Implementation and full local validation passed: 1233 units, 101 real API cases, 7 safety tests, 9 Chromium flows, static/build/audit0 and independent review. Protected CI/merge/live verification remain pending; no delivery claim yet.
+
+## One-time delivery optimization (KAN-43, 2026-10-08)
+
+An isolated documentation branch adds the usage-efficient policy to AGENTS.md and the branch
+procedure template. KAN-23 implementation remains preserved, uncommitted, in the existing managed
+worktree on `codex/KAN-23-chief-of-staff`. This policy change must pass independent review,
+required CI and live identity verification before completion, then KAN-23 resumes. No feature,
+production data, hosting/security architecture or cost changes are included.
