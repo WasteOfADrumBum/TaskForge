@@ -4,6 +4,8 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+- KAN-45: private notes/text workspace, owned project associations, bounded keyword excerpts with current-source citation verification, guarded versioned edits and confirmed deletion; honest hosted no-model capability labels.
+
 - KAN-44: owned notes/text API with bounded active sources, exact version/digest edits,
   atomic metadata audit and deletion invalidation. Source-linked keyword results expose exact
   quotes/version/digest without model calls; private UI and semantic retrieval follow separately.

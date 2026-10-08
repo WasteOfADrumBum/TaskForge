@@ -94,3 +94,10 @@ Use local embeddings (for example through Ollama). Store vectors in MongoDB Atla
 ## Notes/decisions
 
 - Check the free-tier Atlas Vector Search limits before choosing where vectors are stored.
+
+## Storage and workspace delivery
+
+KAN-44 source API is shipped and Done (PR #38, `7fe3aaf`), with required QA, independent review,
+protected CI and matching hosted identities. KAN-45 hosted private note/text workspace is implemented
+on its branch, with final QA/review/protected delivery pending. Semantic retrieval, agent knowledge
+permissions and Ask remain planned under KAN-46–50. No Phase4–8 authority is implied.

@@ -1,6 +1,7 @@
 import { Box, Flex, HStack, IconButton, Text, VStack } from '@chakra-ui/react';
 import {
   LuBot,
+  LuBookOpen,
   LuLayoutDashboard,
   LuListChecks,
   LuLogOut,
@@ -15,6 +16,7 @@ export const navItems = [
   { to: '/home', label: 'Command Center', icon: LuLayoutDashboard },
   { to: '/work', label: 'Work', icon: LuListChecks },
   { to: '/workforce', label: 'Workforce', icon: LuBot },
+  { to: '/knowledge', label: 'Knowledge', icon: LuBookOpen },
   { to: '/settings', label: 'Settings', icon: LuSettings },
 ];
 

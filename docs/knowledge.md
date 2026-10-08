@@ -65,3 +65,18 @@ quotes are untrusted plain data. Body/query/metadata corruption fails closed wit
 Targeted22 units (original18 retained) and26 real Mongo/API scenarios pass, including bounds,
 idempotency/capacity/atomic races, owner/project isolation, current/deleted/stale provenance,
 audit storage/index failures and literal hostile text. Full local QA passed, with affected reruns after two independently reviewed concurrency fixes. Protected CI/live gates remain.
+
+## Private workspace (KAN-45 branch, delivery pending)
+
+Use **Knowledge** in the sidebar to paste private notes or text documents and optionally associate
+an owned project. Keyword search returns exact source excerpts and version-linked detail pages;
+opening an excerpt rechecks its ID/version/digest/offsets against the current owned source.
+An edit invalidates earlier citations. Text is untrusted plain data: no rendered HTML, fetched URLs,
+hidden AI calls or simulation. Hosted semantic/AI answers remain unavailable until later delivery.
+
+Edits/deletes send the displayed version/digest; conflicts require an explicit refresh that discards
+unsaved edits. Delete requires confirmation and clears text while retaining audit metadata.
+Uncertain saves require a successful list refresh and an explicit manual retry of the same input/key;
+check existing sources before explicitly starting another source. There are no automatic retries.
+Changing route/session retires pending operations and loaded private text. All server limits and
+free-tier metadata-growth/local-only AI limitations above still apply.
