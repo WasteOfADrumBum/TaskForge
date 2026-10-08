@@ -3,7 +3,7 @@ export interface SuppliedResearchSource {
   text: string;
   referenceUrl?: string;
 }
-export type RunWorkflow = 'draft' | 'chief-of-staff' | 'research';
+export type RunWorkflow = 'draft' | 'chief-of-staff' | 'research' | 'developer';
 export type RunStatus =
   'queued' | 'running' | 'awaiting-approval' | 'approved' | 'rejected' | 'failed';
 export type ReviewDecision = 'approved' | 'rejected';
