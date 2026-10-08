@@ -5,6 +5,26 @@ import { test } from 'node:test';
 import { root } from './qa-runtime.mjs';
 
 const cases = [
+  {
+    name: 'embedding opt-in without pinned model',
+    args: ['--local-only', '--embeddings-only'],
+    nodeEnv: 'development',
+    provider: 'ollama',
+  },
+  {
+    name: 'embedding opt-in with mismatched model',
+    args: ['--local-only', '--embeddings-only'],
+    nodeEnv: 'development',
+    provider: 'ollama',
+    embedding: 'other:latest',
+  },
+  {
+    name: 'production embedding opt-in',
+    args: ['--local-only', '--embeddings-only'],
+    nodeEnv: 'production',
+    provider: 'ollama',
+    embedding: 'all-minilm:l6-v2',
+  },
   { name: 'missing opt-in', args: [], nodeEnv: 'development', provider: 'ollama' },
   { name: 'production process', args: ['--local-only'], nodeEnv: 'production', provider: 'ollama' },
   {
@@ -42,6 +62,7 @@ for (const fixture of cases) {
           NODE_ENV: fixture.nodeEnv,
           AI_PROVIDER: fixture.provider,
           OLLAMA_MODEL: 'synthetic',
+          OLLAMA_EMBEDDING_MODEL: fixture.embedding ?? '',
           OLLAMA_BASE_URL: 'http://127.0.0.1:' + address.port,
         },
       });
@@ -58,7 +79,7 @@ for (const fixture of cases) {
         child.once('close', done);
       }).finally(() => clearTimeout(timeout));
       assert.equal(code, 1);
-      assert.match(output, /Local smoke requires/);
+      assert.match(output, /Local (?:embedding )?smoke requires/);
       assert.equal(requests, 0);
     } finally {
       child?.kill();

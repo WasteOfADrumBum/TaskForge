@@ -116,16 +116,16 @@ Release readiness and the approved bounded Phase 2 milestone are complete. Josh 
 
 ## Phase 3: Knowledge ([details](phases/phase-3-knowledge.md))
 
-**Status: IN PROGRESS (approved 2026-10-08, KAN-27).** Private storage and keyword search first; local embeddings/semantic retrieval/cited answers next, with existing safeguards and $0 additional recurring cost. KAN-44 storage/keyword API is shipped (PR #38, `7fe3aaf`; required CI/live verified). KAN-45 private knowledge UI is implemented on its branch; final validation/protected delivery pending. Jira KAN-44–50 track dependencies and delivery. Phases4–8 remain unapproved.
+**Status: IN PROGRESS (approved 2026-10-08, KAN-27).** Private storage and keyword search first; local embeddings/semantic retrieval/cited answers next, with existing safeguards and $0 additional recurring cost. KAN-44 storage/keyword API is shipped (PR #38, `7fe3aaf`; required CI/live verified). KAN-45 private knowledge UI is shipped (PR #39, `aea061a`; protected CI/live verified). KAN-46 guarded pinned local embeddings implemented on its branch; delivery pending. Jira KAN-44–50 track dependencies and delivery. Phases4–8 remain unapproved.
 
 - [ ] **PLANNED**: Shared Knowledge system
-- [ ] **PLANNED**: Text documents
-- [ ] **PLANNED**: Notes
-- [ ] **PLANNED**: Project knowledge
-- [ ] **PLANNED**: Ingestion
+- [x] **COMPLETE**: Private text documents (KAN-44/45, bounded manual paste)
+- [x] **COMPLETE**: Private notes (KAN-44/45)
+- [x] **COMPLETE**: Optional owned project associations and keyword filters (KAN-44/45)
+- [x] **COMPLETE**: Bounded manual plain-text ingestion (KAN-44/45; no files/crawlers/URLs)
 - [ ] **PLANNED**: Chunking
 - [ ] **PLANNED**: Embeddings (local/free-first)
-- [ ] **PLANNED**: Retrieval
+- [ ] **IN PROGRESS**: Source-linked keyword retrieval shipped; local semantic retrieval planned
 - [ ] **PLANNED**: Ask TaskForge
 - [ ] **PLANNED**: Permission-scoped knowledge access
 

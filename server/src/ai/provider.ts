@@ -1,6 +1,13 @@
 import { performance } from 'node:perf_hooks';
 
 import { AIProviderError } from './errors';
+import {
+  PINNED_EMBEDDING,
+  readEmbeddingModel,
+  validateEmbeddingTexts,
+  validateEmbeddingVectors,
+  type EmbeddingIdentity,
+} from './embedding';
 import { createOllamaAdapter, readOllamaConfiguration } from './ollama';
 
 export { AIProviderError, type ProviderErrorCode } from './errors';
@@ -28,6 +35,8 @@ export interface ProviderCapabilities {
 }
 
 export interface ProviderResult<T> {
+  // Embed results carry the immutable identity that chunk storage/query compatibility must persist.
+  embedding?: Readonly<EmbeddingIdentity>;
   value: T;
   provider: string;
   simulation: boolean;
@@ -35,6 +44,7 @@ export interface ProviderResult<T> {
 }
 
 export interface AIProvider {
+  readonly embeddingIdentity?: Readonly<EmbeddingIdentity>;
   readonly id: string;
   readonly capabilities: Readonly<ProviderCapabilities>;
   chat(
@@ -51,6 +61,10 @@ export interface AIProvider {
 
 // A trusted server adapter injection point. Environment selection never accepts arbitrary factories.
 export interface ProviderAdapter {
+  readonly embedding?: {
+    readonly identity: Readonly<EmbeddingIdentity>;
+    embed(texts: readonly string[], options: { signal: AbortSignal }): Promise<unknown>;
+  };
   readonly id: string;
   readonly simulation: boolean;
   readonly label: string;
@@ -94,6 +108,17 @@ const validateMessages = (messages: readonly ChatMessage[]) => {
 // Reuse a provider instance. Its guard remains held until the underlying adapter settles,
 // even when it ignores cancellation, so repeated requests cannot accumulate hanging work.
 export const createAIProvider = (adapter: ProviderAdapter): AIProvider => {
+  const embedding = adapter.embedding;
+  if (
+    embedding &&
+    (adapter.simulation ||
+      embedding.identity.model !== PINNED_EMBEDDING.model ||
+      embedding.identity.digest !== PINNED_EMBEDDING.digest ||
+      embedding.identity.dimensions !== PINNED_EMBEDDING.dimensions ||
+      typeof embedding.embed !== 'function')
+  )
+    throw new AIProviderError('INVALID_CONFIGURATION');
+  const embeddingIdentity = embedding ? PINNED_EMBEDDING : undefined;
   let active = false;
   const invoke = async <T>(
     operation: (signal: AbortSignal) => Promise<T>,
@@ -154,7 +179,8 @@ export const createAIProvider = (adapter: ProviderAdapter): AIProvider => {
   };
   return {
     id: adapter.id,
-    capabilities: supportedCapabilities,
+    embeddingIdentity,
+    capabilities: Object.freeze({ ...supportedCapabilities, embeddings: !!embedding }),
     chat: (messages, options) => {
       try {
         validateMessages(messages);
@@ -185,8 +211,20 @@ export const createAIProvider = (adapter: ProviderAdapter): AIProvider => {
         return value;
       }, options);
     },
-    embed: async () => {
-      throw new AIProviderError('UNSUPPORTED');
+    embed: async (texts, options) => {
+      if (!embedding || !embeddingIdentity) throw new AIProviderError('UNSUPPORTED');
+      if (process.env.NODE_ENV === 'production') throw new AIProviderError('DISABLED');
+      validateEmbeddingTexts(texts);
+      // Snapshot caller input before an await; mutations must not change the bounded request.
+      const snapshot = [...texts];
+      const result = await invoke(async (signal) => {
+        const value = await embedding.embed(snapshot, { signal });
+        if (process.env.NODE_ENV === 'production') throw new AIProviderError('DISABLED');
+        if (!validateEmbeddingVectors(value, snapshot.length, embeddingIdentity))
+          throw new AIProviderError('INVALID_OUTPUT');
+        return value;
+      }, options);
+      return { ...result, embedding: embeddingIdentity };
     },
   };
 };
@@ -238,6 +276,7 @@ export const getProviderStatus = (configuredProvider = process.env.AI_PROVIDER):
   if (name === 'ollama' && process.env.NODE_ENV !== 'production') {
     try {
       readOllamaConfiguration();
+      readEmbeddingModel();
       reason = 'not_verified';
     } catch {
       reason = 'invalid_configuration';
@@ -250,7 +289,9 @@ export const getProviderStatus = (configuredProvider = process.env.AI_PROVIDER):
     available: false,
     reason,
     demoSupported: true,
-    capabilities: local ? supportedCapabilities : disabledCapabilities,
+    capabilities: local
+      ? Object.freeze({ ...supportedCapabilities, embeddings: readEmbeddingModel() !== undefined })
+      : disabledCapabilities,
     simulationCapabilities: supportedCapabilities,
   };
 };
