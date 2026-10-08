@@ -1,9 +1,16 @@
+import { TASK_PRIORITIES, TASK_STATUSES } from '../../models/taskModel';
+type TaskPriority = (typeof TASK_PRIORITIES)[number];
+type TaskStatus = (typeof TASK_STATUSES)[number];
 import { digestRunResult, isBoundedJson, RUN_CONTEXT_MAX_BYTES } from '../../models/runModel';
 
 export interface ContextSource {
-  kind: 'task' | 'project' | 'run';
+  kind: 'task' | 'project' | 'run' | 'agent';
   resultDigest?: string;
   version?: number;
+  priority?: TaskPriority;
+  status?: TaskStatus;
+  role?: string;
+  skills?: string[];
   id: string;
   updatedAt: string;
   title?: string;
@@ -29,9 +36,10 @@ type SourceRecord = {
 };
 type ApprovedSource = { _id: unknown; updatedAt: Date; version: number; result: unknown };
 export const buildRunContext = (
-  task: SourceRecord,
+  task: SourceRecord & { priority?: TaskPriority; status?: TaskStatus },
   project: SourceRecord | null,
   approvedSource?: ApprovedSource | null,
+  triageAgents?: (SourceRecord & { role: string; skills: string[] })[],
 ) => {
   const source = (record: SourceRecord, kind: ContextSource['kind']): ContextSource => {
     const id = String(record._id);
@@ -79,6 +87,37 @@ export const buildRunContext = (
       resultDigest: digest,
       description: text,
     });
+  }
+  if (triageAgents) {
+    if (
+      !TASK_PRIORITIES.includes(task.priority as never) ||
+      !TASK_STATUSES.includes(task.status as never) ||
+      triageAgents.length > 20
+    )
+      throw new ContextUnavailableError('invalid-context');
+    snapshot.sources[0].priority = task.priority;
+    snapshot.sources[0].status = task.status;
+    for (const candidate of triageAgents) {
+      if (
+        typeof candidate.role !== 'string' ||
+        !Array.isArray(candidate.skills) ||
+        candidate.skills.some((skill) => typeof skill !== 'string')
+      )
+        throw new ContextUnavailableError('invalid-context');
+      snapshot.sources.push({
+        ...source(
+          {
+            _id: candidate._id,
+            updatedAt: candidate.updatedAt,
+            name: candidate.name,
+            description: '',
+          },
+          'agent',
+        ),
+        role: candidate.role,
+        skills: [...candidate.skills],
+      });
+    }
   }
   if (!isBoundedJson(snapshot, RUN_CONTEXT_MAX_BYTES))
     throw new ContextUnavailableError('context-too-large');

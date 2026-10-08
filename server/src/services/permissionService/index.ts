@@ -1,5 +1,5 @@
 import { readHandoffSource } from '../handoffService/authority';
-import { Run } from '../../models/runModel';
+import { Run, type RunWorkflow } from '../../models/runModel';
 import { Task } from '../../models/taskModel';
 import { Agent, AGENT_PERMISSIONS } from '../../models/agentModel';
 import { Project } from '../../models/projectModel';
@@ -12,7 +12,12 @@ export type DraftDenialReason =
   | 'missing-permission'
   | 'invalid-permission'
   | 'project-not-found';
-export const authorizeRunDraft = async (owner: string, runId: string, includeProject = false) => {
+export const authorizeRunDraft = async (
+  owner: string,
+  runId: string,
+  includeProject = false,
+  workflow?: RunWorkflow,
+) => {
   const run = await Run.findOne({ _id: runId, owner });
   if (!run) return { allowed: false as const, reason: 'run-not-found' as const };
   const agent = await Agent.findOne({ _id: run.agent, owner, status: 'active' });
@@ -42,5 +47,25 @@ export const authorizeRunDraft = async (owner: string, runId: string, includePro
     includeProject && task.project ? await Project.findOne({ _id: task.project, owner }) : null;
   if (includeProject && task.project && !project)
     return { allowed: false as const, reason: 'project-not-found' as const };
-  return { allowed: true as const, run, task, agent, project, handoffSource };
+  const triageAgents =
+    (workflow ?? run.workflow) === 'chief-of-staff'
+      ? (
+          await Agent.find({
+            owner,
+            status: 'active',
+            _id: { $ne: run.agent },
+            permissions: { $all: ['task.read', 'artifact.draft'] },
+          })
+            .select('name role skills permissions updatedAt')
+            .sort({ _id: 1 })
+            .limit(20)
+        ).filter(
+          (candidate) =>
+            Array.isArray(candidate.permissions) &&
+            candidate.permissions.every((permission) =>
+              AGENT_PERMISSIONS.includes(permission as never),
+            ),
+        )
+      : undefined;
+  return { allowed: true as const, run, task, agent, project, handoffSource, triageAgents };
 };

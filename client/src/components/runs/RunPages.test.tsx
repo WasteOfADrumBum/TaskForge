@@ -404,3 +404,65 @@ it('retains handoff creation identity when a failed parent refresh unmounts the 
   expect(vi.mocked(handoffs.createHandoff).mock.calls[1][3]).toBe(firstKey);
   expect(handoffs.createHandoff).toHaveBeenCalledTimes(2);
 });
+it('selects Chief of Staff explicitly and keeps its proposal advisory until exact review', async () => {
+  vi.mocked(api.getRun).mockResolvedValue(
+    run({ status: 'queued', result: null, executionMode: null }),
+  );
+  const user = userEvent.setup();
+  show();
+  await screen.findByLabelText('Run workflow');
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Refresh run' })).toBeEnabled());
+  expect(screen.getByLabelText('Run workflow')).toHaveValue('draft');
+  await user.selectOptions(screen.getByLabelText('Run workflow'), 'chief-of-staff');
+  expect(api.executeRun).not.toHaveBeenCalled();
+  expect(screen.getByRole('button', { name: 'Execute draft' })).toBeDisabled();
+  await user.selectOptions(screen.getByLabelText('Execution mode'), 'demo');
+  const pending = deferred<AgentRun>();
+  vi.mocked(api.executeRun).mockReturnValueOnce(pending.promise);
+  await user.click(screen.getByRole('button', { name: 'Execute draft' }));
+  expect(screen.getByLabelText('Run workflow')).toBeDisabled();
+  expect(api.executeRun).toHaveBeenCalledWith(
+    'run-token',
+    'run-1',
+    'demo',
+    false,
+    expect.any(AbortSignal),
+    'chief-of-staff',
+  );
+  vi.mocked(api.getRun).mockResolvedValue(
+    run({
+      workflow: 'chief-of-staff',
+      result: {
+        text: 'Review the advisory proposal; no task changes are applied.',
+        proposal: { taskId: 'task-1', agentId: null, priority: 'high', reason: 'Review manually' },
+      },
+    }),
+  );
+  await act(async () => pending.resolve(run()));
+  await screen.findByText('Chief of Staff triage: proposals only.');
+  expect(
+    screen.getByText('Review the advisory proposal; no task changes are applied.'),
+  ).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Approve draft' })).toBeEnabled();
+  expect(api.reviewRunDraft).not.toHaveBeenCalled();
+});
+it('blocks local Chief workflow when structured output is unsupported without falling back to chat', async () => {
+  vi.mocked(api.getRun).mockResolvedValue(
+    run({ status: 'queued', result: null, executionMode: null }),
+  );
+  vi.mocked(api.getRunProviderStatus).mockResolvedValue({
+    defaultMode: 'local',
+    available: false,
+    capabilities: { chat: true, structuredOutput: false, embeddings: false },
+  });
+  const user = userEvent.setup();
+  show();
+  await screen.findByLabelText('Run workflow');
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Refresh run' })).toBeEnabled());
+  await user.selectOptions(screen.getByLabelText('Execution mode'), 'local');
+  await user.selectOptions(screen.getByLabelText('Run workflow'), 'chief-of-staff');
+  expect(screen.getByRole('button', { name: 'Execute draft' })).toBeDisabled();
+  expect(api.executeRun).not.toHaveBeenCalled();
+  await user.selectOptions(screen.getByLabelText('Run workflow'), 'draft');
+  expect(screen.getByRole('button', { name: 'Execute draft' })).toBeEnabled();
+});

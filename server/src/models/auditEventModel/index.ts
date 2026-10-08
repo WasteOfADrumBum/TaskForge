@@ -12,6 +12,7 @@ export const AUDIT_DENIAL_REASONS = [
   'invalid-permission',
   'project-not-found',
   'invalid-mode',
+  'invalid-workflow',
   'invalid-context',
   'context-too-large',
   'invalid-context-option',

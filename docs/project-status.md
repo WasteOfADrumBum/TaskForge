@@ -2,18 +2,18 @@
 
 A short, living snapshot of where TaskForge is right now. For the full plan, see [roadmap.md](roadmap.md).
 
-**Last updated:** 2026-10-07
+**Last updated:** 2026-10-08
 
 ## Checkpoint
 
 | Item                      | Value                                                                                                       |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02)) |
-| Current phase             | Phase 2: run activity shipped; bounded handoffs active                                                      |
-| Current branch            | `codex/KAN-22-bounded-handoffs`; original assignment WIP preserved on `feat/agent-task-assignment`          |
+| Current phase             | Phase 2: handoffs shipped; Chief of Staff active                                                            |
+| Current branch            | `codex/KAN-23-chief-of-staff`; original assignment WIP preserved on `feat/agent-task-assignment`            |
 | Current checkpoint        | Release/delivery readiness followed by task → agent assignment and bounded Phase 2                          |
-| Last completed checkpoint | Run activity and explicit review UI (PR #31, `9a6ec94`)                                                     |
-| Next recommended          | Verify KAN-22 protected CI/live delivery, then KAN-23 Chief of Staff MVP                                    |
+| Last completed checkpoint | Bounded explicit handoffs (PR #32, `ff1393e`)                                                               |
+| Next recommended          | Complete KAN-23 final review and protected CI/live delivery                                                 |
 
 ## Known verification gaps
 
@@ -219,10 +219,22 @@ assignments, bind exact source version/digest, derive owned bounded ancestry and
 execution/review. No transaction, automatic model call, task/project write, paid service or
 Figma gate. Implementation and full local validation passed: 1233 units, 101 real API cases, 7 safety tests, 9 Chromium flows, static/build/audit0 and independent review. Protected CI/merge/live verification remain pending; no delivery claim yet.
 
+## Handoffs complete / KAN-23 active
+
+KAN-22 is Done: PR #32 merged `ff1393e`; 1233 units,101 realAPI,7 safety,9 Chromium,
+static/build/audit0 and independent review passed. Exact-head CI `37694886733` and main CI
+`37695477556` passed. Vercel `6922259119` and Render `6922255006` succeeded; both served
+identities match, health/readiness200 and invalid-auth handoff history401/no-store.
+
+KAN-23 implements explicit bounded Chief of Staff draft recommendations. No task changes
+are applied by review. 1291 units, 110 real API cases, 7 safety and full browser artifact
+passed; local Ollama Chief structured smoke passed with no database/production calls and owned
+runtime shutdown. Initial independent code review passed. Final affected review and protected
+CI/merge/live deployment remain before Done; implementation checkpoint is `3b37766`.
+
 ## One-time delivery optimization (KAN-43, 2026-10-08)
 
-An isolated documentation branch adds the usage-efficient policy to AGENTS.md and the branch
-procedure template. KAN-23 implementation remains preserved, uncommitted, in the existing managed
-worktree on `codex/KAN-23-chief-of-staff`. This policy change must pass independent review,
-required CI and live identity verification before completion, then KAN-23 resumes. No feature,
-production data, hosting/security architecture or cost changes are included.
+Complete: PR #33 merged `a76feed` after docs/static checks, independent review, PR CI
+`37782581764`/main CI `37783095581` and matching live frontend/API identities. No production
+code/data, hosting/security or cost change. The preserved KAN-23 work resumes under this policy;
+do not repeat the one-time setup on continuations.

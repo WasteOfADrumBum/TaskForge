@@ -69,3 +69,35 @@ it('denies unknown permissions rather than allowing arbitrary tools', async () =
     reason: 'invalid-permission',
   });
 });
+it('bounds and owner-scopes the captured Chief of Staff candidate roster with only eligible permissions', async () => {
+  setup(['task.read', 'artifact.draft']);
+  const limit = jest.fn().mockResolvedValue([
+    { _id: agentId, permissions: ['task.read', 'artifact.draft'], name: 'Eligible' },
+    { _id: id, permissions: ['task.read', 'artifact.draft', 'shell.execute'], name: 'Invalid' },
+  ]);
+  const sort = jest.fn().mockReturnValue({ limit });
+  const select = jest.fn().mockReturnValue({ sort });
+  const query = jest.spyOn(Agent, 'find').mockReturnValue({ select } as never);
+  const result = await authorizeRunDraft(owner, id, false, 'chief-of-staff');
+  expect(query).toHaveBeenCalledWith({
+    owner,
+    status: 'active',
+    _id: { $ne: agentId },
+    permissions: { $all: ['task.read', 'artifact.draft'] },
+  });
+  expect(select).toHaveBeenCalledWith('name role skills permissions updatedAt');
+  expect(limit).toHaveBeenCalledWith(20);
+  expect(result).toMatchObject({ allowed: true, triageAgents: [{ name: 'Eligible' }] });
+});
+it('never reads candidate roster for ordinary drafts or before permission denial', async () => {
+  setup(['task.read', 'artifact.draft']);
+  const query = jest.spyOn(Agent, 'find');
+  expect(await authorizeRunDraft(owner, id, false, 'draft')).toMatchObject({ allowed: true });
+  expect(query).not.toHaveBeenCalled();
+  jest.mocked(Agent.findOne).mockResolvedValue({ permissions: ['task.read'] } as never);
+  expect(await authorizeRunDraft(owner, id, false, 'chief-of-staff')).toMatchObject({
+    allowed: false,
+    reason: 'missing-permission',
+  });
+  expect(query).not.toHaveBeenCalled();
+});

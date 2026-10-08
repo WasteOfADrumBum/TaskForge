@@ -1,3 +1,4 @@
+export type RunWorkflow = 'draft' | 'chief-of-staff';
 export type RunStatus =
   'queued' | 'running' | 'awaiting-approval' | 'approved' | 'rejected' | 'failed';
 export type ReviewDecision = 'approved' | 'rejected';
@@ -19,6 +20,7 @@ export interface AgentRun {
   resultDigest: string | null;
   status: RunStatus;
   version: number;
+  workflow?: RunWorkflow;
   executionMode: 'demo' | 'local' | null;
   createdAt: string;
   updatedAt?: string;
@@ -43,6 +45,7 @@ export interface RunAuditEvent {
   from: RunStatus | null;
   to: RunStatus;
   version: number;
+  workflow?: RunWorkflow | null;
   mode: 'demo' | 'local' | null;
   reason: string | null;
   resultDigest?: string | null;

@@ -31,6 +31,7 @@ import {
   type RunAuditEvent,
   type RunProviderStatus,
   type ReviewDecision,
+  type RunWorkflow,
 } from '../../types/run';
 import { SessionExpiredError } from '../../utils/session';
 import { RunSection, RunStatusBadge, RunText, runDate } from '../../components/runs/RunDisplay';
@@ -56,6 +57,7 @@ function DetailContent({
   const [refreshKey, setRefreshKey] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [mode, setMode] = useState<'' | 'demo' | 'local'>('');
+  const [workflow, setWorkflow] = useState<RunWorkflow>('draft');
   const [includeProject, setIncludeProject] = useState(false);
   const [note, setNote] = useState('');
   const read = useDelayedRequest();
@@ -139,15 +141,32 @@ function DetailContent({
       (run.status !== 'awaiting-approval' || !run.resultDigest)
     )
       return;
+    if (
+      action === 'execute' &&
+      workflow === 'chief-of-staff' &&
+      mode === 'local' &&
+      !provider?.capabilities.structuredOutput
+    )
+      return;
     const request = write.begin();
     if (!request) return;
     mutation.current = true;
     setWriteError(null);
     setSuccess(null);
     try {
-      if (action === 'execute')
-        await executeRun(token, id, mode as 'demo' | 'local', includeProject, request.signal);
-      else if (action === 'cancel') await cancelRun(token, id, request.signal);
+      if (action === 'execute') {
+        if (workflow === 'draft')
+          await executeRun(token, id, mode as 'demo' | 'local', includeProject, request.signal);
+        else
+          await executeRun(
+            token,
+            id,
+            mode as 'demo' | 'local',
+            includeProject,
+            request.signal,
+            workflow,
+          );
+      } else if (action === 'cancel') await cancelRun(token, id, request.signal);
       else await reviewRunDraft(token, run, action, note, request.signal);
       if (!request.isCurrent() || !isCurrentSession(token, sessionVersion)) return;
       setNote('');
@@ -252,6 +271,9 @@ function DetailContent({
             <VStack align="stretch" gap={2}>
               <RunStatusBadge status={run.status} />
               <Text>Created {runDate(run.createdAt)}</Text>
+              {run.workflow === 'chief-of-staff' && (
+                <Text>Chief of Staff triage: proposals only.</Text>
+              )}
               <Text overflowWrap="anywhere">Task: {run.task}</Text>
               <Text overflowWrap="anywhere">Agent: {run.agent}</Text>
               {run.handoff && (
@@ -280,7 +302,17 @@ function DetailContent({
             <RunText value={run.input} />
           </RunSection>
           <RunSection title="Proposed output">
-            <RunText value={run.result} />
+            <RunText
+              value={
+                run.workflow === 'chief-of-staff' &&
+                run.result &&
+                typeof run.result === 'object' &&
+                'text' in run.result &&
+                typeof run.result.text === 'string'
+                  ? run.result.text
+                  : run.result
+              }
+            />
             {run.resultDigest && (
               <Text mt={3} fontSize="sm" color="fg.muted" overflowWrap="anywhere">
                 Result digest: {run.resultDigest}
@@ -301,6 +333,24 @@ function DetailContent({
           {run.status === 'queued' && (
             <RunSection title="Execute queued run">
               <VStack align="stretch" gap={4}>
+                <Field.Root disabled={blocked}>
+                  <Field.Label htmlFor="run-workflow">Run workflow</Field.Label>
+                  <NativeSelect.Root disabled={blocked}>
+                    <NativeSelect.Field
+                      id="run-workflow"
+                      value={workflow}
+                      onChange={(event) => setWorkflow(event.target.value as RunWorkflow)}
+                    >
+                      <option value="draft">Task draft</option>
+                      <option value="chief-of-staff">Chief of Staff triage</option>
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
+                  <Field.HelperText>
+                    Chief of Staff proposes priority and an eligible agent for this task. Up to 20
+                    captured candidates; review never applies task changes.
+                  </Field.HelperText>
+                </Field.Root>
                 <Field.Root disabled={blocked}>
                   <Field.Label htmlFor="run-mode">Execution mode</Field.Label>
                   <NativeSelect.Root disabled={blocked}>
@@ -343,7 +393,14 @@ function DetailContent({
                 </Text>
                 <Button
                   colorPalette="teal"
-                  disabled={blocked || !mode || (mode === 'local' && !localSupported)}
+                  disabled={
+                    blocked ||
+                    !mode ||
+                    (mode === 'local' &&
+                      (!localSupported ||
+                        (workflow === 'chief-of-staff' &&
+                          !provider?.capabilities.structuredOutput)))
+                  }
                   onClick={() => void change('execute')}
                 >
                   Execute draft
@@ -442,6 +499,9 @@ function DetailContent({
                   {event.from ?? 'New'} → {event.to} · version {event.version}
                 </Text>
                 {event.mode && <Text fontSize="sm">Mode: {event.mode}</Text>}
+                {event.workflow === 'chief-of-staff' && (
+                  <Text fontSize="sm">Workflow: Chief of Staff triage</Text>
+                )}
                 {event.reason && <Text fontSize="sm">Reason: {event.reason}</Text>}
                 {event.parentRun && (
                   <Text fontSize="sm" overflowWrap="anywhere">
