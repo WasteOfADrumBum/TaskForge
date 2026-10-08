@@ -5,6 +5,7 @@ import {
   type AgentRun,
   type ReviewDecision,
   type RunWorkflow,
+  type SuppliedResearchSource,
   type RunAuditEvent,
   type RunInput,
   type RunProviderStatus,
@@ -125,11 +126,17 @@ export const executeRun = (
   includeProject = false,
   signal?: AbortSignal,
   workflow: RunWorkflow = 'draft',
+  researchSources?: SuppliedResearchSource[],
 ) =>
   writeRunEndpoint(
     token,
     '/api/runs/' + encodeURIComponent(id) + '/execute',
-    { mode, includeProject, ...(workflow !== 'draft' && { workflow }) },
+    {
+      mode,
+      includeProject,
+      ...(workflow !== 'draft' && { workflow }),
+      ...(workflow === 'research' && { researchSources: researchSources ?? [] }),
+    },
     signal,
   );
 export const cancelRun = (token: string, id: string, signal?: AbortSignal) =>

@@ -345,3 +345,26 @@ it('pins accepted localhost configuration to numeric IPv4 before any outbound re
     readOllamaConfiguration({ baseUrl: 'http://[::1]:11435', model: 'synthetic' }).baseUrl,
   ).toBe('http://[::1]:11435');
 });
+
+it('keeps chat256 and structured512 token ceilings while retaining bounded no-cloud request settings', async () => {
+  const request = fetchMock()
+    .mockResolvedValueOnce(json(localDetails))
+    .mockResolvedValueOnce(json(reply('Chat')))
+    .mockResolvedValueOnce(json(localDetails))
+    .mockResolvedValueOnce(json(reply('{"summary":"Valid"}')));
+  const provider = local(request);
+  await provider.chat(messages);
+  await provider.structuredOutput(
+    messages,
+    {
+      jsonSchema: { type: 'object' },
+      validate: (value: unknown): value is { summary: string } =>
+        !!value && typeof value === 'object' && 'summary' in value,
+    },
+    { timeoutMs: 1000 },
+  );
+  const chatBody = JSON.parse(request.mock.calls[1][1]!.body as string);
+  const structuredBody = JSON.parse(request.mock.calls[3][1]!.body as string);
+  expect(chatBody.options).toMatchObject({ num_predict: 256, num_ctx: 2048, temperature: 0 });
+  expect(structuredBody.options).toMatchObject({ num_predict: 512, num_ctx: 2048, temperature: 0 });
+});
