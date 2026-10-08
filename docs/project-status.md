@@ -10,10 +10,10 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02)) |
 | Current phase             | Phase 2 COMPLETE; bounded Phase 3 approved/in progress                                                      |
-| Current branch            | `codex/KAN-44-private-knowledge`; original assignment WIP preserved on `feat/agent-task-assignment`         |
+| Current branch            | `codex/KAN-45-knowledge-workspace`; original assignment WIP preserved on `feat/agent-task-assignment`       |
 | Current checkpoint        | Approved bounded Phase3: storage/keyword retrieval first                                                    |
-| Last completed checkpoint | Owner-accepted Phase2 closure (PR #37, `77d8adc`)                                                           |
-| Next recommended          | Resume KAN-44 source persistence/controllers/routes and real Mongo QA                                       |
+| Last completed checkpoint | KAN-44 owned Knowledge API (PR #38, `7fe3aaf`); CI/live verified                                            |
+| Next recommended          | KAN-45 private knowledge UI; validation/protected delivery pending                                          |
 
 ## Known verification gaps
 
@@ -301,3 +301,12 @@ keyword results are implemented;22 targeted units/26 real Mongo cases and full l
 verified two concurrency corrections; no outstanding findings. Protected delivery remains before Done. [Knowledge API](knowledge.md)
 documents private owner/project boundaries and retained metadata/free-tier limits. KAN-45 UI
 follows; no model, paid call, Figma or Phase4–8 work is enabled.
+
+## Phase3 private knowledge checkpoint
+
+KAN-44 is Done: PR #38 (`7fe3aaf`), independent review, 1,352 unit tests, 153 real API tests,
+12 browser checks, 7 fixture safeguards and exact-head/main CI passed. Vercel/Render succeeded;
+frontend/API release identities match `7fe3aaf`; health/readiness and invalid-token guards passed.
+KAN-45 implements the hosted private workspace on its branch; final delivery gates are pending.
+Atlas Free eligibility is verified, not an executed Search/Vector Search index benchmark.
+No production test records/model calls, new cost, Figma or Phase4–8 implementation.

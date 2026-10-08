@@ -16,6 +16,8 @@ const WorkforcePage = lazy(() => import('./pages/WorkforcePage'));
 const AgentDetailPage = lazy(() => import('./pages/AgentDetailPage'));
 const RunActivityPage = lazy(() => import('./pages/RunActivityPage'));
 const RunDetailPage = lazy(() => import('./pages/RunDetailPage'));
+const KnowledgePage = lazy(() => import('./pages/KnowledgePage'));
+const KnowledgeDetailPage = lazy(() => import('./pages/KnowledgeDetailPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 
 // Public: `/` (landing), `/login`, `/register`.
@@ -38,6 +40,8 @@ export const AppRoutes = () => (
           <Route path="/workforce/runs" element={<RunActivityPage />} />
           <Route path="/workforce/runs/:id" element={<RunDetailPage />} />
           <Route path="/workforce/:id" element={<AgentDetailPage />} />
+          <Route path="/knowledge" element={<KnowledgePage />} />
+          <Route path="/knowledge/:id" element={<KnowledgeDetailPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Route>
