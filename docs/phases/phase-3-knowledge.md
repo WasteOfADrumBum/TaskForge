@@ -1,6 +1,47 @@
 # Phase 3: Knowledge
 
-**Status: PLANNED**
+**Status: IN PROGRESS — approved by Josh on2026-10-08.** [Epic KAN-27](https://taskforgejms.atlassian.net/browse/KAN-27)
+tracks bounded Knowledge & Cited Retrieval. Phase4–8 remain unapproved. Hosted keyword/cited
+retrieval is distinct from developer-local embeddings/inference; $0 additional recurring cost,
+existing auth/ownership/permissions/audit/human review, optimized delivery and Figma exclusion remain.
+
+## Approved delivery sequence
+
+1. KAN-44: private source API/versioning and bounded source-linked keyword retrieval.
+2. KAN-45: private notes/text workspace and honest hosted keyword-search UX.
+3. KAN-46: guarded local AIProvider embeddings, one pinned compatible model.
+4. KAN-47: bounded versioned chunk indexing; source edit/delete/model mismatch fences.
+5. KAN-48: permission-scoped semantic retrieval and validated grounded/cited Run drafts.
+6. KAN-49: Ask TaskForge and current verifiable source links; explicit capabilities/modes.
+7. KAN-50: relevance/citation evaluations, negative security/end-to-end evidence and owner closure.
+
+Jira contains the native dependency links. Source storage/search and UI precede AI work; no
+unnecessary ticket count target. No crawlers/PDF/connectors, paid embeddings/reranking/vector
+service, new hosting/auth/database architecture or Phase4–8 implementation.
+
+## Atlas compatibility checkpoint (2026-10-08)
+
+Actual signed-in Atlas Cluster0 dashboard: FREE, MongoDB8.0.34, AWSus-east-1,
+replica set3nodes,461.62KB/512MB. Its Search & Vector Search page exposes index workflows
+with matching version requirements. Verification was metadata-only; no document query,
+index build, paid automated embedding/reranking enablement or production write occurred.
+UI tier/version/eligibility is verified; an actual index/query benchmark is not yet established.
+
+First keyword retrieval will use bounded current-source reads with ordinary owner indexes
+and literal matching, avoiding an optional search-index dependency and stale indexed content.
+Search/semantic storage suitability is evaluated further in KAN-47 before any index choice.
+No search feature is enabled solely because a dashboard offers it.
+
+## Current implementation checkpoint
+
+KAN-44 branch `codex/KAN-44-private-knowledge`, base77d8adc/verified PR37.
+Owned source persistence/API, atomic version/digest/audit and durable50-active-slot bounds are
+implemented on this branch. Deleted text is cleared and excluded from current keyword retrieval;
+exact source/version/digest/offset quotes support honest verification without model calls.
+Targeted22 units (original18 preserved) and26 real Mongo/API cases pass. Full local QA and independent final review passed, with affected reruns after concurrency corrections. Protected delivery remains before Done; no knowledge UI or agent
+knowledge access is shipped yet. [API semantics and limits](../knowledge.md).
+
+Formal Phase3 closure requires owner acceptance after all engineering evidence.
 
 ## Objective
 

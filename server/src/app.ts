@@ -1,5 +1,6 @@
 import express, { type NextFunction, type Request, type Response } from 'express';
 import cors from 'cors';
+import knowledgeRoutes from './routes/knowledgeRoutes';
 import agentRoutes from './routes/agentRoutes';
 import aiRoutes from './routes/aiRoutes';
 import authRoutes from './routes/authRoutes';
@@ -39,6 +40,7 @@ app.get('/ready', async (_req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/projects', projectRoutes);
+app.use('/api/knowledge', knowledgeRoutes);
 app.use('/api/agents', agentRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/runs', runRoutes);

@@ -96,7 +96,7 @@ pre-existing failures and continue independent approved work when a specific tic
 
 Preserve [delivery policy](../../docs/delivery.md) and existing approval authority. Stop before new
 unapproved functionality, material ticket/milestone/UX expansion, meaningful cost, major architecture
-or hosting/database/auth/core security changes, destructive/risky data operations or Phases 3–8.
+or hosting/database/auth/core security changes, destructive/risky data operations or Phases4–8. Bounded Phase3 was approved on2026-10-08 under KAN-27; formal closure follows owner acceptance.
 Present Proposal / Why / Benefit / Risk / Cost / Alternatives / Recommendation and wait for Josh.
 Normal approved implementation/tests/docs/Jira/commit/push/PR/protected merge/deployment are authorized.
 
