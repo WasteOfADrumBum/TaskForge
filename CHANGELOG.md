@@ -4,6 +4,9 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+- Formally close Phase2 after owner acceptance; preserve QA/review/CI/deployment evidence and
+  document free-tier/local-AI limits. Phases3–8 remain unapproved; no application behavior change.
+
 - KAN-26: explicit Developer workflow drafts a bounded technical plan, optional code text,
   proposed checks and limitations for human review. Code is never executed or applied;
   repository access and task changes stay disabled. Three-starter handoff acceptance added.
@@ -12,13 +15,13 @@ All notable changes to TaskForge are recorded here.
   interpretations/inferences/limitations. Optional reference URLs are never fetched; existing
   permission, simulation/local mode and exact human-review controls remain.
 
-- Add explicit Chief of Staff triage proposals with bounded owned context, strict structured output and human review without automatic task changes (KAN-23; delivery pending).
+- Add explicit Chief of Staff triage proposals with bounded owned context, strict structured output and human review without automatic task changes (KAN-23; shipped in PR #34).
 
 - Document usage-efficient delivery: targeted implementation checks, stable final validation/review, concise Jira checkpoints and usage budgeting without weakening release gates (KAN-43).
 
-- Add explicit approved-parent queued handoffs with bounded owned lineage, idempotent retries, target permissions and independent child execution/review (KAN-22; delivery pending).
+- Add explicit approved-parent queued handoffs with bounded owned lineage, idempotent retries, target permissions and independent child execution/review (KAN-22; shipped in PR #32).
 
-- Add owned run activity and detail views with explicit creation/execution, context and audit display, and human review using the existing permission and session safeguards (KAN-21; delivery pending).
+- Add owned run activity and detail views with explicit creation/execution, context and audit display, and human review using the existing permission and session safeguards (KAN-21; shipped in PR #31).
 
 ### Documentation
 

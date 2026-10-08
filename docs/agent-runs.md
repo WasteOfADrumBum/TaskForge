@@ -127,7 +127,7 @@ or assignment changes. Actual local Ollama proposal smoke, local QA, protected P
 and matching live builds passed. The bounded window is not exhaustive; corrupt/legacy definitions can consume
 slots. A proposal never grants permission to reassign, run or hand off work.
 
-## Supplied-source Research (KAN-25, shipped) / Developer (KAN-26, active)
+## Supplied-source Research (KAN-25, shipped) / Developer (KAN-26, shipped)
 
 Execute selects workflow research or developer; omitted workflow is still draft. Research accepts
 up to3 explicit title/text/optional HTTP(S) referenceUrl excerpts, each text≤4000 characters,
