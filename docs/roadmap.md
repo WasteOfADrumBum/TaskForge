@@ -116,7 +116,7 @@ Release readiness and the approved bounded Phase 2 milestone are complete. Josh 
 
 ## Phase 3: Knowledge ([details](phases/phase-3-knowledge.md))
 
-**Status: IN PROGRESS (approved 2026-10-08, KAN-27).** Private storage and keyword search first; local embeddings/semantic retrieval/cited answers next, with existing safeguards and $0 additional recurring cost. KAN-44 active; no knowledge API/UI shipped yet. Jira KAN-44–50 track dependencies and delivery. Phases4–8 remain unapproved.
+**Status: IN PROGRESS (approved 2026-10-08, KAN-27).** Private storage and keyword search first; local embeddings/semantic retrieval/cited answers next, with existing safeguards and $0 additional recurring cost. KAN-44 storage/keyword API implemented and targeted-tested on its branch; protected delivery pending. Knowledge UI follows in KAN-45. Jira KAN-44–50 track dependencies and delivery. Phases4–8 remain unapproved.
 
 - [ ] **PLANNED**: Shared Knowledge system
 - [ ] **PLANNED**: Text documents

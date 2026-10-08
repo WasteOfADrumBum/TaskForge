@@ -4,6 +4,10 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+- KAN-44: owned notes/text API with bounded active sources, exact version/digest edits,
+  atomic metadata audit and deletion invalidation. Source-linked keyword results expose exact
+  quotes/version/digest without model calls; private UI and semantic retrieval follow separately.
+
 - Formally close Phase2 after owner acceptance; preserve QA/review/CI/deployment evidence and
   document free-tier/local-AI limits. Phases3–8 remain unapproved; no application behavior change.
 

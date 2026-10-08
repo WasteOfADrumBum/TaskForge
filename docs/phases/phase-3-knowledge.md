@@ -35,16 +35,13 @@ No search feature is enabled solely because a dashboard offers it.
 ## Current implementation checkpoint
 
 KAN-44 branch `codex/KAN-44-private-knowledge`, base77d8adc/verified PR37.
-Source/query validation and pure bounded owner-filtered keyword-excerpt matching are implemented
-with18 targeted unit cases and affected formatting/lint passed. Content≤20000UTF8bytes,
-title≤120chars, query≤120UTF8bytes/8terms, candidate window≤50, results≤10; exact source
-version/digest/offset excerpts, escaped literal regex and title-only match attribution are tested.
-These helpers do not fetch data, enforce durable corpus quotas or ship a knowledge API/UI.
-Owner-scoped persistence, atomic source version/limit/deletion handling, routes/controllers,
-real Mongo QA, full validation, independent review, PR/CI/live and JiraDone remain required.
+Owned source persistence/API, atomic version/digest/audit and durable50-active-slot bounds are
+implemented on this branch. Deleted text is cleared and excluded from current keyword retrieval;
+exact source/version/digest/offset quotes support honest verification without model calls.
+Targeted22 units (original18 preserved) and26 real Mongo/API cases pass. Full local QA and independent final review passed, with affected reruns after concurrency corrections. Protected delivery remains before Done; no knowledge UI or agent
+knowledge access is shipped yet. [API semantics and limits](../knowledge.md).
 
-Implementation continues from this checkpoint when usage permits; formal Phase3 closure will
-require owner acceptance after complete engineering evidence.
+Formal Phase3 closure requires owner acceptance after all engineering evidence.
 
 ## Objective
 

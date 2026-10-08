@@ -1,0 +1,67 @@
+# Bounded private knowledge API (KAN-44)
+
+Implemented on the active branch; protected delivery is pending. The hosted API performs real
+keyword retrieval without models, embeddings or simulation. KAN-45 supplies its UI; agent
+knowledge permissions and local semantic/grounded drafts follow under KAN-46–49.
+
+## Owned sources and exact writes
+
+All `/api/knowledge` endpoints require the existing human-owner JWT and return no-store.
+Every lookup/write scopes owner server-side; request owner/audit/slot fields are rejected.
+Optional project IDs must currently belong to that owner. A deleted project does not delete
+owned knowledge; project-filtered access fails until the association is changed or removed.
+No agent executor/tool receives access in this ticket.
+
+- POST `/api/knowledge`: full `{title,content,kind,project?}` plus Idempotency-Key. Kind is
+  note or text; retry same key/payload returns the current owned source without another insert.
+  Changed payload/deleted source conflicts; no resurrection or automatic retry.
+- GET `/api/knowledge`: up to50 active source summaries, optional owned project filter.
+- GET `/api/knowledge/:id`: current exact source text/version/contentDigest.
+- PUT `/api/knowledge/:id`: full source input plus exact version/contentDigest shown to the owner.
+  Atomic compare-and-set advances version/digest with its metadata audit event; stale writes409.
+- DELETE `/api/knowledge/:id`: exact `{version,contentDigest}`. Soft deletion atomically clears
+  title/content/project and frees its active slot. Only minimal tombstone/audit metadata remains;
+  source reads/search exclude it. No source-content restore/purge operation is provided.
+- GET `/api/knowledge/:id/audit`: owned metadata lifecycle, including deleted-source history.
+- GET `/api/knowledge/audit/denials`: latest100 owned safe denial metadata, never raw input/query.
+
+Creation acknowledges ordinary unique owner/slot and owner/retry-key indexes before insertion.
+At most50 active sources per owner is enforced by bounded unique slots, including concurrent
+creates. Three bounded allocation attempts then an explicit retry conflict, never a hidden loop.
+Edits are bounded to version100; final audited deletion is still possible at version101. Model
+hooks reject ordinary unaudited writes, identity replacement and audit edits. Direct database
+administrators are outside the application boundary. New collections/indexes are additive;
+no existing production records are migrated or modified by deployment.
+
+## Keyword results and provenance
+
+GET `/api/knowledge/search?q=...&project=...` returns `{mode:'keyword',modelUsed:false,results}`.
+Boundaries: content≤20000 UTF8 bytes, title≤120 characters, query≤120UTF8 bytes/8 literal terms,
+≤50 current source candidates, ≤10 results and ≤240-code-unit excerpts. Five-second DB/index
+budgets and bounded index acknowledgement limit each request. Unique active slots enforce the
+candidate bound without relying on a silently truncated arbitrary corpus.
+
+Literal case-insensitive matches rank title hits twice body hits with stable ID tie ordering.
+Title-only matches are explicitly marked; a body excerpt is not claimed to contain the query.
+Each result carries sourceId/version/contentDigest and exact content offsets/quote. Fetch the
+current owned source to check the version/digest and exact substring; changed/deleted sources
+invalidate a prior result. Results reflect the canonical read snapshot, not a durable citation
+or factual verification. Concurrent later edits require a refreshed source. No external URLs,
+Atlas Search/vector index, paid automated embeddings/reranking, model or network retrieval occurs.
+
+## Limits and validation
+
+Actual Atlas FREE/MongoDB8.0.34/search eligibility was inspected read-only before this design.
+Ordinary indexes/current-source matching avoid search-index propagation dependency; local real
+Mongo tests verify actual native indexes/queries and concurrency. Atlas UI eligibility alone is
+not an executed Atlas Search-index benchmark. Semantic indexing remains a later approved ticket.
+
+Tombstone and append-only denial metadata accumulate and count toward shared free-tier storage;
+no automatic purge, paid scaling, uptime guarantee or production backup proof is implied.
+Optional project references may become orphaned during independent project deletion, but project
+filters revalidate ownership/existence and never dereference foreign project content. Sources and
+quotes are untrusted plain data. Body/query/metadata corruption fails closed with safe errors.
+
+Targeted22 units (original18 retained) and26 real Mongo/API scenarios pass, including bounds,
+idempotency/capacity/atomic races, owner/project isolation, current/deleted/stale provenance,
+audit storage/index failures and literal hostile text. Full local QA passed, with affected reruns after two independently reviewed concurrency fixes. Protected CI/live gates remain.

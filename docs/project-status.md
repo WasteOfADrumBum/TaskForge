@@ -292,3 +292,12 @@ format/lint checks. No API/storage/UI is shipped. Continue owner-scoped persiste
 version/bounds/deletion, routes and real Mongo QA, then required full validation/independent
 review/protected PR-main CI/deployment. Pause at insufficient usage, preserving the checkpoint.
 Original assignment WIP, KAN43 optimized delivery, $0 recurring cost and Figma exclusion remain.
+
+## KAN-44 resumed: private storage and cited keyword API
+
+Current branch preserves fbb0cc0 and its18 tests. Source persistence/API, exact version/digest
+CAS, atomic safe mutation audit,50 active slots, deletion invalidation and bounded literal
+keyword results are implemented;22 targeted units/26 real Mongo cases and full local QA pass. Independent review
+verified two concurrency corrections; no outstanding findings. Protected delivery remains before Done. [Knowledge API](knowledge.md)
+documents private owner/project boundaries and retained metadata/free-tier limits. KAN-45 UI
+follows; no model, paid call, Figma or Phase4–8 work is enabled.
