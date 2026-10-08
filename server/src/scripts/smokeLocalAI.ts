@@ -1,3 +1,8 @@
+import {
+  executeResearch,
+  makeResearchSchema,
+  RESEARCH_SYSTEM_INSTRUCTION,
+} from '../services/researchService';
 import { executeTriage, makeTriageSchema } from '../services/triageService';
 import type { RunContextSnapshot } from '../services/contextService';
 import assert from 'node:assert/strict';
@@ -15,6 +20,7 @@ if (
   process.exit(1);
 }
 
+let stage = 'chat';
 const smoke = async () => {
   const provider = resolveConfiguredProvider();
   const chat = await provider.chat([{ role: 'user', content: 'Reply with exactly LOCAL_OK.' }], {
@@ -38,6 +44,7 @@ const smoke = async () => {
       'summary' in value &&
       value.summary === 'local smoke passed',
   };
+  stage = 'generic structured output';
   const structured = await provider.structuredOutput(
     [{ role: 'user', content: 'Return JSON with summary exactly "local smoke passed".' }],
     schema,
@@ -71,6 +78,7 @@ const smoke = async () => {
       },
     ],
   };
+  stage = 'Chief of Staff';
   const triage = await executeTriage(
     provider,
     snapshot,
@@ -93,6 +101,34 @@ const smoke = async () => {
   assert.equal(triage.provider, 'ollama');
   assert.equal(triage.simulation, false);
   assert.ok(makeTriageSchema(taskId, [agentId]).validate(triage.value));
+  stage = 'supplied-source research';
+  const researchSnapshot: RunContextSnapshot = {
+    schemaVersion: 1,
+    untrusted: true,
+    sources: [{ ...snapshot.sources[0], description: 'Release tests passed on October 8.' }],
+  };
+  const research = await executeResearch(
+    provider,
+    researchSnapshot,
+    [
+      {
+        role: 'system',
+        content: RESEARCH_SYSTEM_INSTRUCTION,
+      },
+      {
+        role: 'user',
+        content: JSON.stringify({
+          request:
+            'Summarize the supplied release note with one exact quote and note the lack of independent verification.',
+          untrustedContext: researchSnapshot,
+        }),
+      },
+    ],
+    { timeoutMs: 120000 },
+  );
+  assert.equal(research.provider, 'ollama');
+  assert.equal(research.simulation, false);
+  assert.ok(makeResearchSchema(researchSnapshot).validate(research.value));
   await assert.rejects(
     provider.embed(['synthetic local fixture']),
     (error: unknown) => error instanceof AIProviderError && error.code === 'UNSUPPORTED',
@@ -105,6 +141,7 @@ const smoke = async () => {
       chat: 'passed',
       structuredOutput: 'passed',
       chiefOfStaffProposal: 'validated',
+      suppliedSourceResearch: 'validated',
       embeddings: 'unsupported',
       productionCalls: 0,
       databaseCalls: 0,
@@ -115,7 +152,7 @@ const smoke = async () => {
 void smoke().catch((error: unknown) => {
   console.error(
     error instanceof AIProviderError
-      ? 'Local smoke failed: ' + error.code
+      ? 'Local smoke failed at ' + stage + ': ' + error.code
       : 'Local smoke assertion failed',
   );
   process.exitCode = 1;

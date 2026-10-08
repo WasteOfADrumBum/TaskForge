@@ -145,7 +145,7 @@ export const createOllamaAdapter = (
         messages: messages.map(({ role, content }) => ({ role, content })),
         stream: false,
         think: false,
-        options: { temperature: 0, num_predict: 256, num_ctx: 2048 },
+        options: { temperature: 0, num_predict: format === undefined ? 256 : 512, num_ctx: 2048 },
         ...(format !== undefined && { format }),
       },
       signal,

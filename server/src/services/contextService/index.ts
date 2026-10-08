@@ -1,10 +1,18 @@
+import {
+  normalizeResearchSources,
+  suppliedSourceId,
+  ResearchSourceError,
+  type SuppliedResearchSource,
+} from '../researchService/sources';
 import { TASK_PRIORITIES, TASK_STATUSES } from '../../models/taskModel';
 type TaskPriority = (typeof TASK_PRIORITIES)[number];
 type TaskStatus = (typeof TASK_STATUSES)[number];
 import { digestRunResult, isBoundedJson, RUN_CONTEXT_MAX_BYTES } from '../../models/runModel';
 
 export interface ContextSource {
-  kind: 'task' | 'project' | 'run' | 'agent';
+  kind: 'task' | 'project' | 'run' | 'agent' | 'supplied';
+  referenceUrl?: string;
+  supplied?: true;
   resultDigest?: string;
   version?: number;
   priority?: TaskPriority;
@@ -40,6 +48,7 @@ export const buildRunContext = (
   project: SourceRecord | null,
   approvedSource?: ApprovedSource | null,
   triageAgents?: (SourceRecord & { role: string; skills: string[] })[],
+  researchSources?: readonly SuppliedResearchSource[],
 ) => {
   const source = (record: SourceRecord, kind: ContextSource['kind']): ContextSource => {
     const id = String(record._id);
@@ -118,6 +127,20 @@ export const buildRunContext = (
         skills: [...candidate.skills],
       });
     }
+  }
+  if (researchSources) {
+    for (const supplied of normalizeResearchSources(researchSources))
+      snapshot.sources.push({
+        kind: 'supplied',
+        id: suppliedSourceId(supplied),
+        updatedAt: new Date().toISOString(),
+        title: supplied.title,
+        description: supplied.text,
+        supplied: true,
+        ...(supplied.referenceUrl && { referenceUrl: supplied.referenceUrl }),
+      });
+    if (!snapshot.sources.some((source) => source.kind !== 'agent' && source.description.trim()))
+      throw new ResearchSourceError('research-no-sources');
   }
   if (!isBoundedJson(snapshot, RUN_CONTEXT_MAX_BYTES))
     throw new ContextUnavailableError('context-too-large');

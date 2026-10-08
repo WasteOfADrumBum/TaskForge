@@ -9,11 +9,11 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | Item                      | Value                                                                                                       |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02)) |
-| Current phase             | Phase 2: handoffs shipped; Chief of Staff active                                                            |
-| Current branch            | `codex/KAN-23-chief-of-staff`; original assignment WIP preserved on `feat/agent-task-assignment`            |
+| Current phase             | Phase 2: Chief of Staff shipped; supplied-source Research active                                            |
+| Current branch            | `codex/KAN-25-supplied-research`; original assignment WIP preserved on `feat/agent-task-assignment`         |
 | Current checkpoint        | Release/delivery readiness followed by task → agent assignment and bounded Phase 2                          |
-| Last completed checkpoint | Bounded explicit handoffs (PR #32, `ff1393e`)                                                               |
-| Next recommended          | Complete KAN-23 final review and protected CI/live delivery                                                 |
+| Last completed checkpoint | Chief of Staff (PR #34, `1c7d784`)                                                                          |
+| Next recommended          | Complete KAN-25 Research QA, review and protected delivery                                                  |
 
 ## Known verification gaps
 
@@ -238,3 +238,13 @@ Complete: PR #33 merged `a76feed` after docs/static checks, independent review, 
 `37782581764`/main CI `37783095581` and matching live frontend/API identities. No production
 code/data, hosting/security or cost change. The preserved KAN-23 work resumes under this policy;
 do not repeat the one-time setup on continuations.
+
+## KAN-23 complete / KAN-25 active
+
+KAN-23/PR #34 is Done, merge `1c7d784`: independent review, PR/main CI and matching
+live client/API identity passed; availability and invalid-token guards verified read-only.
+KAN-25 extends the existing explicit Run workflow with supplied-source research. Up to3
+labelled text excerpts plus owned notes/approved parent output are frozen under16KiB;
+reference URLs are metadata only. Quotes must match captured text, while interpretations
+and inferences remain unverified and subject to human review. No task writes, paid calls,
+new service, production inference or Figma. QA/review/protected delivery are pending.

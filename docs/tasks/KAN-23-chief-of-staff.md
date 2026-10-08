@@ -34,25 +34,14 @@ Mongo/API and local browser flow, plus actual Ollama structured triage smoke. Fu
 units/build/audit/safety/API/browser, independent review, protected CI/merge/main CI and matching
 live deployment before Done. No production data testing or paid AI.
 
-## Current checkpoint
+## Delivery complete
 
-Implementation checkpoint committed locally as `3b37766`; KAN-43 policy merge is being
-reconciled without changing application code. No PR or deployment claim yet.
+PR [#34](https://github.com/WasteOfADrumBum/TaskForge/pull/34) merged as
+`1c7d784d98cb88a9d71ce9aedb63349b85a148c8`. Independent final review found no blockers;
+1291 units, 110 real API cases, full browser suite, safety/static/types/build/audit and
+actual local Ollama structured triage smoke passed. Exact-head/main CI and both provider
+deployments succeeded. Live client/API identities matched the merge; health/readiness200
+and invalid-token execution401 passed without production data/model calls. Jira is Done.
 
-- Recovered unchanged full QA: 1291 units (574 client/717 server), lint/types/both builds,
-  audit0; unfiltered full-browser artifact passed (10 configured cases; console count lost).
-- Completed missing evidence: 7 safety tests and all 110 real API cases/7 suites passed.
-  Smoke-script lint/format and server build passed after its later extension.
-- Actual cached Ollama0.40.0/qwen3:0.6b chat/structured/Chief proposal smoke passed with
-  explicit local-only settings and synthetic context; simulation false, production/database
-  calls0. Owned runtime64216 and its children stopped; port11435 closed.
-- Focused Chief real API9 and browser1 passed. Independent code review found no blockers;
-  final affected smoke/docs/merge review and protected delivery remain outstanding.
-- Roster window is first20 owned active read/draft candidates in stable ID order, then filters
-  unsupported permissions. Legacy/corrupt definitions can consume slots; this is bounded
-  advisory context, not an exhaustive roster or permission grant.
-
-Initial strict compile diagnostics were corrected (enum-derived types/task-specific fields);
-prior tests assert the explicit default workflow without weakening fences. No production data
-changes, paid service/model calls, architecture expansion or Figma. Exact next action: final
-review of smoke/docs merge, commit merge, push/PR, required CI, protected merge, main/live proof.
+Roster is a stable first20 eligible definition window, then filters unsupported permissions;
+legacy/corrupt definitions can consume slots. This remains advisory, not an exhaustive roster.

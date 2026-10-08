@@ -7,6 +7,7 @@ import {
   Field,
   Heading,
   HStack,
+  Input,
   Link,
   NativeSelect,
   Text,
@@ -58,6 +59,11 @@ function DetailContent({
   const [loaded, setLoaded] = useState(false);
   const [mode, setMode] = useState<'' | 'demo' | 'local'>('');
   const [workflow, setWorkflow] = useState<RunWorkflow>('draft');
+  const [sourceTitle, setSourceTitle] = useState('');
+  const [sourceText, setSourceText] = useState('');
+  const [sourceUrl, setSourceUrl] = useState('');
+  const invalidSource =
+    workflow === 'research' && !sourceText.trim() && !!(sourceTitle.trim() || sourceUrl.trim());
   const [includeProject, setIncludeProject] = useState(false);
   const [note, setNote] = useState('');
   const read = useDelayedRequest();
@@ -132,7 +138,7 @@ function DetailContent({
     if (!run || mutation.current || blocked || !isCurrentSession(token, sessionVersion)) return;
     if (
       action === 'execute' &&
-      (run.status !== 'queued' || !mode || (mode === 'local' && !localSupported))
+      (run.status !== 'queued' || !mode || invalidSource || (mode === 'local' && !localSupported))
     )
       return;
     if (action === 'cancel' && run.status !== 'queued' && run.status !== 'running') return;
@@ -143,7 +149,7 @@ function DetailContent({
       return;
     if (
       action === 'execute' &&
-      workflow === 'chief-of-staff' &&
+      workflow !== 'draft' &&
       mode === 'local' &&
       !provider?.capabilities.structuredOutput
     )
@@ -165,6 +171,19 @@ function DetailContent({
             includeProject,
             request.signal,
             workflow,
+            ...(workflow === 'research'
+              ? ([
+                  sourceText.trim()
+                    ? [
+                        {
+                          title: sourceTitle.trim() || 'Supplied excerpt',
+                          text: sourceText,
+                          ...(sourceUrl.trim() && { referenceUrl: sourceUrl.trim() }),
+                        },
+                      ]
+                    : [],
+                ] as const)
+              : []),
           );
       } else if (action === 'cancel') await cancelRun(token, id, request.signal);
       else await reviewRunDraft(token, run, action, note, request.signal);
@@ -274,6 +293,12 @@ function DetailContent({
               {run.workflow === 'chief-of-staff' && (
                 <Text>Chief of Staff triage: proposals only.</Text>
               )}
+              {run.workflow === 'research' && (
+                <Text>
+                  Supplied-source research: quotes checked against captured text; interpretations
+                  require human review. No URLs fetched.
+                </Text>
+              )}
               <Text overflowWrap="anywhere">Task: {run.task}</Text>
               <Text overflowWrap="anywhere">Agent: {run.agent}</Text>
               {run.handoff && (
@@ -304,7 +329,7 @@ function DetailContent({
           <RunSection title="Proposed output">
             <RunText
               value={
-                run.workflow === 'chief-of-staff' &&
+                run.workflow !== 'draft' &&
                 run.result &&
                 typeof run.result === 'object' &&
                 'text' in run.result &&
@@ -343,14 +368,60 @@ function DetailContent({
                     >
                       <option value="draft">Task draft</option>
                       <option value="chief-of-staff">Chief of Staff triage</option>
+                      <option value="research">Supplied-source research</option>
                     </NativeSelect.Field>
                     <NativeSelect.Indicator />
                   </NativeSelect.Root>
                   <Field.HelperText>
                     Chief of Staff proposes priority and an eligible agent for this task. Up to 20
-                    captured candidates; review never applies task changes.
+                    captured candidates; review never applies task changes. Research summarizes
+                    supplied text and owned notes, with quotes and labelled inferences; it does not
+                    browse.
                   </Field.HelperText>
                 </Field.Root>
+                {workflow === 'research' && (
+                  <VStack align="stretch" gap={3}>
+                    <Text>
+                      Optional supplied excerpt. Reference URLs are labels only: never fetched or
+                      verified. Without an excerpt, research requires task notes, selected project
+                      notes, or approved parent output.
+                    </Text>
+                    <Field.Root disabled={blocked}>
+                      <Field.Label htmlFor="source-title">Source label</Field.Label>
+                      <Input
+                        id="source-title"
+                        value={sourceTitle}
+                        maxLength={80}
+                        onChange={(e) => setSourceTitle(e.target.value)}
+                      />
+                    </Field.Root>
+                    <Field.Root disabled={blocked}>
+                      <Field.Label htmlFor="source-text">Supplied source text</Field.Label>
+                      <Textarea
+                        id="source-text"
+                        value={sourceText}
+                        maxLength={4000}
+                        onChange={(e) => setSourceText(e.target.value)}
+                      />
+                    </Field.Root>
+                    <Field.Root disabled={blocked}>
+                      <Field.Label htmlFor="source-url">
+                        Reference URL (optional, not fetched)
+                      </Field.Label>
+                      <Input
+                        id="source-url"
+                        value={sourceUrl}
+                        maxLength={2048}
+                        onChange={(e) => setSourceUrl(e.target.value)}
+                      />
+                      {invalidSource && (
+                        <Field.HelperText>
+                          Paste source text before supplying a label or reference URL.
+                        </Field.HelperText>
+                      )}
+                    </Field.Root>
+                  </VStack>
+                )}
                 <Field.Root disabled={blocked}>
                   <Field.Label htmlFor="run-mode">Execution mode</Field.Label>
                   <NativeSelect.Root disabled={blocked}>
@@ -396,10 +467,10 @@ function DetailContent({
                   disabled={
                     blocked ||
                     !mode ||
+                    invalidSource ||
                     (mode === 'local' &&
                       (!localSupported ||
-                        (workflow === 'chief-of-staff' &&
-                          !provider?.capabilities.structuredOutput)))
+                        (workflow !== 'draft' && !provider?.capabilities.structuredOutput)))
                   }
                   onClick={() => void change('execute')}
                 >
@@ -501,6 +572,9 @@ function DetailContent({
                 {event.mode && <Text fontSize="sm">Mode: {event.mode}</Text>}
                 {event.workflow === 'chief-of-staff' && (
                   <Text fontSize="sm">Workflow: Chief of Staff triage</Text>
+                )}
+                {event.workflow === 'research' && (
+                  <Text fontSize="sm">Workflow: supplied-source research</Text>
                 )}
                 {event.reason && <Text fontSize="sm">Reason: {event.reason}</Text>}
                 {event.parentRun && (

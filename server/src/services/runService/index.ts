@@ -1,3 +1,4 @@
+import type { SuppliedResearchSource } from '../researchService/sources';
 import { createHash, randomUUID } from 'node:crypto';
 import {
   Run,
@@ -135,9 +136,10 @@ export const claimRun = async (
   mode: 'demo' | 'local' | null = null,
   includeProject = false,
   workflow: RunWorkflow = 'draft',
+  researchSources?: readonly SuppliedResearchSource[],
 ) => {
   assertVersion(version);
-  if (!RUN_WORKFLOWS.includes(workflow) || (workflow === 'chief-of-staff' && mode === null))
+  if (!RUN_WORKFLOWS.includes(workflow) || (workflow !== 'draft' && mode === null))
     throw new RunInputError(400, 'Invalid run workflow');
   if (mode !== null && !['demo', 'local'].includes(mode))
     throw new RunInputError(400, 'Invalid execution mode');
@@ -164,6 +166,7 @@ export const claimRun = async (
       authority.project,
       authority.handoffSource,
       authority.triageAgents,
+      workflow === 'research' ? (researchSources ?? []) : undefined,
     );
   }
   return Run.findOneAndUpdate(
