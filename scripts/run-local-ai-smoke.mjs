@@ -7,12 +7,15 @@ import { fileURLToPath } from 'node:url';
 
 const repo = dirname(dirname(fileURLToPath(import.meta.url)));
 if (
-  !['--local-only', '--local-only --embeddings-only', '--local-only --index-only'].includes(
-    process.argv.slice(2).join(' '),
-  ) ||
+  ![
+    '--local-only',
+    '--local-only --embeddings-only',
+    '--local-only --index-only',
+    '--local-only --grounded-only',
+  ].includes(process.argv.slice(2).join(' ')) ||
   process.env.NODE_ENV === 'production' ||
   process.env.AI_PROVIDER !== 'ollama' ||
-  (process.argv.includes('--index-only') &&
+  ((process.argv.includes('--index-only') || process.argv.includes('--grounded-only')) &&
     process.env.OLLAMA_EMBEDDING_MODEL !== 'all-minilm:l6-v2')
 ) {
   console.error(
@@ -24,7 +27,8 @@ if (
   await mkdir(cache, { recursive: true });
   const outfile = join(cache, 'smoke.mjs');
   const indexOnly = process.argv.includes('--index-only');
-  const mongo = indexOnly ? await startMongo() : null;
+  const groundedOnly = process.argv.includes('--grounded-only');
+  const mongo = indexOnly || groundedOnly ? await startMongo() : null;
   try {
     await build({
       entryPoints: [
@@ -33,11 +37,13 @@ if (
           'server',
           'src',
           'scripts',
-          indexOnly
-            ? 'smokeLocalKnowledgeIndex.ts'
-            : process.argv.includes('--embeddings-only')
-              ? 'smokeLocalEmbeddings.ts'
-              : 'smokeLocalAI.ts',
+          groundedOnly
+            ? 'smokeGroundedKnowledge.ts'
+            : indexOnly
+              ? 'smokeLocalKnowledgeIndex.ts'
+              : process.argv.includes('--embeddings-only')
+                ? 'smokeLocalEmbeddings.ts'
+                : 'smokeLocalAI.ts',
         ),
       ],
       outfile,

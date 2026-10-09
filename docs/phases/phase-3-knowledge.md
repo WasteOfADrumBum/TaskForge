@@ -102,9 +102,15 @@ protected CI and matching hosted identities. KAN-45 hosted private note/text wor
 permissions and Ask remain planned under KAN-46–50. No Phase4–8 authority is implied.
 
 KAN-46 guarded pinned local embeddings are shipped (PR #40, `f45fb86`), with actual local QA, independent review, protected CI and matching live identities. It adds no public semantic endpoint or stored vectors.
-KAN-47 must persist/validate full model manifest/dimension and current source/chunk provenance.
+KAN-47 persists/validates the full pinned model manifest/dimension and current source/chunk provenance.
 
 KAN-47 co-locates private current chunk vectors with source version/digest for atomic edit/delete
 invalidation using existing native MongoDB. Targeted real Mongo races and actual local Mongo+Ollama
-synthetic smoke pass; final QA/review/protected delivery pending. No public semantic endpoint or
+synthetic smoke, full QA/review/protected CI and matching live identities passed (PR #41, `23268b2`). No public semantic endpoint or
 hosted worker added. Owner/project/current citation enforcement continues under KAN-48.
+
+KAN-48 adds an explicit local-only knowledge Run workflow with opt-in knowledge.read, bounded native
+semantic scoring, exact current-source provenance and stale/revoked-context publication/approval
+guards. Actual local Mongo/Ollama cited draft and human review passed; protected delivery pending.
+No hosted semantic inference, automatic indexing or paid model calls. Historical Run draft quotes
+remain in private Run history after source deletion; current retrieval/approval invalidates.

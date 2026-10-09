@@ -1,3 +1,9 @@
+import {
+  assertCurrentKnowledge,
+  groundedSchema,
+  formatGroundedReport,
+  type GroundedReport,
+} from '../groundedKnowledgeService';
 import type { SuppliedResearchSource } from '../researchService/sources';
 import { createHash, randomUUID } from 'node:crypto';
 import {
@@ -335,6 +341,54 @@ export const reviewRun = (
       (resultDigest !== undefined && digest !== resultDigest)
     )
       throw new RunInputError(409, 'Draft changed or was already reviewed');
+    if (current.workflow === 'knowledge' && decision === 'approved') {
+      const authority = await authorizeRunDraft(
+        owner,
+        id,
+        (current.context as { sources?: { kind: string }[] })?.sources?.some(
+          (source) => source.kind === 'project',
+        ) ?? false,
+      );
+      if (!authority.allowed)
+        throw new RunInputError(409, 'Knowledge authority changed; this draft cannot be approved');
+      const result = current.result as {
+        knowledge?: GroundedReport;
+        text?: string;
+        provider?: string;
+        simulation?: boolean;
+      };
+      try {
+        if (!result?.knowledge || result.provider !== 'ollama' || result.simulation !== false)
+          throw new Error('Invalid knowledge draft');
+        if (
+          (authority.project ? String(authority.project._id) : null) !==
+          result.knowledge.retrieval.project
+        )
+          throw new Error('Project scope changed');
+        await assertCurrentKnowledge(owner, result.knowledge.retrieval);
+        const finalAuthority = await authorizeRunDraft(
+          owner,
+          id,
+          result.knowledge.retrieval.project !== null,
+        );
+        if (
+          !finalAuthority.allowed ||
+          (finalAuthority.project ? String(finalAuthority.project._id) : null) !==
+            result.knowledge.retrieval.project
+        )
+          throw new Error('Knowledge authority changed');
+        if (
+          !groundedSchema(result.knowledge.retrieval).validate(result.knowledge.answer) ||
+          formatGroundedReport(result.knowledge) !== result.text
+        )
+          throw new Error('Invalid knowledge draft');
+      } catch {
+        throw new RunInputError(
+          409,
+          'Knowledge sources or citations changed; this draft cannot be approved',
+        );
+      }
+    }
     const event = {
       ...lifecycle(owner, decision, 'awaiting-approval', decision, version + 1),
       resultDigest: digest,

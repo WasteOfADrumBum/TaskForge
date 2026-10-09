@@ -28,7 +28,12 @@ export const authorizeRunDraft = async (
     agent.permissions.some((permission) => !AGENT_PERMISSIONS.includes(permission as never))
   )
     return { allowed: false as const, reason: 'invalid-permission' as const };
-  const required = ['task.read', 'artifact.draft', ...(includeProject ? ['project.read'] : [])];
+  const required = [
+    'task.read',
+    'artifact.draft',
+    ...((workflow ?? run.workflow) === 'knowledge' ? ['knowledge.read'] : []),
+    ...(includeProject ? ['project.read'] : []),
+  ];
   if (required.some((permission) => !new Set<string>(agent.permissions).has(permission)))
     return { allowed: false as const, reason: 'missing-permission' as const };
   const task = await Task.findOne({

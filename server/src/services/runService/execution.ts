@@ -1,4 +1,14 @@
 import {
+  retrieveKnowledge,
+  assertCurrentKnowledge,
+  groundedSchema,
+  formatGroundedReport,
+  validKnowledgeQuestion,
+  KNOWLEDGE_SYSTEM_INSTRUCTION,
+  type GroundedReport,
+  KnowledgeRetrievalError,
+} from '../groundedKnowledgeService';
+import {
   executeDeveloper,
   formatDeveloperOutput,
   DEVELOPER_SYSTEM_INSTRUCTION,
@@ -50,6 +60,7 @@ export const createRunExecutor = (
       process.env.AI_PROVIDER,
       process.env.OLLAMA_BASE_URL,
       process.env.OLLAMA_MODEL,
+      process.env.OLLAMA_EMBEDDING_MODEL,
     ]);
     const existing = providers.get(mode);
     if (existing) {
@@ -93,7 +104,8 @@ export const createRunExecutor = (
       workflow !== 'draft' &&
       workflow !== 'chief-of-staff' &&
       workflow !== 'research' &&
-      workflow !== 'developer'
+      workflow !== 'developer' &&
+      workflow !== 'knowledge'
     )
       return deny(owner, id, 'invalid-workflow', 400, 'Select a supported run workflow');
     if (typeof includeProject !== 'boolean')
@@ -119,6 +131,17 @@ export const createRunExecutor = (
       );
     if (mode !== 'demo' && mode !== 'local')
       return deny(owner, id, 'invalid-mode', 400, 'Explicit demo or local mode is required');
+    if (
+      workflow === 'knowledge' &&
+      (mode !== 'local' || !validKnowledgeQuestion(allowed.run.input))
+    )
+      return deny(
+        owner,
+        id,
+        'invalid-workflow',
+        400,
+        'Knowledge drafts require explicit local mode and a question of at most 480 UTF8 bytes',
+      );
     if (allowed.run.status !== 'queued')
       return deny(
         owner,
@@ -152,7 +175,10 @@ export const createRunExecutor = (
       let provider: AIProvider;
       try {
         provider = providerFor(mode);
-        if (workflow !== 'draft' && !provider.capabilities.structuredOutput)
+        if (
+          (workflow !== 'draft' && !provider.capabilities.structuredOutput) ||
+          (workflow === 'knowledge' && !provider.capabilities.embeddings)
+        )
           throw new AIProviderError('UNSUPPORTED');
       } catch {
         return await deny(
@@ -256,8 +282,50 @@ export const createRunExecutor = (
       let proposal: TriageRecommendation['proposal'] | undefined;
       let report: ResearchReport | undefined;
       let technicalPlan: DeveloperPlan | undefined;
+      let knowledge: GroundedReport | undefined;
       let result;
-      if (workflow === 'chief-of-staff') {
+      if (workflow === 'knowledge') {
+        const retrieval = await retrieveKnowledge(
+          owner,
+          includeProject && current.project ? String(current.project._id) : null,
+          running.input,
+          provider,
+          options,
+        );
+        const beforeDraft = await authorizeRunDraft(owner, id, includeProject);
+        if (!beforeDraft.allowed) {
+          deniedAuthority = true;
+          await recordRunDenial(owner, id, beforeDraft.reason);
+          throw new RunExecutionError(403, 'Knowledge permission changed');
+        }
+        if (!matchesSources(beforeDraft)) {
+          deniedAuthority = true;
+          await recordRunDenial(owner, id, 'context-source-changed');
+          throw new RunExecutionError(403, 'Knowledge context changed');
+        }
+        await assertCurrentKnowledge(owner, retrieval);
+        controller.signal.throwIfAborted();
+        const remainingDraft = running.workDeadline!.getTime() - Date.now();
+        if (remainingDraft < 1) throw new AIProviderError('TIMEOUT');
+        const structured = await provider.structuredOutput(
+          [
+            { role: 'system', content: KNOWLEDGE_SYSTEM_INSTRUCTION },
+            {
+              role: 'user',
+              content: JSON.stringify({
+                question: running.input,
+                untrustedExcerpts: retrieval.excerpts.map(({ key, quote }) => ({ key, quote })),
+              }),
+            },
+          ],
+          groundedSchema(retrieval),
+          { signal: controller.signal, timeoutMs: Math.min(remainingDraft, timeoutMs) },
+        );
+        if (!groundedSchema(retrieval).validate(structured.value))
+          throw new AIProviderError('INVALID_OUTPUT');
+        knowledge = { retrieval, answer: structured.value };
+        result = { ...structured, value: formatGroundedReport(knowledge) };
+      } else if (workflow === 'chief-of-staff') {
         const structured = await executeTriage(
           provider,
           running.context as RunContextSnapshot,
@@ -310,11 +378,26 @@ export const createRunExecutor = (
         await interrupted;
         throw new RunExecutionError(409, 'Run request was interrupted');
       }
+      if (knowledge) {
+        await assertCurrentKnowledge(owner, knowledge.retrieval);
+        const publicationAuthority = await authorizeRunDraft(owner, id, includeProject);
+        if (!publicationAuthority.allowed || !matchesSources(publicationAuthority)) {
+          deniedAuthority = true;
+          await recordRunDenial(
+            owner,
+            id,
+            publicationAuthority.allowed ? 'context-source-changed' : publicationAuthority.reason,
+          );
+          throw new RunExecutionError(403, 'Knowledge authority changed before publication');
+        }
+      }
+      controller.signal.throwIfAborted();
       const completed = await completeRun(owner, id, running.version, running.attemptId!, {
         text: result.value,
         ...(proposal && { proposal }),
         ...(report && { report }),
         ...(technicalPlan && { technicalPlan }),
+        ...(knowledge && { knowledge }),
         provider: result.provider,
         simulation: result.simulation,
         label: result.label,
@@ -322,7 +405,17 @@ export const createRunExecutor = (
       if (!completed) throw new RunExecutionError(409, 'Run attempt expired or was cancelled');
       return completed;
     } catch (error) {
+      let denialAuditError: unknown;
       controller.abort();
+      if (running && error instanceof KnowledgeRetrievalError) {
+        deniedAuthority = true;
+        try {
+          await recordRunDenial(owner, id, 'context-source-changed');
+        } catch (auditError) {
+          // Preserve fail-closed auditing while still fencing the claimed attempt below.
+          denialAuditError = auditError;
+        }
+      }
       if (
         error instanceof ContextUnavailableError ||
         error instanceof RunAuthorityError ||
@@ -358,6 +451,7 @@ export const createRunExecutor = (
           );
         }
       }
+      if (denialAuditError) throw denialAuditError;
       if (error instanceof RunExecutionError || error instanceof AuditUnavailableError) throw error;
       throw new RunExecutionError(503, 'Run draft execution failed; no automatic retry');
     } finally {

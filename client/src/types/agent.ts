@@ -9,15 +9,24 @@ export const agentStatusLabel: Record<AgentStatus, string> = {
 };
 
 export type AgentPermission =
-  'task.read' | 'task.update' | 'project.read' | 'project.update' | 'artifact.draft';
+  | 'task.read'
+  | 'task.update'
+  | 'project.read'
+  | 'project.update'
+  | 'knowledge.read'
+  | 'artifact.draft';
 
-// The permission catalog, in display order. Registry metadata only: nothing runs an agent or
-// enforces these yet.
+// The permission catalog, in display order. Server Run authorization enforces these grants.
 export const AGENT_PERMISSIONS: { id: AgentPermission; label: string; description: string }[] = [
   { id: 'task.read', label: 'Read tasks', description: 'See your tasks and their details.' },
   { id: 'task.update', label: 'Update tasks', description: 'Change task status and details.' },
   { id: 'project.read', label: 'Read projects', description: 'See your projects.' },
   { id: 'project.update', label: 'Update projects', description: 'Change project details.' },
+  {
+    id: 'knowledge.read',
+    label: 'Read private knowledge',
+    description: 'Retrieve your permitted private sources for local, human-reviewed drafts.',
+  },
   {
     id: 'artifact.draft',
     label: 'Draft artifacts',
