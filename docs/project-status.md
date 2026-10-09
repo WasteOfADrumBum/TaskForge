@@ -2,7 +2,7 @@
 
 A short, living snapshot of where TaskForge is right now. For the full plan, see [roadmap.md](roadmap.md).
 
-**Last updated:** 2026-10-08
+**Last updated:** 2026-10-09
 
 ## Checkpoint
 
@@ -10,10 +10,10 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02)) |
 | Current phase             | Phase 2 COMPLETE; bounded Phase 3 approved/in progress                                                      |
-| Current branch            | `codex/KAN-47-versioned-knowledge-index`; original assignment WIP preserved on `feat/agent-task-assignment` |
+| Current branch            | `codex/KAN-48-grounded-knowledge`; original assignment WIP preserved on `feat/agent-task-assignment`        |
 | Current checkpoint        | Approved bounded Phase3: storage/keyword retrieval first                                                    |
-| Last completed checkpoint | KAN-46 pinned local embeddings (PR #40, `f45fb86`); CI/live verified                                        |
-| Next recommended          | KAN-47 bounded versioned index; validation/protected delivery pending                                       |
+| Last completed checkpoint | KAN-47 bounded versioned indexes (PR #41, `23268b2`); CI/live verified                                      |
+| Next recommended          | KAN-48 grounded local retrieval; validation/protected delivery pending                                      |
 
 ## Known verification gaps
 
@@ -307,6 +307,6 @@ follows; no model, paid call, Figma or Phase4–8 work is enabled.
 KAN-44 is Done: PR #38 (`7fe3aaf`), independent review, 1,352 unit tests, 153 real API tests,
 12 browser checks, 7 fixture safeguards and exact-head/main CI passed. Vercel/Render succeeded;
 frontend/API release identities match `7fe3aaf`; health/readiness and invalid-token guards passed.
-KAN-45 is shipped/Done (PR #39, `aea061a`):1,384units/153API/14browser/7safety, independent review, PR/mainCI and matching Vercel/Render served identities. KAN-46 is shipped/Done (PR #40, `f45fb86`):1,426units/153API/14browser/10safety plus actual synthetic embeddings, independent review, protected CI and matching live identities. KAN-47 bounded co-located source indexes are implemented on their branch; final delivery gates pending.
+KAN-45 is shipped/Done (PR #39, `aea061a`):1,384units/153API/14browser/7safety, independent review, PR/mainCI and matching Vercel/Render served identities. KAN-46 is shipped/Done (PR #40, `f45fb86`):1,426units/153API/14browser/10safety plus actual synthetic embeddings, independent review, protected CI and matching live identities. KAN-47 shipped/Done (PR #41, `23268b2`):1,441units/174API/14browser/12safety, actual local Mongo/Ollama, independent review, protected CI and matching live identities. KAN-48 explicit local grounded Run retrieval is implemented on its branch; final delivery gates pending.
 Atlas Free eligibility is verified, not an executed Search/Vector Search index benchmark.
 No production test records/model calls, new cost, Figma or Phase4–8 implementation.

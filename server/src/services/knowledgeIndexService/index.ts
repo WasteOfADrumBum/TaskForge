@@ -225,7 +225,11 @@ export const createKnowledgeIndexer = (provider: AIProvider) => {
   };
 };
 // Bounded current records for later permission-scoped semantic retrieval. No vector similarity here.
-export const getCurrentKnowledgeIndexes = async (owner: string, project: string | null = null) => {
+export const getCurrentKnowledgeIndexes = async (
+  owner: string,
+  project: string | null = null,
+  unassociatedOnly = false,
+) => {
   if (!isObjectIdString(owner) || (project !== null && !isObjectIdString(project)))
     throw new KnowledgeError(400, 'Invalid knowledge index filter');
   if (project && !(await Project.exists({ _id: project, owner }).maxTimeMS(5000)))
@@ -233,7 +237,7 @@ export const getCurrentKnowledgeIndexes = async (owner: string, project: string 
   const sources = await KnowledgeSource.find({
     owner,
     deleted: false,
-    ...(project ? { project } : {}),
+    ...(project ? { project } : unassociatedOnly ? { project: null } : {}),
   })
     .select('+embeddingIndex')
     .sort({ slot: 1 })

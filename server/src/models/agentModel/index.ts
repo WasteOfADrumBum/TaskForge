@@ -13,6 +13,7 @@ export const AGENT_PERMISSIONS = [
   'project.read',
   'project.update',
   'artifact.draft',
+  'knowledge.read',
 ] as const;
 
 export const AGENT_NAME_MAX = 80;

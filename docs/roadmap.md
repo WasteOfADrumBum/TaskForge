@@ -116,16 +116,16 @@ Release readiness and the approved bounded Phase 2 milestone are complete. Josh 
 
 ## Phase 3: Knowledge ([details](phases/phase-3-knowledge.md))
 
-**Status: IN PROGRESS (approved 2026-10-08, KAN-27).** Private storage and keyword search first; local embeddings/semantic retrieval/cited answers next, with existing safeguards and $0 additional recurring cost. KAN-44 storage/keyword API is shipped (PR #38, `7fe3aaf`; required CI/live verified). KAN-45 private knowledge UI is shipped (PR #39, `aea061a`; protected CI/live verified). KAN-46 guarded pinned local embeddings shipped (PR #40, `f45fb86`; actual local QA/CI/live verified). KAN-47 bounded versioned chunks/indexes implemented on branch; protected delivery pending. Jira KAN-44–50 track dependencies and delivery. Phases4–8 remain unapproved.
+**Status: IN PROGRESS (approved 2026-10-08, KAN-27).** Private storage and keyword search first; local embeddings/semantic retrieval/cited answers next, with existing safeguards and $0 additional recurring cost. KAN-44 storage/keyword API is shipped (PR #38, `7fe3aaf`; required CI/live verified). KAN-45 private knowledge UI is shipped (PR #39, `aea061a`; protected CI/live verified). KAN-46 guarded pinned local embeddings shipped (PR #40, `f45fb86`; actual local QA/CI/live verified). KAN-47 bounded versioned chunks/indexes shipped (PR #41, `23268b2`; local Mongo/Ollama, CI/live verified). KAN-48 local grounded Run retrieval is implemented on its branch; release gates pending. Jira KAN-44–50 track dependencies and delivery. Phases4–8 remain unapproved.
 
 - [ ] **PLANNED**: Shared Knowledge system
 - [x] **COMPLETE**: Private text documents (KAN-44/45, bounded manual paste)
 - [x] **COMPLETE**: Private notes (KAN-44/45)
 - [x] **COMPLETE**: Optional owned project associations and keyword filters (KAN-44/45)
 - [x] **COMPLETE**: Bounded manual plain-text ingestion (KAN-44/45; no files/crawlers/URLs)
-- [ ] **IN PROGRESS**: Bounded versioned source chunk/index foundation (KAN-47 branch; delivery pending)
+- [x] **COMPLETE**: Bounded versioned source chunk/index foundation (KAN-47, PR #41)
 - [x] **COMPLETE**: Explicit pinned local embeddings (KAN-46; production disabled)
-- [ ] **IN PROGRESS**: Source-linked keyword retrieval shipped; local semantic retrieval planned
+- [ ] **IN PROGRESS**: Source-linked keyword retrieval shipped; local semantic Run retrieval in validation (KAN-48)
 - [ ] **PLANNED**: Ask TaskForge
 - [ ] **PLANNED**: Permission-scoped knowledge access
 
