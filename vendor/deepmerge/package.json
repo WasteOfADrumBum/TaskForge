@@ -1,0 +1,10 @@
+{
+  "name": "deepmerge",
+  "version": "4.3.2",
+  "description": "TaskForge local patch of deepmerge 4.3.1 for GHSA-gcqx-w48m-w2h4. Not an upstream release.",
+  "main": "dist/cjs.js",
+  "license": "MIT",
+  "engines": {
+    "node": ">=0.10.0"
+  }
+}

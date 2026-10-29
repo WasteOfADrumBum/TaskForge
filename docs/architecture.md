@@ -174,7 +174,7 @@ flowchart LR
     Event["Push or PR to main"] --> Install[npm ci] --> Format[format:check] --> Lint[lint] --> Types[client typecheck] --> Test[test] --> Build[build] --> Audit[npm audit]
 ```
 
-Defined in `.github/workflows/ci.yml` (Node 24, Ubuntu). Current PR CI is enforced by main branch protection, including for administrators. Independent review is recorded before merge; see [delivery policy](delivery.md). It is **not** wired as a gate in front of Vercel or Render; those platforms are expected to deploy on their own when `main` changes (per their dashboard settings), so `main` should only change through PRs with green CI.
+Defined in `.github/workflows/ci.yml` (Node 24, Ubuntu). `npm audit` must report zero vulnerabilities; the workflow does not omit severities or ignore advisories. Transitive packages with a published fix are overridden to that release. `deepmerge` has no published fix for GHSA-gcqx-w48m-w2h4, so the override points at the local patch in `vendor/deepmerge` (lockfile version 4.3.2, outside `>=4.2.0 <=4.3.1`). Current PR CI is enforced by main branch protection, including for administrators. Independent review is recorded before merge; see [delivery policy](delivery.md). It is **not** wired as a gate in front of Vercel or Render; those platforms are expected to deploy on their own when `main` changes (per their dashboard settings), so `main` should only change through PRs with green CI.
 
 ## Environment boundaries
 
