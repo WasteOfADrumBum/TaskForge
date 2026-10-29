@@ -13,6 +13,9 @@ yarn-error.log*
 # Build directories
 build/
 dist/
+# The deepmerge security patch is source, not a build artifact.
+!vendor/deepmerge/dist/
+!vendor/deepmerge/dist/**
 coverage/
 
 # Environment files

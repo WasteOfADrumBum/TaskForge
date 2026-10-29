@@ -2,3 +2,5 @@ node_modules/
 dist/
 build/
 coverage/
+vendor/deepmerge/dist/
+vendor/deepmerge/license.txt
