@@ -53,6 +53,8 @@
     "concurrently": {
       "shell-quote": "1.12.0"
     },
-    "deepmerge": "$deepmerge"
+    "deepmerge": "$deepmerge",
+    "minimatch": "^11.0.1",
+    "glob": "^14.0.2"
   }
 }
