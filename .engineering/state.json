@@ -1,0 +1,44 @@
+{
+  "stateVersion": 1,
+  "revision": 0,
+  "checkpointId": "init-0000000",
+  "projectId": "taskforge",
+  "repository": "https://github.com/WasteOfADrumBum/TaskForge",
+  "hub": "https://github.com/WasteOfADrumBum/one-small-engineering",
+  "recorded": {
+    "branch": "main",
+    "commit": null,
+    "recordedAt": null
+  },
+  "development": {
+    "milestone": null,
+    "activeTask": null,
+    "workingBranch": null,
+    "activePr": null,
+    "lastCompleted": [],
+    "inProgress": [],
+    "nextAction": null
+  },
+  "decisions": {
+    "made": [],
+    "constraints": [],
+    "unresolved": []
+  },
+  "verification": {
+    "testsRun": [],
+    "unverifiedChanges": []
+  },
+  "handoff": {
+    "lastAgent": null,
+    "checkpointedAt": null,
+    "unfinished": [],
+    "blockers": [],
+    "continuation": null,
+    "uncommittedWorkOutsideCheckpoint": "unknown",
+    "persistedBy": "github-api"
+  },
+  "provenance": {
+    "claims": "agent_reported",
+    "independentVerification": "none"
+  }
+}
