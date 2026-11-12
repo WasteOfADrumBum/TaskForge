@@ -48,11 +48,14 @@ TaskForge ships a driver-based alternative that needs no Database Tools install.
 restore check only ever writes to a fresh loopback MongoDB that it starts and stops itself.
 
 1. In a private terminal, set the source connection string for this session only. Use a read-only
-   Atlas database user if you have one: `$env:SOURCE_MONGO_URI='<your Atlas connection string>'`.
-2. Export to a private folder outside the repository, for example
+   Atlas database user if you have one, and include the database name in the path (for example
+   `.../taskforge?retryWrites=true`): `$env:SOURCE_MONGO_URI='<your Atlas connection string>'`.
+2. Create a private folder outside the repository once:
+   `New-Item -ItemType Directory -Force "$HOME\TaskForgeBackups"`. Then export to it, for example
    `npm run backup:export -- --out "$HOME\TaskForgeBackups\taskforge-2026-11-12.jsonl"`.
    The command refuses paths inside the repository, never overwrites a file, writes it readable by
-   your account only, and prints only per-collection counts.
+   your account only, refuses a connection string without a database name or a database with no
+   collections, and prints only the database name and per-collection counts.
 3. Verify it: `npm run backup:verify -- --in "$HOME\TaskForgeBackups\taskforge-2026-11-12.jsonl"`.
    It restores into a throwaway loopback database and checks counts, SHA-256 digests and ownership
    links (tasks, projects, agents, runs and knowledge to users; tasks to projects and agents; runs to

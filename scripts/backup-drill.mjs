@@ -5,7 +5,7 @@ import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, before, test } from 'node:test';
-import { MongoClient, ObjectId } from 'mongodb';
+import { Double, Int32, Long, MongoClient, ObjectId } from 'mongodb';
 import { exportDatabase, verifyArchive } from './backup-tool.mjs';
 import { root, startMongo } from './qa-runtime.mjs';
 
@@ -43,9 +43,15 @@ before(async () => {
     assigneeAgent: agent,
   });
   await db.collection('runs').insertOne({ owner, task, agent, status: 'queued', version: 1 });
-  await db
-    .collection('knowledgesources')
-    .insertOne({ owner, title: 'Drill note', content: 'Synthetic', version: 3, deleted: false });
+  await db.collection('knowledgesources').insertOne({
+    owner,
+    title: 'Drill note',
+    content: 'Synthetic',
+    version: 3,
+    deleted: false,
+    // Numeric BSON types must survive export and restore unchanged.
+    stats: { long: Long.fromNumber(5), double: new Double(2), int: new Int32(7) },
+  });
   await client.close();
 });
 after(async () => {
@@ -64,6 +70,7 @@ test('exports a private archive and restores it into an isolated database with i
   if (process.platform !== 'win32') assert.equal((await stat(out)).mode & 0o777, 0o600);
   const archive = await readFile(out, 'utf8');
   assert.ok(!archive.includes(uri), 'the connection string is never written');
+  assert.ok(archive.includes('$numberLong') && archive.includes('$numberDouble'));
   const result = await verifyArchive(out);
   assert.deepEqual(result.problems, []);
   assert.equal(result.verified, true);
@@ -116,6 +123,14 @@ test('broken ownership links are reported after restore', async () => {
 test('refuses unsafe export targets and missing configuration', async () => {
   await assert.rejects(exportDatabase(undefined, join(directory, 'x.jsonl')), /SOURCE_MONGO_URI/);
   await assert.rejects(exportDatabase(uri, undefined), /--out/);
+  await assert.rejects(
+    exportDatabase(source.getUri(), join(directory, 'nodb.jsonl')),
+    /database name/,
+  );
+  await assert.rejects(
+    exportDatabase(source.getUri('taskforge_empty_drill'), join(directory, 'empty.jsonl')),
+    /no collections/,
+  );
   await assert.rejects(exportDatabase(uri, join(root, 'backup.jsonl')), /inside the repository/);
   const existing = join(directory, 'existing.jsonl');
   await writeFile(existing, 'keep me');

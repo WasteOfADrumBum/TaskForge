@@ -10,8 +10,8 @@
 //
 // The connection string is read from the environment only and is never printed or stored.
 import { createHash } from 'node:crypto';
-import { open, readFile } from 'node:fs/promises';
-import { isAbsolute, relative, resolve } from 'node:path';
+import { open, readFile, realpath, unlink } from 'node:fs/promises';
+import { basename, dirname, isAbsolute, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { EJSON } from 'bson';
 import { MongoClient } from 'mongodb';
@@ -24,10 +24,16 @@ const digest = (lines) => {
   for (const item of lines) hash.update(item + '\n');
   return hash.digest('hex');
 };
-const insideRepo = (path) => {
-  const rel = relative(root, resolve(path));
+// Resolve symlinks on both sides so a linked folder cannot place an archive inside the repo.
+const insideRepo = async (path) => {
+  const target = resolve(path);
+  const parent = await realpath(dirname(target)).catch(() => dirname(target));
+  const rel = relative(await realpath(root), resolve(parent, basename(target)));
   return !rel.startsWith('..') && !isAbsolute(rel);
 };
+// Atlas connection strings often omit the database, which would silently export "test".
+export const databaseName = (uri) =>
+  /^mongodb(?:\+srv)?:\/\/[^/]+\/([^/?]+)/u.exec(uri ?? '')?.[1] ?? null;
 
 // Canonical, _id-ordered documents per collection; system collections are skipped.
 export const snapshot = async (db) => {
@@ -37,7 +43,12 @@ export const snapshot = async (db) => {
     .sort();
   const collections = {};
   for (const name of names) {
-    const documents = await db.collection(name).find({}).sort({ _id: 1 }).toArray();
+    // promoteValues:false keeps Long, Double and Int32 exactly as stored.
+    const documents = await db
+      .collection(name)
+      .find({}, { promoteValues: false })
+      .sort({ _id: 1 })
+      .toArray();
     const lines = documents.map(line);
     collections[name] = { count: lines.length, sha256: digest(lines), lines };
   }
@@ -47,7 +58,9 @@ export const snapshot = async (db) => {
 export const exportDatabase = async (uri, out, now = new Date()) => {
   if (!uri) throw new Error('Set SOURCE_MONGO_URI to the database to back up.');
   if (!out) throw new Error('Pass --out with a private path outside the repository.');
-  if (insideRepo(out)) throw new Error('Refusing to write a backup inside the repository.');
+  if (await insideRepo(out)) throw new Error('Refusing to write a backup inside the repository.');
+  if (!databaseName(uri))
+    throw new Error('Add the database name to the connection string path, for example /taskforge.');
   const client = new MongoClient(uri, {
     serverSelectionTimeoutMS: 15000,
     readPreference: 'primaryPreferred',
@@ -56,6 +69,8 @@ export const exportDatabase = async (uri, out, now = new Date()) => {
     await client.connect();
     const db = client.db();
     const collections = await snapshot(db);
+    if (!Object.keys(collections).length)
+      throw new Error('The source database has no collections; check the database name.');
     const manifest = {
       format: BACKUP_FORMAT,
       createdAt: now.toISOString(),
@@ -74,9 +89,13 @@ export const exportDatabase = async (uri, out, now = new Date()) => {
       for (const [name, value] of Object.entries(collections))
         for (const item of value.lines)
           await file.write(JSON.stringify({ c: name, d: item }) + '\n');
-    } finally {
+    } catch (error) {
+      // Never leave a partial archive behind; it would look complete and block the next run.
       await file.close();
+      await unlink(out).catch(() => {});
+      throw error;
     }
+    await file.close();
     return manifest;
   } finally {
     await client.close();
@@ -183,6 +202,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
       console.log(
         JSON.stringify({
           exported: true,
+          database: manifest.database,
           createdAt: manifest.createdAt,
           collections: Object.fromEntries(
             Object.entries(manifest.collections).map(([name, value]) => [name, value.count]),
