@@ -4,6 +4,8 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+- KAN-51: refresh project status, roadmap and Phase 3 checkpoint after KAN-48 delivery and later maintenance; documentation only.
+
 - Replace transitive Jest `deepmerge` 4.3.1 with a local 4.3.2 patch for GHSA-gcqx-w48m-w2h4. Upstream has no fixed release; the audit gate stays `npm audit` with no ignored advisories.
 
 - Patch transitive development-only Handlebars to4.7.10 for current upstream security advisories; retain the required zero-vulnerability audit gate.

@@ -34,14 +34,10 @@ No search feature is enabled solely because a dashboard offers it.
 
 ## Current implementation checkpoint
 
-KAN-44 branch `codex/KAN-44-private-knowledge`, base77d8adc/verified PR37.
-Owned source persistence/API, atomic version/digest/audit and durable50-active-slot bounds are
-implemented on this branch. Deleted text is cleared and excluded from current keyword retrieval;
-exact source/version/digest/offset quotes support honest verification without model calls.
-Targeted22 units (original18 preserved) and26 real Mongo/API cases pass. Full local QA and independent final review passed, with affected reruns after concurrency corrections. Protected delivery remains before Done; no knowledge UI or agent
-knowledge access is shipped yet. [API semantics and limits](../knowledge.md).
-
-Formal Phase3 closure requires owner acceptance after all engineering evidence.
+KAN-44 through KAN-48 are shipped and Done; the last is KAN-48 (PR #42, `11975d0`). Main is at
+`9af915c` after maintenance PRs #43 to #47, with no application behavior change. Next is KAN-49
+(Ask TaskForge and verifiable citation UX), then KAN-50 (evaluation, negative security evidence and
+engineering acceptance). Formal Phase3 closure requires owner acceptance after all engineering evidence.
 
 ## Objective
 
@@ -111,6 +107,6 @@ hosted worker added. Owner/project/current citation enforcement continues under 
 
 KAN-48 adds an explicit local-only knowledge Run workflow with opt-in knowledge.read, bounded native
 semantic scoring, exact current-source provenance and stale/revoked-context publication/approval
-guards. Actual local Mongo/Ollama cited draft and human review passed; protected delivery pending.
+guards. Actual local Mongo/Ollama cited draft and human review passed; shipped/Done (PR #42, `11975d0`).
 No hosted semantic inference, automatic indexing or paid model calls. Historical Run draft quotes
 remain in private Run history after source deletion; current retrieval/approval invalidates.
