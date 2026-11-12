@@ -4,6 +4,8 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+- KAN-50: frozen retrieval evaluation corpus with hit@k, MRR, abstention and exact-citation checks through real MongoDB in CI, a local-only real-model evaluation (`npm run test:local-ai -- --local-only --evaluate`) and a negative security evidence map; no application behavior change.
+
 - KAN-49: Ask TaskForge at `/knowledge/ask` with explicit keyword (no AI) and grounded local answer modes; grounded Run drafts show cited excerpts that recheck the current source; no simulation, auto-execution or server change.
 
 - KAN-51: refresh project status, roadmap and Phase 3 checkpoint after KAN-48 delivery and later maintenance; documentation only.
