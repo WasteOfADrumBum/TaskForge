@@ -1,8 +1,8 @@
 # Bounded private knowledge API (KAN-44)
 
-Implemented on the active branch; protected delivery is pending. The hosted API performs real
-keyword retrieval without models, embeddings or simulation. KAN-45 supplies its UI; agent
-knowledge permissions and local semantic/grounded drafts follow under KAN-46–49.
+Shipped (KAN-44, PR #38). The hosted API performs real keyword retrieval without models,
+embeddings or simulation. KAN-45 supplies its UI; KAN-46 to KAN-48 added local embeddings,
+versioned indexes, agent knowledge permissions and local grounded drafts. Ask UX follows in KAN-49.
 
 ## Owned sources and exact writes
 
@@ -64,7 +64,7 @@ quotes are untrusted plain data. Body/query/metadata corruption fails closed wit
 
 Targeted22 units (original18 retained) and26 real Mongo/API scenarios pass, including bounds,
 idempotency/capacity/atomic races, owner/project isolation, current/deleted/stale provenance,
-audit storage/index failures and literal hostile text. Full local QA passed, with affected reruns after two independently reviewed concurrency fixes. Protected CI/live gates remain.
+audit storage/index failures and literal hostile text. Full local QA passed, with affected reruns after two independently reviewed concurrency fixes. Protected CI and live verification passed at delivery (PR #38, `7fe3aaf`).
 
 ## Private workspace (shipped KAN-45, PR #39)
 
@@ -81,7 +81,7 @@ check existing sources before explicitly starting another source. There are no a
 Changing route/session retires pending operations and loaded private text. All server limits and
 free-tier metadata-growth/local-only AI limitations above still apply.
 
-## Versioned local indexes (KAN-47 branch, delivery pending)
+## Versioned local indexes (shipped KAN-47, PR #41)
 
 Explicit developer-local indexing uses KAN-46's pinned384-dimensional embeddings. A source has
 one private current index stored in the same MongoDB document, excluded from ordinary source/
@@ -104,8 +104,9 @@ storage usage inside the existing512MB shared Free allowance, not the allowance 
 cloud inference, downloads, pruning, production data migration, paid scaling or background indexing.
 
 Current-index reads are owner/project scoped and validate full pinned identity and source text
-provenance. They are snapshots; KAN-48 must recheck current source/permission/citation state before
-publishing grounded results. Semantic scoring/agent knowledge permissions/Ask UI are still planned.
+provenance. They are snapshots; KAN-48 (PR #42) rechecks current source/permission/citation state
+before publishing grounded results. Semantic scoring and agent knowledge permissions shipped in
+KAN-48; the Ask UI is still planned (KAN-49).
 Actual synthetic local Mongo+Ollama end-to-end QA covers persistence/foreign owner/edit/delete
 invalidation; it does not prove hosted inference or production CRUD. Figma remains excluded.
 

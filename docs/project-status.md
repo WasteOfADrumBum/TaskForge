@@ -2,7 +2,7 @@
 
 A short, living snapshot of where TaskForge is right now. For the full plan, see [roadmap.md](roadmap.md).
 
-**Last updated:** 2026-10-09
+**Last updated:** 2026-11-12
 
 ## Checkpoint
 
@@ -10,10 +10,20 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Phase 1 status            | **COMPLETE** (closed 2026-10-02; [closure summary](phases/phase-1-stabilize.md#closure-summary-2026-10-02)) |
 | Current phase             | Phase 2 COMPLETE; bounded Phase 3 approved/in progress                                                      |
-| Current branch            | `codex/KAN-48-grounded-knowledge`; original assignment WIP preserved on `feat/agent-task-assignment`        |
-| Current checkpoint        | Approved bounded Phase3: storage/keyword retrieval first                                                    |
-| Last completed checkpoint | KAN-47 bounded versioned indexes (PR #41, `23268b2`); CI/live verified                                      |
-| Next recommended          | KAN-48 grounded local retrieval; validation/protected delivery pending                                      |
+| Current branch            | `main` at `9af915c` (PR #47); original assignment WIP preserved on `feat/agent-task-assignment`             |
+| Current checkpoint        | Approved bounded Phase3: KAN-44 to KAN-48 shipped; Ask UX and evaluation remain                             |
+| Last completed checkpoint | KAN-48 grounded local Run retrieval (PR #42, `11975d0`); Jira Done                                          |
+| Next recommended          | KAN-49 Ask TaskForge and verifiable citation UX, then KAN-50 evaluation and Phase 3 acceptance              |
+
+## Maintenance since KAN-48 (2026-10-28 to 2026-11-07)
+
+No application behavior changed. Each item merged through required PR/main CI.
+
+- PR #43 (`f9f14be`) and PR #46 (`fc69d2b`): npm audit remediation through lockfile updates plus development-only overrides, without major upgrades; audit gate stays at zero.
+- PR #44 (`ef37e9e`): local Jest `deepmerge` 4.3.2 patch for GHSA-gcqx-w48m-w2h4.
+- PR #45 (`d1cc560`): Engineering Hub continuity contract v1 (`.engineering/`).
+- PR #47 (`9af915c`): least-privilege workflow permissions (`contents: read`). Actions remain tag-pinned (`@v4`).
+- 2026-11-12: main CI green on `9af915c`; the live client `/release.json` serves `9af915c`. The API `/release` identity was not rechecked in this refresh.
 
 ## Known verification gaps
 
@@ -307,6 +317,6 @@ follows; no model, paid call, Figma or Phase4–8 work is enabled.
 KAN-44 is Done: PR #38 (`7fe3aaf`), independent review, 1,352 unit tests, 153 real API tests,
 12 browser checks, 7 fixture safeguards and exact-head/main CI passed. Vercel/Render succeeded;
 frontend/API release identities match `7fe3aaf`; health/readiness and invalid-token guards passed.
-KAN-45 is shipped/Done (PR #39, `aea061a`):1,384units/153API/14browser/7safety, independent review, PR/mainCI and matching Vercel/Render served identities. KAN-46 is shipped/Done (PR #40, `f45fb86`):1,426units/153API/14browser/10safety plus actual synthetic embeddings, independent review, protected CI and matching live identities. KAN-47 shipped/Done (PR #41, `23268b2`):1,441units/174API/14browser/12safety, actual local Mongo/Ollama, independent review, protected CI and matching live identities. KAN-48 explicit local grounded Run retrieval is implemented on its branch; final delivery gates pending.
+KAN-45 is shipped/Done (PR #39, `aea061a`):1,384units/153API/14browser/7safety, independent review, PR/mainCI and matching Vercel/Render served identities. KAN-46 is shipped/Done (PR #40, `f45fb86`):1,426units/153API/14browser/10safety plus actual synthetic embeddings, independent review, protected CI and matching live identities. KAN-47 shipped/Done (PR #41, `23268b2`):1,441units/174API/14browser/12safety, actual local Mongo/Ollama, independent review, protected CI and matching live identities. KAN-48 explicit local grounded Run retrieval shipped/Done (PR #42, `11975d0`); production inference remains disabled.
 Atlas Free eligibility is verified, not an executed Search/Vector Search index benchmark.
 No production test records/model calls, new cost, Figma or Phase4–8 implementation.
