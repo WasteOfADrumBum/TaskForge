@@ -12,8 +12,12 @@ import { AuditEvent } from '../src/models/auditEventModel';
 import { KnowledgeSource } from '../src/models/knowledgeSourceModel';
 import { KnowledgeDenial } from '../src/models/knowledgeDenialModel';
 import { changeKnowledge, createKnowledge, getKnowledge } from '../src/services/knowledgeService';
-import { createKnowledgeIndexer } from '../src/services/knowledgeIndexService';
 import {
+  createKnowledgeIndexer,
+  getCurrentKnowledgeIndexes,
+} from '../src/services/knowledgeIndexService';
+import {
+  KNOWLEDGE_SCORE_MIN,
   KNOWLEDGE_SYSTEM_INSTRUCTION,
   KnowledgeRetrievalError,
   retrieveKnowledge,
@@ -130,12 +134,21 @@ const keywordSearch = (query: string, value = token) =>
     .get('/api/knowledge/search')
     .query({ q: query })
     .set({ Authorization: 'Bearer ' + value });
+const cosine = (left: number[], right: number[]) =>
+  left.reduce((sum, value, index) => sum + value * right[index], 0) /
+  (Math.hypot(...left) * Math.hypot(...right));
+// Abstention counts only when every current owned chunk really scores below the threshold, so a
+// provenance failure (also a KnowledgeRetrievalError) can never pass as "no answer".
 const semantic = async (question: string, who = owner) => {
   try {
     return (await retrieveKnowledge(who, null, question, fixtureProvider().ai, options())).excerpts;
   } catch (error) {
-    if (error instanceof KnowledgeRetrievalError) return [];
-    throw error;
+    if (!(error instanceof KnowledgeRetrievalError)) throw error;
+    const query = lexicalFixtureVector(question);
+    for (const source of await getCurrentKnowledgeIndexes(who, null, true))
+      for (const chunk of source.index.chunks)
+        expect(cosine(query, chunk.vector)).toBeLessThan(KNOWLEDGE_SCORE_MIN);
+    return [];
   }
 };
 // Every citation must match the current stored source exactly.
@@ -286,6 +299,7 @@ it('prompt-injection source text reaches generation only as labelled untrusted e
   expect((await Run.findById(run.id).lean())?.review ?? null).toBeNull();
 });
 
+// Must stay the last test: it edits the shared corpus.
 it('an edited source drops out of semantic retrieval until re-indexed and invalidates old citations', async () => {
   const before = await semantic('How long are database backups kept?');
   expect(before[0].sourceId).toBe(ids.get('backup-policy'));
