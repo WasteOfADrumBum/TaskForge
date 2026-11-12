@@ -19,10 +19,10 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 
 No application behavior changed. Each item merged through required PR/main CI.
 
-- PR #43 (`f9f14be`) and PR #46 (`fc69d2b`): lockfile-only npm audit remediation without major upgrades; audit gate stays at zero.
+- PR #43 (`f9f14be`) and PR #46 (`fc69d2b`): npm audit remediation through lockfile updates plus development-only overrides, without major upgrades; audit gate stays at zero.
 - PR #44 (`ef37e9e`): local Jest `deepmerge` 4.3.2 patch for GHSA-gcqx-w48m-w2h4.
 - PR #45 (`d1cc560`): Engineering Hub continuity contract v1 (`.engineering/`).
-- PR #47 (`9af915c`): least-privilege workflow permissions, `ubuntu-24.04` runner and SHA-pinned actions.
+- PR #47 (`9af915c`): least-privilege workflow permissions (`contents: read`). Actions remain tag-pinned (`@v4`).
 - 2026-11-12: main CI green on `9af915c`; the live client `/release.json` serves `9af915c`. The API `/release` identity was not rechecked in this refresh.
 
 ## Known verification gaps
