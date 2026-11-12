@@ -25,6 +25,8 @@ try {
       ...testEnvironment(),
       TEST_MONGO_URI: mongo.getUri(mongo.instanceInfo.dbName),
       CLIENT_ORIGIN: 'http://127.0.0.1:5174',
+      // Browser QA matches hosted production: no AI provider, whatever the developer shell sets.
+      AI_PROVIDER: '',
     },
     true,
   );

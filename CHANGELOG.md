@@ -4,6 +4,8 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+- KAN-49: Ask TaskForge at `/knowledge/ask` with explicit keyword (no AI) and grounded local answer modes; grounded Run drafts show cited excerpts that recheck the current source; no simulation, auto-execution or server change.
+
 - KAN-51: refresh project status, roadmap and Phase 3 checkpoint after KAN-48 delivery and later maintenance; documentation only.
 
 - KAN-52: patch mongoose 8.24.4 to 8.24.8 (lockfile only, existing range) for GHSA-gg4r-jv3p-qx3c, GHSA-wr5m-5jph-8m96, GHSA-8332-j7wj-wjw4 and GHSA-6972-9mcm-vhwj; the audit gate stays at zero with no exceptions.

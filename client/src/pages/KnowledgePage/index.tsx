@@ -138,9 +138,14 @@ function Content({ token, sessionVersion }: { token: string; sessionVersion: num
     <VStack align="stretch" gap={6} maxW="960px" w="full">
       <Heading as="h1">Knowledge</Heading>
       <Text color="fg.muted">
-        Private notes and text documents. Keyword search uses stored text; no AI model is called.
-        Semantic retrieval and AI answers are not available here yet.
+        Private notes and text documents. Keyword search uses stored text; no AI model is called. AI
+        answers grounded in your sources need a developer-local setup.
       </Text>
+      <Box>
+        <Button asChild colorPalette="teal" variant="outline">
+          <RouterLink to="/knowledge/ask">Ask TaskForge</RouterLink>
+        </Button>
+      </Box>
       <HStack flexWrap="wrap">
         <Button variant="outline" disabled={read.pending || write.pending} onClick={reload}>
           Refresh sources
