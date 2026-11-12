@@ -50,6 +50,9 @@ jobs:
       - name: Real database integration
         run: npm run test:integration
 
+      - name: Backup and isolated restore drill
+        run: npm run test:backup-drill
+
       - name: Install browser for critical smoke
         run: npx playwright install --with-deps chromium
 
