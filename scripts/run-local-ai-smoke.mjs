@@ -12,10 +12,13 @@ if (
     '--local-only --embeddings-only',
     '--local-only --index-only',
     '--local-only --grounded-only',
+    '--local-only --evaluate',
   ].includes(process.argv.slice(2).join(' ')) ||
   process.env.NODE_ENV === 'production' ||
   process.env.AI_PROVIDER !== 'ollama' ||
-  ((process.argv.includes('--index-only') || process.argv.includes('--grounded-only')) &&
+  ((process.argv.includes('--index-only') ||
+    process.argv.includes('--grounded-only') ||
+    process.argv.includes('--evaluate')) &&
     process.env.OLLAMA_EMBEDDING_MODEL !== 'all-minilm:l6-v2')
 ) {
   console.error(
@@ -28,7 +31,8 @@ if (
   const outfile = join(cache, 'smoke.mjs');
   const indexOnly = process.argv.includes('--index-only');
   const groundedOnly = process.argv.includes('--grounded-only');
-  const mongo = indexOnly || groundedOnly ? await startMongo() : null;
+  const evaluate = process.argv.includes('--evaluate');
+  const mongo = indexOnly || groundedOnly || evaluate ? await startMongo() : null;
   try {
     await build({
       entryPoints: [
@@ -37,13 +41,15 @@ if (
           'server',
           'src',
           'scripts',
-          groundedOnly
-            ? 'smokeGroundedKnowledge.ts'
-            : indexOnly
-              ? 'smokeLocalKnowledgeIndex.ts'
-              : process.argv.includes('--embeddings-only')
-                ? 'smokeLocalEmbeddings.ts'
-                : 'smokeLocalAI.ts',
+          evaluate
+            ? 'evaluateLocalKnowledge.ts'
+            : groundedOnly
+              ? 'smokeGroundedKnowledge.ts'
+              : indexOnly
+                ? 'smokeLocalKnowledgeIndex.ts'
+                : process.argv.includes('--embeddings-only')
+                  ? 'smokeLocalEmbeddings.ts'
+                  : 'smokeLocalAI.ts',
         ),
       ],
       outfile,

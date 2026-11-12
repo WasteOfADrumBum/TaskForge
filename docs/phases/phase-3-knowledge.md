@@ -34,10 +34,22 @@ No search feature is enabled solely because a dashboard offers it.
 
 ## Current implementation checkpoint
 
-KAN-44 through KAN-48 are shipped and Done; the last is KAN-48 (PR #42, `11975d0`). Main is at
-`9af915c` after maintenance PRs #43 to #47, with no application behavior change. Next is KAN-49
-(Ask TaskForge and verifiable citation UX), then KAN-50 (evaluation, negative security evidence and
-engineering acceptance). Formal Phase3 closure requires owner acceptance after all engineering evidence.
+KAN-44 through KAN-49 are shipped and Done (KAN-49: PR #50, `736d334`). KAN-50 adds the frozen
+retrieval evaluation and negative security evidence. Formal Phase3 closure requires owner
+acceptance after all engineering evidence, including the local real-model evaluation.
+
+## Engineering acceptance package (2026-11-12, awaiting owner)
+
+| Definition of done                               | Evidence                                                                                                                         |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| Documents and notes are chunked and embedded     | KAN-44/45 private sources; KAN-46/47 pinned local embeddings and versioned indexes                                               |
+| Ask TaskForge answers with citations             | KAN-49 keyword citations (hosted) and grounded local answers with exact, rechecked citations                                     |
+| Agents retrieve only permitted knowledge         | KAN-48 opt-in `knowledge.read` and `project.read`, rechecked before generation, publication and approval                         |
+| Retrieval evaluated, negative security evidenced | KAN-50 frozen corpus metrics and the [security evidence map](../tasks/KAN-50-retrieval-evaluation.md#negative-security-evidence) |
+
+Owner steps to close: run `npm run test:local-ai -- --local-only --evaluate` locally and record
+the JSON result in KAN-50, then accept or reject Phase 3 closure in KAN-27. Phases 4 to 8 stay
+unapproved either way.
 
 ## Objective
 
