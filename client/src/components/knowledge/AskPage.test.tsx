@@ -114,6 +114,7 @@ it('labels both modes and disables grounded answers on a hosted deployment', asy
   const grounded = within(group).getByRole('radio', { name: /Grounded answer/ });
   await waitFor(() => expect(grounded).toBeDisabled());
   expect(grounded).toHaveAccessibleDescription(/does not run AI models/);
+  expect(grounded).toHaveAccessibleName('Grounded answer (local AI, human review)');
   expect(screen.queryByLabelText('Your question')).toBeNull();
 });
 
@@ -136,6 +137,7 @@ it('finds keyword sources as inert text with verifiable source links', async () 
   await user.type(screen.getByLabelText('Words to look for'), 'backups');
   await user.click(screen.getByRole('button', { name: 'Find sources' }));
   expect(await screen.findByRole('heading', { name: '1 cited source' })).toBeVisible();
+  expect(screen.getByRole('status')).toHaveTextContent('1 cited source found.');
   expect(screen.getByText(hit.citation.quote)).toBeVisible();
   expect(container.querySelector('b')).toBeNull();
   expect(knowledgeApi.searchKnowledge).toHaveBeenCalledWith(

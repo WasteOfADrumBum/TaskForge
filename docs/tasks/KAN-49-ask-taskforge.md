@@ -18,6 +18,8 @@ Approved Phase 3 (epic KAN-27). No Figma, paid service, server or schema change,
   same-key manual retry after an uncertain create) for a task assigned to an active agent with
   `task.read`, `artifact.draft` and `knowledge.read`, then opens Run detail with the knowledge
   workflow preselected. Nothing executes until the owner chooses local mode and Execute.
+  Without the project option, retrieval covers only sources with no project; with it, only the
+  task's project sources (the existing KAN-48 server rule).
 
 Run detail offers the knowledge workflow only when local grounded capability exists (or Ask
 preselected it, in which case execution stays blocked without capability). Simulation is never

@@ -159,7 +159,7 @@ it('keeps a preselected knowledge workflow blocked when local capability is miss
   vi.mocked(api.getRunProviderStatus).mockResolvedValue(hosted);
   show({ askWorkflow: 'knowledge', includeProject: true });
   await settled();
-  expect(screen.getByText(/They are unavailable here/)).toBeVisible();
+  expect(await screen.findByRole('alert')).toHaveTextContent(/They are unavailable here/);
   expect(screen.getByRole('button', { name: 'Execute draft' })).toBeDisabled();
 });
 

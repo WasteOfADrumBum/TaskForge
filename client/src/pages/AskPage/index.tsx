@@ -91,6 +91,19 @@ function AskContent({ token, sessionVersion }: { token: string; sessionVersion: 
     : undefined;
   const projectAllowed = !!selected?.project && agentCanAskKnowledge(selectedAgent, true);
   const questionBytes = utf8Bytes(question);
+  // One live region stays mounted so screen readers reliably announce progress and results.
+  const announcement = status.pending
+    ? 'Checking AI capability…'
+    : search.pending
+      ? 'Searching your sources…'
+      : write.pending
+        ? 'Creating the question run…'
+        : results
+          ? results.results.length
+            ? results.results.length +
+              (results.results.length === 1 ? ' cited source found.' : ' cited sources found.')
+            : 'No matching sources.'
+          : '';
   const find = async (event: FormEvent) => {
     event.preventDefault();
     if (!validKnowledgeQuery(keywordQuery) || !isCurrentSession(token, sessionVersion)) return;
@@ -147,38 +160,40 @@ function AskContent({ token, sessionVersion }: { token: string; sessionVersion: 
     }
   };
   const radio = (value: AskMode, label: string, description: string, disabled = false) => (
-    <chakra.label
-      display="flex"
-      gap={3}
-      alignItems="flex-start"
+    <Box
       borderWidth="1px"
       borderColor={mode === value ? 'accent.teal' : 'border'}
       borderRadius="md"
       p={3}
-      cursor={disabled ? 'not-allowed' : 'pointer'}
       opacity={disabled ? 0.7 : 1}
     >
-      <chakra.input
-        type="radio"
-        name="ask-mode"
-        value={value}
-        mt={1}
-        checked={mode === value}
-        disabled={disabled}
-        aria-describedby={'ask-mode-' + value + '-help'}
-        onChange={() => {
-          setMode(value);
-          setSearchError('');
-          setCreateError('');
-        }}
-      />
-      <Box>
-        <Text fontWeight="semibold">{label}</Text>
-        <Text id={'ask-mode-' + value + '-help'} fontSize="sm" color="fg.muted">
-          {description}
-        </Text>
-      </Box>
-    </chakra.label>
+      <chakra.label
+        display="flex"
+        gap={3}
+        alignItems="flex-start"
+        cursor={disabled ? 'not-allowed' : 'pointer'}
+        fontWeight="semibold"
+      >
+        <chakra.input
+          type="radio"
+          name="ask-mode"
+          value={value}
+          mt={1}
+          checked={mode === value}
+          disabled={disabled}
+          aria-describedby={'ask-mode-' + value + '-help'}
+          onChange={() => {
+            setMode(value);
+            setSearchError('');
+            setCreateError('');
+          }}
+        />
+        {label}
+      </chakra.label>
+      <Text id={'ask-mode-' + value + '-help'} fontSize="sm" color="fg.muted" ms={7}>
+        {description}
+      </Text>
+    </Box>
   );
   return (
     <VStack align="stretch" gap={6} maxW="960px" w="full">
@@ -218,7 +233,9 @@ function AskContent({ token, sessionVersion }: { token: string; sessionVersion: 
           )}
         </VStack>
       </chakra.fieldset>
-      {status.pending && <Text role="status">Checking AI capability…</Text>}
+      <Text role="status" aria-live="polite" aria-atomic="true">
+        {announcement}
+      </Text>
       {mode === 'keyword' && (
         <Box borderWidth="1px" borderColor="border" borderRadius="lg" p={{ base: 4, md: 6 }}>
           <chakra.form onSubmit={(event) => void find(event)}>
@@ -269,11 +286,6 @@ function AskContent({ token, sessionVersion }: { token: string; sessionVersion: 
               Find sources
             </Button>
           </chakra.form>
-          {search.pending && (
-            <Text role="status" mt={3}>
-              Searching your sources…
-            </Text>
-          )}
           {search.waiting && (
             <Button mt={3} variant="outline" onClick={search.cancel}>
               Stop waiting for search
@@ -285,7 +297,7 @@ function AskContent({ token, sessionVersion }: { token: string; sessionVersion: 
             </Text>
           )}
           {results && (
-            <Box mt={4} aria-live="polite">
+            <Box mt={4}>
               <Heading as="h3" size="sm" mb={2}>
                 {results.results.length
                   ? results.results.length +
@@ -342,9 +354,7 @@ function AskContent({ token, sessionVersion }: { token: string; sessionVersion: 
               page you choose Execute to run the local model; nothing runs automatically. The
               configured local model has not been verified and can still fail.
             </Text>
-            {!resourcesReady && (
-              <Text role="status">Task and agent data must load before you can ask.</Text>
-            )}
+            {!resourcesReady && <Text>Task and agent data must load before you can ask.</Text>}
             {resourcesReady && !eligible.length && (
               <Text>
                 No task is assigned to an active agent with task read, draft and knowledge read
@@ -402,12 +412,13 @@ function AskContent({ token, sessionVersion }: { token: string; sessionVersion: 
                 aria-describedby="ask-include-project-help"
                 onChange={(event) => setIncludeProject(event.target.checked)}
               />
-              Only search this task’s project sources
+              Search this task’s project sources instead
             </chakra.label>
             <Text id="ask-include-project-help" fontSize="sm" color="fg.muted">
+              Unchecked, TaskForge searches only your sources that have no project.{' '}
               {projectAllowed
-                ? 'Limits retrieval to sources linked to the task’s project.'
-                : 'Needs a task with a project and an agent with project read permission.'}
+                ? 'Checked, it searches only sources linked to the task’s project.'
+                : 'Project search needs a task with a project and an agent with project read permission.'}
             </Text>
             <HStack mt={4} flexWrap="wrap">
               <Button
@@ -432,11 +443,6 @@ function AskContent({ token, sessionVersion }: { token: string; sessionVersion: 
               )}
             </HStack>
           </chakra.form>
-          {write.pending && (
-            <Text role="status" mt={3}>
-              Creating the question run…
-            </Text>
-          )}
           {createError && (
             <Box mt={3}>
               <Text role="alert">{createError}</Text>

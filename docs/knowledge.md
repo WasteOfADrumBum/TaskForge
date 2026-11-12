@@ -85,7 +85,9 @@ free-tier metadata-growth/local-only AI limitations above still apply.
 
 `/knowledge/ask` separates keyword source lookup (hosted, no model) from grounded local answers
 (developer-local AI only, through a queued Run that the owner executes and reviews). Citations from
-either mode open the owned source and are rechecked against its current version. See
+either mode open the owned source and are rechecked against its current version. A grounded
+question searches only sources with no project unless the owner selects the task's project, which
+then limits retrieval to that project's sources. See
 [KAN-49 notes](tasks/KAN-49-ask-taskforge.md).
 
 ## Versioned local indexes (shipped KAN-47, PR #41)

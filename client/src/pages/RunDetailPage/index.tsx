@@ -487,10 +487,15 @@ function DetailContent({
                   </Text>
                 )}
                 {workflow === 'knowledge' && (
-                  <Text color="fg.muted" role={knowledgeSupported ? undefined : 'alert'}>
+                  <Text
+                    color="fg.muted"
+                    role={(provider || providerError) && !knowledgeSupported ? 'alert' : undefined}
+                  >
                     {knowledgeSupported
-                      ? 'Grounded answers use the run input as the question (at most 480 bytes), retrieve up to three of your private excerpts, and need the agent’s knowledge read permission. There is no simulation for this workflow.'
-                      : 'Grounded answers need a developer-local AI setup with embeddings and structured output. They are unavailable here.'}
+                      ? 'Grounded answers use the run input as the question (at most 480 bytes), retrieve up to three of your private excerpts, and need the agent’s knowledge read permission. Without project sources, only sources with no project are searched. There is no simulation for this workflow.'
+                      : provider || providerError
+                        ? 'Grounded answers need a developer-local AI setup with embeddings and structured output. They are unavailable here.'
+                        : 'Checking whether grounded answers are available…'}
                   </Text>
                 )}
                 {providerError && (
@@ -507,7 +512,7 @@ function DetailContent({
                     onChange={(e) => setIncludeProject(e.target.checked)}
                   />
                   {workflow === 'knowledge'
-                    ? 'Only search this task’s project sources'
+                    ? 'Search this task’s project sources instead'
                     : 'Include project notes'}
                 </chakra.label>
                 <Text color="fg.muted">
