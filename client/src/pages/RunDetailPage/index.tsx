@@ -14,7 +14,9 @@ import {
   Textarea,
   VStack,
 } from '@chakra-ui/react';
-import { Link as RouterLink, useParams } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useParams } from 'react-router-dom';
+import GroundedCitations from '../../components/knowledge/GroundedCitations';
+import { groundedAvailability, parseGroundedRun } from '../../utils/askTaskForge';
 import {
   cancelRun,
   executeRun,
@@ -46,6 +48,10 @@ function DetailContent({
   token: string;
   sessionVersion: number;
 }) {
+  const location = useLocation();
+  // Ask TaskForge preselects the knowledge workflow; it never executes automatically.
+  const askState = location.state as { askWorkflow?: unknown; includeProject?: unknown } | null;
+  const askedKnowledge = askState?.askWorkflow === 'knowledge';
   const [run, setRun] = useState<AgentRun | null>(null);
   const [audit, setAudit] = useState<RunAuditEvent[]>([]);
   const [provider, setProvider] = useState<RunProviderStatus | null>(null);
@@ -58,13 +64,15 @@ function DetailContent({
   const [refreshKey, setRefreshKey] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [mode, setMode] = useState<'' | 'demo' | 'local'>('');
-  const [workflow, setWorkflow] = useState<RunWorkflow>('draft');
+  const [workflow, setWorkflow] = useState<RunWorkflow>(askedKnowledge ? 'knowledge' : 'draft');
   const [sourceTitle, setSourceTitle] = useState('');
   const [sourceText, setSourceText] = useState('');
   const [sourceUrl, setSourceUrl] = useState('');
   const invalidSource =
     workflow === 'research' && !sourceText.trim() && !!(sourceTitle.trim() || sourceUrl.trim());
-  const [includeProject, setIncludeProject] = useState(false);
+  const [includeProject, setIncludeProject] = useState(
+    askedKnowledge && askState?.includeProject === true,
+  );
   const [note, setNote] = useState('');
   const read = useDelayedRequest();
   const write = useDelayedRequest();
@@ -133,12 +141,20 @@ function DetailContent({
     setRefreshKey((key) => key + 1);
   };
   const localSupported = provider?.defaultMode === 'local' && provider.capabilities.chat === true;
+  const knowledgeSupported = groundedAvailability(provider).available;
+  const grounded = parseGroundedRun(run);
+  // Knowledge drafts are local-only on the server; simulation is never offered for them.
+  const knowledgeBlocked = workflow === 'knowledge' && (mode !== 'local' || !knowledgeSupported);
   const blocked = read.pending || write.pending || refreshRequired || !!error;
   const change = async (action: 'execute' | 'cancel' | ReviewDecision) => {
     if (!run || mutation.current || blocked || !isCurrentSession(token, sessionVersion)) return;
     if (
       action === 'execute' &&
-      (run.status !== 'queued' || !mode || invalidSource || (mode === 'local' && !localSupported))
+      (run.status !== 'queued' ||
+        !mode ||
+        invalidSource ||
+        knowledgeBlocked ||
+        (mode === 'local' && !localSupported))
     )
       return;
     if (action === 'cancel' && run.status !== 'queued' && run.status !== 'running') return;
@@ -305,6 +321,12 @@ function DetailContent({
                   changes.
                 </Text>
               )}
+              {run.workflow === 'knowledge' && (
+                <Text>
+                  Grounded knowledge answer: local model draft from cited private excerpts. Requires
+                  human review; no task changes.
+                </Text>
+              )}
               <Text overflowWrap="anywhere">Task: {run.task}</Text>
               <Text overflowWrap="anywhere">Agent: {run.agent}</Text>
               {run.handoff && (
@@ -332,7 +354,12 @@ function DetailContent({
           <RunSection title="Requested work">
             <RunText value={run.input} />
           </RunSection>
-          <RunSection title="Proposed output">
+          {grounded && (
+            <RunSection title="Grounded answer and citations">
+              <GroundedCitations report={grounded} />
+            </RunSection>
+          )}
+          <RunSection title={grounded ? 'Recorded output text' : 'Proposed output'}>
             <RunText
               value={
                 run.workflow !== 'draft' &&
@@ -370,12 +397,19 @@ function DetailContent({
                     <NativeSelect.Field
                       id="run-workflow"
                       value={workflow}
-                      onChange={(event) => setWorkflow(event.target.value as RunWorkflow)}
+                      onChange={(event) => {
+                        const next = event.target.value as RunWorkflow;
+                        setWorkflow(next);
+                        if (next === 'knowledge' && mode === 'demo') setMode('');
+                      }}
                     >
                       <option value="draft">Task draft</option>
                       <option value="chief-of-staff">Chief of Staff triage</option>
                       <option value="research">Supplied-source research</option>
                       <option value="developer">Developer text plan</option>
+                      {(knowledgeSupported || workflow === 'knowledge') && (
+                        <option value="knowledge">Grounded knowledge answer (local only)</option>
+                      )}
                     </NativeSelect.Field>
                     <NativeSelect.Indicator />
                   </NativeSelect.Root>
@@ -438,7 +472,9 @@ function DetailContent({
                       onChange={(e) => setMode(e.target.value as typeof mode)}
                     >
                       <option value="">Choose a mode</option>
-                      <option value="demo">Simulation — canned output, no model</option>
+                      {workflow !== 'knowledge' && (
+                        <option value="demo">Simulation — canned output, no model</option>
+                      )}
                       {localSupported && <option value="local">Local inference draft</option>}
                     </NativeSelect.Field>
                     <NativeSelect.Indicator />
@@ -448,6 +484,13 @@ function DetailContent({
                   <Text color="fg.muted">
                     Local inference is configured; availability has not been verified. Execution can
                     still fail.
+                  </Text>
+                )}
+                {workflow === 'knowledge' && (
+                  <Text color="fg.muted" role={knowledgeSupported ? undefined : 'alert'}>
+                    {knowledgeSupported
+                      ? 'Grounded answers use the run input as the question (at most 480 bytes), retrieve up to three of your private excerpts, and need the agent’s knowledge read permission. There is no simulation for this workflow.'
+                      : 'Grounded answers need a developer-local AI setup with embeddings and structured output. They are unavailable here.'}
                   </Text>
                 )}
                 {providerError && (
@@ -463,7 +506,9 @@ function DetailContent({
                     disabled={blocked}
                     onChange={(e) => setIncludeProject(e.target.checked)}
                   />
-                  Include project notes
+                  {workflow === 'knowledge'
+                    ? 'Only search this task’s project sources'
+                    : 'Include project notes'}
                 </chakra.label>
                 <Text color="fg.muted">
                   Project notes require the agent’s current project.read permission. No mode runs
@@ -475,6 +520,7 @@ function DetailContent({
                     blocked ||
                     !mode ||
                     invalidSource ||
+                    knowledgeBlocked ||
                     (mode === 'local' &&
                       (!localSupported ||
                         (workflow !== 'draft' && !provider?.capabilities.structuredOutput)))
@@ -585,6 +631,9 @@ function DetailContent({
                 )}
                 {event.workflow === 'developer' && (
                   <Text fontSize="sm">Workflow: Developer text plan</Text>
+                )}
+                {event.workflow === 'knowledge' && (
+                  <Text fontSize="sm">Workflow: grounded knowledge answer</Text>
                 )}
                 {event.reason && <Text fontSize="sm">Reason: {event.reason}</Text>}
                 {event.parentRun && (

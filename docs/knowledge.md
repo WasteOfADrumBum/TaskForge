@@ -81,6 +81,13 @@ check existing sources before explicitly starting another source. There are no a
 Changing route/session retires pending operations and loaded private text. All server limits and
 free-tier metadata-growth/local-only AI limitations above still apply.
 
+## Ask TaskForge (KAN-49)
+
+`/knowledge/ask` separates keyword source lookup (hosted, no model) from grounded local answers
+(developer-local AI only, through a queued Run that the owner executes and reviews). Citations from
+either mode open the owned source and are rechecked against its current version. See
+[KAN-49 notes](tasks/KAN-49-ask-taskforge.md).
+
 ## Versioned local indexes (shipped KAN-47, PR #41)
 
 Explicit developer-local indexing uses KAN-46's pinned384-dimensional embeddings. A source has

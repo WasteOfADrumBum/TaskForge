@@ -116,7 +116,7 @@ Release readiness and the approved bounded Phase 2 milestone are complete. Josh 
 
 ## Phase 3: Knowledge ([details](phases/phase-3-knowledge.md))
 
-**Status: IN PROGRESS (approved 2026-10-08, KAN-27).** Private storage and keyword search first; local embeddings/semantic retrieval/cited answers next, with existing safeguards and $0 additional recurring cost. KAN-44 storage/keyword API is shipped (PR #38, `7fe3aaf`; required CI/live verified). KAN-45 private knowledge UI is shipped (PR #39, `aea061a`; protected CI/live verified). KAN-46 guarded pinned local embeddings shipped (PR #40, `f45fb86`; actual local QA/CI/live verified). KAN-47 bounded versioned chunks/indexes shipped (PR #41, `23268b2`; local Mongo/Ollama, CI/live verified). KAN-48 local grounded Run retrieval shipped (PR #42, `11975d0`; Jira Done). KAN-49 Ask TaskForge and KAN-50 evaluation/acceptance remain. Jira KAN-44–50 track dependencies and delivery. Phases4–8 remain unapproved.
+**Status: IN PROGRESS (approved 2026-10-08, KAN-27).** Private storage and keyword search first; local embeddings/semantic retrieval/cited answers next, with existing safeguards and $0 additional recurring cost. KAN-44 storage/keyword API is shipped (PR #38, `7fe3aaf`; required CI/live verified). KAN-45 private knowledge UI is shipped (PR #39, `aea061a`; protected CI/live verified). KAN-46 guarded pinned local embeddings shipped (PR #40, `f45fb86`; actual local QA/CI/live verified). KAN-47 bounded versioned chunks/indexes shipped (PR #41, `23268b2`; local Mongo/Ollama, CI/live verified). KAN-48 local grounded Run retrieval shipped (PR #42, `11975d0`; Jira Done). KAN-49 Ask TaskForge shipped ([task notes](tasks/KAN-49-ask-taskforge.md)). KAN-50 evaluation/acceptance remains. Jira KAN-44–50 track dependencies and delivery. Phases4–8 remain unapproved.
 
 - [ ] **PLANNED**: Shared Knowledge system
 - [x] **COMPLETE**: Private text documents (KAN-44/45, bounded manual paste)
@@ -126,7 +126,7 @@ Release readiness and the approved bounded Phase 2 milestone are complete. Josh 
 - [x] **COMPLETE**: Bounded versioned source chunk/index foundation (KAN-47, PR #41)
 - [x] **COMPLETE**: Explicit pinned local embeddings (KAN-46; production disabled)
 - [x] **COMPLETE**: Source-linked keyword retrieval and explicit local semantic Run retrieval with exact citations (KAN-44/48; production inference disabled)
-- [ ] **PLANNED**: Ask TaskForge
+- [x] **COMPLETE**: Ask TaskForge: keyword citations on every deployment; grounded local answers with exact citations and human review (KAN-49)
 - [ ] **PLANNED**: Permission-scoped knowledge access
 
 ## Phase 4: Command Center ([details](phases/phase-4-command-center.md))

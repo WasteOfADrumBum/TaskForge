@@ -18,12 +18,14 @@ const RunActivityPage = lazy(() => import('./pages/RunActivityPage'));
 const RunDetailPage = lazy(() => import('./pages/RunDetailPage'));
 const KnowledgePage = lazy(() => import('./pages/KnowledgePage'));
 const KnowledgeDetailPage = lazy(() => import('./pages/KnowledgeDetailPage'));
+const AskPage = lazy(() => import('./pages/AskPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 
 // Public: `/` (landing), `/login`, `/register`.
 // Authenticated, inside the app shell: `/home` (Command Center), `/work` (tasks),
 // `/work/projects`, `/work/projects/:id`, `/workforce` (Agent Registry), `/workforce/:id`,
-// `/workforce/runs`, `/workforce/runs/:id`, `/settings`.
+// `/workforce/runs`, `/workforce/runs/:id`, `/knowledge`, `/knowledge/ask` (Ask TaskForge),
+// `/knowledge/:id`, `/settings`.
 export const AppRoutes = () => (
   <Suspense fallback={<div>Loading...</div>}>
     <Routes>
@@ -41,6 +43,7 @@ export const AppRoutes = () => (
           <Route path="/workforce/runs/:id" element={<RunDetailPage />} />
           <Route path="/workforce/:id" element={<AgentDetailPage />} />
           <Route path="/knowledge" element={<KnowledgePage />} />
+          <Route path="/knowledge/ask" element={<AskPage />} />
           <Route path="/knowledge/:id" element={<KnowledgeDetailPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
