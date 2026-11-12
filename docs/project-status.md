@@ -40,7 +40,7 @@ No application behavior changed. Each item merged through required PR/main CI.
 ## Release readiness (KAN-11, complete)
 
 - PR #16 merged as `f727b69`. Independent review, 491 tests, PR/main CI and provider deployments passed. Live client `/release.json` and API `/release` matched that commit; `/ready` returned 200. Separate liveness, bounded DB readiness and build-derived release identity are shipped. See the [release/idle recovery runbook](release-runbook.md). No hosting changes, production data operations, paid service or automatic cluster administration.
-- Free-tier manual recovery is documented; an actual private backup/isolated Mongo restore is not yet verified. Simulated outage/recovery tests do not establish production restore readiness.
+- Free-tier manual recovery is documented. KAN-53 adds a built-in export and isolated restore check, proven in CI against synthetic data. An actual production export and its verification are owner steps and are not yet recorded. Simulated outage/recovery tests do not establish production restore readiness.
 
 ## Infrastructure verification (2026-10-02)
 

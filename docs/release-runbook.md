@@ -42,6 +42,27 @@ Atlas Free clusters have no managed Atlas backups. Use MongoDB Database Tools `m
 - Production restore, destructive options, data migration, new credentials or paid services require a separate owner decision. KAN-11 performs no export, restore, production writes, seed or cluster administration.
 - A backup/restore rehearsal requires an available isolated MongoDB plus a synthetic archive. If unavailable, record that limitation rather than claiming an actual production backup or restore was verified.
 
+### Built-in export and isolated restore check (KAN-53)
+
+TaskForge ships a driver-based alternative that needs no Database Tools install. It reads only, and its
+restore check only ever writes to a fresh loopback MongoDB that it starts and stops itself.
+
+1. In a private terminal, set the source connection string for this session only. Use a read-only
+   Atlas database user if you have one: `$env:SOURCE_MONGO_URI='<your Atlas connection string>'`.
+2. Export to a private folder outside the repository, for example
+   `npm run backup:export -- --out "$HOME\TaskForgeBackups\taskforge-2026-11-12.jsonl"`.
+   The command refuses paths inside the repository, never overwrites a file, writes it readable by
+   your account only, and prints only per-collection counts.
+3. Verify it: `npm run backup:verify -- --in "$HOME\TaskForgeBackups\taskforge-2026-11-12.jsonl"`.
+   It restores into a throwaway loopback database and checks counts, SHA-256 digests and ownership
+   links (tasks, projects, agents, runs and knowledge to users; tasks to projects and agents; runs to
+   tasks and agents). Expect `"verified":true` and an empty `problems` list.
+4. Clear the variable (`Remove-Item Env:SOURCE_MONGO_URI`) and store the archive offline or encrypted.
+   Record the date, counts and verification result privately or in Jira, never the connection string.
+
+`npm run test:backup-drill` repeats this end to end against synthetic data in CI. A restore into
+production is still a separate owner decision; this tool cannot perform one.
+
 ## Safe runbook rehearsal
 
 Automated tests simulate disconnected, healthy, failed, timed-out and recovered database probes. A local built API smoke run can verify release metadata and liveness without a real database; readiness is 503 while disconnected. Compare the built client metadata to HEAD and a controlled public API URL. This checks instructions and operational contracts without changing production data.

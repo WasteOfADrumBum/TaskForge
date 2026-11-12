@@ -19,12 +19,16 @@
     "test:integration": "node scripts/run-integration.mjs",
     "test:e2e": "playwright test",
     "test:qa-safety": "node --test scripts/*.test.mjs",
-    "test:local-ai": "node scripts/run-local-ai-smoke.mjs"
+    "test:local-ai": "node scripts/run-local-ai-smoke.mjs",
+    "test:backup-drill": "node --test scripts/backup-drill.mjs",
+    "backup:export": "node scripts/backup-tool.mjs export",
+    "backup:verify": "node scripts/backup-tool.mjs verify"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
     "@playwright/test": "^1.63.0",
     "@types/node": "^22.14.0",
+    "bson": "^6.10.4",
     "concurrently": "^9.1.2",
     "deepmerge": "file:vendor/deepmerge",
     "esbuild": "^0.27.2",
@@ -36,6 +40,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.12.0",
     "jest": "^30.5.2",
+    "mongodb": "^6.20.0",
     "mongodb-memory-server-core": "^11.3.0",
     "prettier": "^3.5.3",
     "ts-node": "^10.9.2",
