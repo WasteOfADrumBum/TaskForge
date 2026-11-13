@@ -47,8 +47,9 @@ acceptance after all engineering evidence, including the local real-model evalua
 | Agents retrieve only permitted knowledge         | KAN-48 opt-in `knowledge.read` and `project.read`, rechecked before generation, publication and approval                         |
 | Retrieval evaluated, negative security evidenced | KAN-50 frozen corpus metrics and the [security evidence map](../tasks/KAN-50-retrieval-evaluation.md#negative-security-evidence) |
 
-Owner steps to close: run `npm run test:local-ai -- --local-only --evaluate` locally and record
-the JSON result in KAN-50, then accept or reject Phase 3 closure in KAN-27. Phases 4 to 8 stay
+The owner's real-model evaluation passed on 2026-11-12 and is recorded in KAN-50 (see the
+[KAN-50 task doc](../tasks/KAN-50-retrieval-evaluation.md#real-model-run-owner-local)). The
+remaining owner step is to accept or reject Phase 3 closure in KAN-27. Phases 4 to 8 stay
 unapproved either way.
 
 ## Objective

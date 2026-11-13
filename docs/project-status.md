@@ -13,7 +13,7 @@ A short, living snapshot of where TaskForge is right now. For the full plan, see
 | Current branch            | `main` at `9af915c` (PR #47); original assignment WIP preserved on `feat/agent-task-assignment`             |
 | Current checkpoint        | Phase3 engineering complete (KAN-44 to KAN-50); owner local evaluation and acceptance pending               |
 | Last completed checkpoint | KAN-48 grounded local Run retrieval (PR #42, `11975d0`); Jira Done                                          |
-| Next recommended          | Owner runs the local real-model evaluation, then accepts or rejects Phase3 closure                          |
+| Next recommended          | Owner accepts or rejects Phase3 closure in KAN-27 (local eval passed 2026-11-12)                            |
 
 ## Maintenance since KAN-48 (2026-10-28 to 2026-11-07)
 
