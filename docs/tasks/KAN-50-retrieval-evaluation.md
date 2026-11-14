@@ -43,7 +43,7 @@ With Ollama running locally, cloud disabled, and the pinned models already pulle
 [ai-provider.md](../ai-provider.md)):
 
 ```powershell
-$env:AI_PROVIDER='ollama'; $env:OLLAMA_EMBEDDING_MODEL='all-minilm:l6-v2'
+$env:AI_PROVIDER='ollama'; $env:OLLAMA_EMBEDDING_MODEL='all-minilm:l6-v2'; $env:OLLAMA_MODEL='qwen3:0.6b'
 npm run test:local-ai -- --local-only --evaluate
 ```
 
@@ -51,6 +51,13 @@ It provisions a fresh loopback MongoDB, indexes the frozen corpus with real embe
 retrieval only (no generation, Runs or tasks) and prints one JSON line with the metrics, exact
 citation check and any misses. It never reads production configuration. Paste that line into
 Jira KAN-50.
+
+`OLLAMA_MODEL` is required by the local provider configuration even though this run does not
+generate text; the original command omitted it.
+
+Owner result (2026-11-12, main `57d0b6f`, Ollama 0.40.16, pinned `all-minilm:l6-v2`, recorded in
+KAN-50): passed with hit@1 1, hit@3 1, MRR 1, abstention rate 1, false answer rate 0, 15 exact
+citations, no misses, 0 production and 0 paid calls.
 
 ## Negative security evidence
 
