@@ -4,6 +4,8 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+- KAN-54: the Command Center greeting switches at noon, 6 PM and midnight in an open tab (and catches up on visibility or focus) instead of only at the next day change.
+
 - KAN-50: frozen retrieval evaluation corpus with hit@k, MRR, abstention and exact-citation checks through real MongoDB in CI, a local-only real-model evaluation (`npm run test:local-ai -- --local-only --evaluate`) and a negative security evidence map; no application behavior change.
 
 - KAN-53: private read-only backup export and an isolated restore check (counts, SHA-256 digests, ownership links) with a synthetic CI drill and runbook steps; the restore check can only write to a loopback database it starts itself.

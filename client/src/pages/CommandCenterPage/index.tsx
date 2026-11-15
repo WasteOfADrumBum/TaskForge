@@ -23,6 +23,7 @@ import EmptyState from '../../components/common/EmptyState';
 import MetricCard from '../../components/common/MetricCard';
 import SectionHeader from '../../components/common/SectionHeader';
 import PriorityTaskRow from '../../components/tasks/PriorityTaskRow';
+import { useGreeting } from '../../hooks/useGreeting';
 import { useToday } from '../../hooks/useToday';
 import { useAppSelector } from '../../redux/hooks/typedHooks';
 import { getProjectId } from '../../types/project';
@@ -31,7 +32,6 @@ import { getAgentSummary } from '../../utils/agents';
 import { getAssignmentSummary } from '../../utils/assignees';
 import { getProjectStats, getStatsForProject } from '../../utils/projects';
 import {
-  getGreeting,
   getRecentActivity,
   getRecommendations,
   getTodaysPriorities,
@@ -59,6 +59,7 @@ const CommandCenterPage = () => {
   // One `now` for every section, so the Overdue metric and the priorities always agree. It
   // advances when the local day changes, so a tab left open past midnight stays correct.
   const now = useToday();
+  const greeting = useGreeting();
   const summary = useMemo(() => getTaskSummary(tasks, now), [tasks, now]);
   // Count from the full list; only the panel shows the top five.
   const allPriorities = useMemo(
@@ -98,7 +99,7 @@ const CommandCenterPage = () => {
           Your daily brief
         </Text>
         <Heading as="h1" size={{ base: '2xl', md: '3xl' }} mt={1.5}>
-          {getGreeting(now)}.
+          {greeting}.
         </Heading>
         <Text color="fg.muted" mt={1.5}>
           {initialLoad ? (
