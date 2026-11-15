@@ -6,8 +6,13 @@ const BOUNDARY_HOURS = [12, 18, 24];
 
 const msUntilNextBoundary = (from: Date) => {
   const next = new Date(from);
-  const hour = BOUNDARY_HOURS.find((boundary) => boundary > from.getHours()) ?? 24;
-  next.setHours(hour, 0, 0, 0);
+  // 24 is always greater than the current hour, so find always returns a boundary.
+  next.setHours(
+    BOUNDARY_HOURS.find((boundary) => boundary > from.getHours())!,
+    0,
+    0,
+    0,
+  );
   return next.getTime() - from.getTime();
 };
 

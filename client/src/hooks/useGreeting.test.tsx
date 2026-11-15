@@ -17,12 +17,13 @@ describe('useGreeting', () => {
   it('switches from morning to afternoon just after noon', () => {
     const { result } = renderHook(() => useGreeting());
     expect(result.current).toBe('Good morning');
+    // 11:59:00 plus 60 s is noon; the timer fires one second after it.
     act(() => {
-      vi.advanceTimersByTime(30 * 1000);
+      vi.advanceTimersByTime(60 * 1000);
     });
     expect(result.current).toBe('Good morning');
     act(() => {
-      vi.advanceTimersByTime(60 * 1000);
+      vi.advanceTimersByTime(1000);
     });
     expect(result.current).toBe('Good afternoon');
   });
@@ -66,5 +67,29 @@ describe('useGreeting', () => {
       window.dispatchEvent(new Event('focus'));
     });
     expect(result.current).toBe('Good morning');
+  });
+
+  it('keeps one timer when focus or visibility finds the greeting unchanged', () => {
+    const { result } = renderHook(() => useGreeting());
+    act(() => {
+      window.dispatchEvent(new Event('focus'));
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    expect(result.current).toBe('Good morning');
+    expect(vi.getTimerCount()).toBe(1);
+  });
+
+  it('ignores visibility changes while the tab is hidden', () => {
+    const visibility = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+    try {
+      const { result } = renderHook(() => useGreeting());
+      vi.setSystemTime(new Date(2026, 10, 15, 19, 30));
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+      expect(result.current).toBe('Good morning');
+    } finally {
+      visibility.mockRestore();
+    }
   });
 });
