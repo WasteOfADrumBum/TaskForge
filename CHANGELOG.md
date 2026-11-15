@@ -6,6 +6,8 @@ All notable changes to TaskForge are recorded here.
 
 - KAN-56: rule-based "At risk" flag for active projects with overdue work, listed first on the Command Center and shown on project cards.
 
+- KAN-55: Agent activity on the Command Center: drafts awaiting your review, runs queued or running, failures in the last 7 days and the five latest runs with links, read-only from the existing runs API.
+
 - KAN-54: the Command Center greeting switches at noon, 6 PM and midnight in an open tab (and catches up on visibility or focus) instead of only at the next day change.
 
 - KAN-50: frozen retrieval evaluation corpus with hit@k, MRR, abstention and exact-citation checks through real MongoDB in CI, a local-only real-model evaluation (`npm run test:local-ai -- --local-only --evaluate`) and a negative security evidence map; no application behavior change.
