@@ -2,7 +2,8 @@ import { Box, Button, Heading, HStack, Link, Progress, Text } from '@chakra-ui/r
 import { LuPencil, LuTrash2 } from 'react-icons/lu';
 import { Link as RouterLink } from 'react-router-dom';
 import { getProjectId, type Project } from '../../types/project';
-import type { ProjectTaskStats } from '../../utils/projects';
+import { isProjectAtRisk, type ProjectTaskStats } from '../../utils/projects';
+import ProjectRiskBadge from './ProjectRiskBadge';
 import ProjectStatusBadge from './ProjectStatusBadge';
 
 const dateFormat = new Intl.DateTimeFormat('en-US', {
@@ -34,7 +35,10 @@ const ProjectCard = ({ project, stats, onEdit, onDelete }: ProjectCardProps) => 
           <RouterLink to={'/work/projects/' + getProjectId(project)}>{project.name}</RouterLink>
         </Link>
       </Heading>
-      <ProjectStatusBadge status={project.status} />
+      <HStack gap={2} flexWrap="wrap" justify="flex-end">
+        {isProjectAtRisk(project, stats) && <ProjectRiskBadge overdue={stats.overdue} />}
+        <ProjectStatusBadge status={project.status} />
+      </HStack>
     </HStack>
     <Text color="fg.muted" fontSize="sm" lineClamp={2} minH={{ md: '2.5em' }}>
       {project.description || 'No description.'}
