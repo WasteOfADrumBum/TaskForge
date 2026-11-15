@@ -19,6 +19,7 @@ import {
   LuTriangleAlert,
 } from 'react-icons/lu';
 import { Link as RouterLink } from 'react-router-dom';
+import AgentActivityPanel from '../../components/commandCenter/AgentActivityPanel';
 import EmptyState from '../../components/common/EmptyState';
 import MetricCard from '../../components/common/MetricCard';
 import SectionHeader from '../../components/common/SectionHeader';
@@ -367,6 +368,8 @@ const CommandCenterPage = () => {
               </Text>
             </Box>
           )}
+
+          {agentSummary.total > 0 && <AgentActivityPanel now={now} />}
 
           <Box
             as="section"
