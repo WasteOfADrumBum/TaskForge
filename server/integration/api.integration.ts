@@ -256,3 +256,38 @@ it('deletes the owner task and confirms its persisted removal', async () => {
   expect(await Task.findById(taskId)).toBeNull();
   expect(await User.countDocuments()).toBe(2);
 });
+
+it('records when a task is completed and keeps it in the database', async () => {
+  const created = await request(app)
+    .post('/api/tasks')
+    .set(auth(aliceToken))
+    .send({ title: 'Completion QA', completedAt: '2020-01-01T00:00:00.000Z' });
+  expect(created.status).toBe(201);
+  const id = created.body.task._id;
+  // Request input never sets the completion time.
+  expect(created.body.task.completedAt).toBeNull();
+
+  const done = await request(app).patch(`/api/tasks/${id}`).set(auth(aliceToken)).send({
+    status: 'done',
+    completedAt: '2020-01-01T00:00:00.000Z',
+  });
+  expect(done.status).toBe(200);
+  const stamped = done.body.task.completedAt;
+  expect(Date.parse(stamped)).toBeGreaterThan(Date.parse('2026-01-01T00:00:00.000Z'));
+
+  const resaved = await request(app)
+    .patch(`/api/tasks/${id}`)
+    .set(auth(aliceToken))
+    .send({ title: 'Completion QA renamed', status: 'done' });
+  expect(resaved.body.task.completedAt).toBe(stamped);
+  expect((await Task.findById(id).lean())?.completedAt?.toISOString()).toBe(stamped);
+
+  const reopened = await request(app)
+    .patch(`/api/tasks/${id}`)
+    .set(auth(aliceToken))
+    .send({ status: 'todo' });
+  expect(reopened.body.task.completedAt).toBeNull();
+  expect((await Task.findById(id).lean())?.completedAt).toBeNull();
+
+  expect((await request(app).delete(`/api/tasks/${id}`).set(auth(aliceToken))).status).toBe(204);
+});

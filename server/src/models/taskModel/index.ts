@@ -39,6 +39,9 @@ const taskSchema = new Schema(
     assigneeType: { type: String, enum: [...TASK_ASSIGNEE_TYPES, null], default: null },
     // Set only when assigneeType is 'agent', and always an agent owned by the same user.
     assigneeAgent: { type: Schema.Types.ObjectId, ref: 'Agent', default: null, index: true },
+    // When the task last became done; null while it is not done. Set only by the task service,
+    // never from request input. Tasks completed before this field existed keep null.
+    completedAt: { type: Date, default: null },
   },
   { timestamps: true },
 );

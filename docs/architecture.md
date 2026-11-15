@@ -104,6 +104,7 @@ flowchart LR
 
 **Task assignment (KAN-2, shipped in PR #15; release identity verified by KAN-11):**
 
+- **Completion time:** `Task.completedAt` is set by `taskService` only: stamped when a task becomes done (a status-filtered write, so the check and the stamp are atomic), kept when a done task is saved as done again, and cleared when it leaves done. The controller never forwards it from request input.
 - **Model:** `Task.assigneeType` is `user`, `agent`, or `null` (default, Unassigned). `Task.assigneeAgent` is the agent id when the type is `agent`, otherwise `null`. `user` always means the task's owner.
 - **Validation** (task create and update, in `taskController`): both fields omitted leaves the assignment unchanged. `assigneeType` is required whenever `assigneeAgent` is sent. `null`, `''`, and `user` must not carry an agent id (`400 Invalid assignee`). For `agent`, a malformed id gets `400 Invalid agent`, and a missing agent and another user's agent both get `400 Agent not found`. Both fields are always written together, so a reassignment fully replaces the previous assignee.
 - **Agent status:** only an `active` agent can take a new assignment (`400 Only active agents can take new tasks`). A task already assigned to a paused or disabled agent keeps it: an update that re-sends the task's current agent is accepted. Pausing or disabling an agent never changes its tasks. The status check and the write are separate queries, so an agent paused in that same moment can still receive the task.

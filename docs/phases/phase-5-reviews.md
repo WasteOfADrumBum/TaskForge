@@ -1,6 +1,6 @@
 # Phase 5: Reviews
 
-**Status: PLANNED**
+**Status: IN PROGRESS**
 
 ## Objective
 
@@ -43,4 +43,4 @@ $0. Compute analytics in the app and generate recommendations with the local pro
 
 ## Notes/decisions
 
-- None yet.
+- Tasks record `completedAt` (KAN-57): the server stamps it when a task becomes done, keeps it when a done task is saved as done again, and clears it when the task is reopened. Request input never sets it. Tasks completed before KAN-57 keep `null`, and analytics count them as "completion date unknown" rather than guessing from `updatedAt`.

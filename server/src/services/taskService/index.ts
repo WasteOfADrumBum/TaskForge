@@ -36,7 +36,11 @@ const reconcileAgentAssignment = async (
 };
 
 export const createTask = async (ownerId: string, taskData: TaskInput) => {
-  const task = await Task.create({ ...taskData, owner: ownerId });
+  const task = await Task.create({
+    ...taskData,
+    owner: ownerId,
+    completedAt: taskData.status === 'done' ? new Date() : null,
+  });
   return reconcileAgentAssignment(ownerId, task);
 };
 
@@ -44,11 +48,35 @@ export const findTasksByOwner = async (ownerId: string) => {
   return Task.find({ owner: ownerId }).sort({ createdAt: -1 });
 };
 
+const updateOptions = { new: true, runValidators: true };
+
+// completedAt follows status: it is stamped when a task moves into done, kept when a task that
+// is already done is saved as done again, and cleared when it leaves done. The stamp uses a
+// status filter so the check and the write are one atomic step.
+const writeUpdate = async (ownerId: string, taskId: string, updates: TaskUpdate) => {
+  if (updates.status === undefined) {
+    return Task.findOneAndUpdate({ _id: taskId, owner: ownerId }, updates, updateOptions);
+  }
+  if (updates.status !== 'done') {
+    return Task.findOneAndUpdate(
+      { _id: taskId, owner: ownerId },
+      { ...updates, completedAt: null },
+      updateOptions,
+    );
+  }
+  const newlyDone = await Task.findOneAndUpdate(
+    { _id: taskId, owner: ownerId, status: { $ne: 'done' } },
+    { ...updates, completedAt: new Date() },
+    updateOptions,
+  );
+  // Already done (or not the owner's): keep the original completion time.
+  return (
+    newlyDone ?? Task.findOneAndUpdate({ _id: taskId, owner: ownerId }, updates, updateOptions)
+  );
+};
+
 export const updateTaskById = async (ownerId: string, taskId: string, updates: TaskUpdate) => {
-  const task = await Task.findOneAndUpdate({ _id: taskId, owner: ownerId }, updates, {
-    new: true,
-    runValidators: true,
-  });
+  const task = await writeUpdate(ownerId, taskId, updates);
   return reconcileAgentAssignment(ownerId, task);
 };
 
