@@ -9,7 +9,7 @@ import { system } from '../../assets/theme/theme';
 import { store } from '../../redux/store';
 import { clearAuth, setToken } from '../../redux/slices/authSlice';
 import { setAgents } from '../../redux/slices/agentSlice';
-import { setTasks } from '../../redux/slices/taskSlice';
+import { clearTasks, setTasks } from '../../redux/slices/taskSlice';
 import { validToken } from '../../test/renderApp';
 import type { AgentRun } from '../../types/run';
 import AgentActivityPanel from './AgentActivityPanel';
@@ -88,17 +88,21 @@ describe('AgentActivityPanel', () => {
       run('run-3', { status: 'failed', createdAt: '2026-11-14T00:00:00.000Z' }),
     ]);
     const list = await within(region).findByRole('list', { name: 'Most recent runs' });
-    expect(within(region).getByRole('status')).toHaveTextContent('');
+    expect(within(region).getByRole('status')).toBeEmptyDOMElement();
     expect(within(list).getAllByRole('listitem')).toHaveLength(3);
-    const link = within(list).getAllByRole('link', { name: 'Draft the launch note' })[0];
+    const link = within(list).getByRole('link', {
+      name: 'Draft the launch note, Research agent, Awaiting approval',
+    });
     expect(link).toHaveAttribute('href', '/workforce/runs/run-1');
-    expect(within(list).getAllByText(/Research agent/)).toHaveLength(3);
+    expect(
+      within(list).getByRole('link', { name: /Research agent, Running$/ }),
+    ).toBeInTheDocument();
     const counts = within(region).getByText('Awaiting your review').parentElement!;
     expect(counts).toHaveTextContent('1');
     expect(within(region).getByText('Failed in the last 7 days').parentElement!).toHaveTextContent(
       '1',
     );
-    expect(within(region).getByText('Awaiting approval')).toBeInTheDocument();
+    expect(within(list).getAllByText('Awaiting approval').length).toBeGreaterThan(0);
   });
 
   it('explains when there are no runs yet', async () => {
@@ -117,6 +121,8 @@ describe('AgentActivityPanel', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Agent activity could not be loaded.');
     await userEvent.click(screen.getByRole('button', { name: 'Retry loading activity' }));
     expect(await screen.findByRole('list', { name: 'Most recent runs' })).toBeInTheDocument();
+    expect(screen.queryByText('Unable to load run activity')).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
     expect(api.getRuns).toHaveBeenCalledTimes(2);
   });
 
@@ -125,5 +131,25 @@ describe('AgentActivityPanel', () => {
     const { container } = renderPanel();
     expect(container).toBeEmptyDOMElement();
     expect(api.getRuns).not.toHaveBeenCalled();
+  });
+
+  it('ignores a response that arrives after the session changed', async () => {
+    let resolve!: (runs: AgentRun[]) => void;
+    vi.mocked(api.getRuns).mockReturnValue(new Promise((yes) => (resolve = yes)));
+    const { container } = renderPanel();
+    store.dispatch(clearAuth());
+    resolve([run('run-late')]);
+    await Promise.resolve();
+    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByText('Draft the launch note')).not.toBeInTheDocument();
+  });
+
+  it('waits for tasks before listing runs so names never show a placeholder', async () => {
+    store.dispatch(clearTasks());
+    vi.mocked(api.getRuns).mockResolvedValue([run('run-1')]);
+    renderPanel();
+    expect(await screen.findByText('Awaiting your review')).toBeInTheDocument();
+    expect(screen.queryByRole('list', { name: 'Most recent runs' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Task not loaded')).not.toBeInTheDocument();
   });
 });

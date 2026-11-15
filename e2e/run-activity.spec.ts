@@ -281,7 +281,7 @@ test('shows agent activity on the Command Center and opens a run by keyboard', a
     await expect(panel.getByText('Queued or running', { exact: true })).toBeVisible();
     await expect(recent.getByText('Queued', { exact: true })).toBeVisible();
     await expect(recent).toContainText(agent.name);
-    const link = recent.getByRole('link', { name: task.title, exact: true });
+    const link = recent.getByRole('link', { name: task.title + ', ' + agent.name + ', Queued' });
     await link.focus();
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL('/workforce/runs/' + queued._id);

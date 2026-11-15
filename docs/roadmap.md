@@ -88,7 +88,7 @@ Decided at Phase 1 closure (2026-10-02). These are tracked as ongoing maintenanc
 
 These are known minor polish issues found during PR #7. They were never Phase 1 items:
 
-- [ ] **PLANNED**: Greeting refresh. The Command Center greeting (morning/afternoon/evening) only updates when the day changes.
+- [x] **COMPLETE**: Greeting refresh (KAN-54). The Command Center greeting now switches at noon, 6 PM and midnight in an open tab.
 - [ ] **PLANNED**: Server test teardown. Jest sometimes warns that a worker `failed to exit gracefully`. This happened in 2 of 3 runs on 2026-10-02. All tests pass, and `--detectOpenHandles` finds no open handles, so it doesn't fail CI.
 - [x] **COMPLETE**: Hero logo contrast (KAN-12, PR #22): unchanged asset on a suitable light surface.
 

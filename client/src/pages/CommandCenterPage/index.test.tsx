@@ -85,6 +85,8 @@ describe('Command Center active projects', () => {
     expect(panel.getByText('Paused').nextSibling).toHaveTextContent('1');
     expect(panel.getByText('Disabled').nextSibling).toHaveTextContent('1');
     expect(panel.getByText(/assignments do not start runs/i)).toBeInTheDocument();
+    const activity = within(await screen.findByRole('region', { name: /agent activity/i }));
+    expect(await activity.findByText(/No runs yet/)).toBeInTheDocument();
     await userEvent.click(panel.getByRole('link', { name: 'Open Workforce' }));
     expect(await screen.findByRole('heading', { level: 1, name: 'Workforce' })).toBeInTheDocument();
   });
@@ -122,6 +124,7 @@ describe('Command Center active projects', () => {
     await screen.findByRole('heading', { level: 1, name: /good/i });
     await waitFor(() => expect(store.getState().agents.loaded).toBe(true));
     expect(screen.queryByRole('region', { name: /workforce/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: /agent activity/i })).not.toBeInTheDocument();
   });
 
   it('hides the panel when there are no active projects', async () => {

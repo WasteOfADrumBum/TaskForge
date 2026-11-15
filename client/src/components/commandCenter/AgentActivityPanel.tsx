@@ -1,11 +1,20 @@
-import { Box, Button, HStack, Link, SimpleGrid, Text, VStack } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  HStack,
+  Link,
+  SimpleGrid,
+  Text,
+  VisuallyHidden,
+  VStack,
+} from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { isCurrentSession } from '../../api/authenticatedFetch';
 import { getRuns } from '../../api/runs';
 import { useDelayedRequest } from '../../hooks/useDelayedRequest';
 import { useAppSelector } from '../../redux/hooks/typedHooks';
-import type { AgentRun } from '../../types/run';
+import { runStatusLabel, type AgentRun } from '../../types/run';
 import { FAILURE_WINDOW_DAYS, getAgentActivity } from '../../utils/agentActivity';
 import { SessionExpiredError } from '../../utils/session';
 import SectionHeader from '../common/SectionHeader';
@@ -22,6 +31,8 @@ function PanelContent({
 }) {
   const agents = useAppSelector((state) => state.agents.items);
   const tasks = useAppSelector((state) => state.tasks.items);
+  // Names resolve only once tasks are loaded, so rows never flash a 'Task not loaded' label.
+  const tasksLoaded = useAppSelector((state) => state.tasks.loaded);
   const [runs, setRuns] = useState<AgentRun[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -73,7 +84,6 @@ function PanelContent({
       <SectionHeader
         id="agent-activity-heading"
         title="Agent activity"
-        count={activity?.total}
         action={{ label: 'Open run activity', to: '/workforce/runs' }}
       />
       <Text role="status" aria-live="polite" fontSize="sm" color="fg.muted">
@@ -116,7 +126,7 @@ function PanelContent({
               </Box>
             ))}
           </SimpleGrid>
-          {activity.recent.length === 0 ? (
+          {!tasksLoaded ? null : activity.recent.length === 0 ? (
             <Text fontSize="sm" color="fg.muted" mt={4}>
               No runs yet. Start one from a task assigned to an active agent.
             </Text>
@@ -135,6 +145,9 @@ function PanelContent({
                     <Link asChild fontWeight="medium" color="accent.teal" overflowWrap="anywhere">
                       <RouterLink to={'/workforce/runs/' + encodeURIComponent(run.id)}>
                         {run.taskTitle}
+                        <VisuallyHidden>
+                          {', ' + run.agentName + ', ' + runStatusLabel[run.status]}
+                        </VisuallyHidden>
                       </RouterLink>
                     </Link>
                     <RunStatusBadge status={run.status} />

@@ -30,7 +30,7 @@ These three Phase 1 items were moved to maintenance at closure:
 
 These are known minor polish issues from PR #7. They were never Phase 1 items:
 
-- **Greeting refresh:** the Command Center greeting only updates when the day changes.
+- **Greeting refresh:** resolved in KAN-54; the greeting follows the local time of day in an open tab.
 - **Hero logo contrast:** the dark "Task" wordmark is hard to read on the dark background.
 
 All five are tracked in the [roadmap](../roadmap.md#phase-1-maintenance-deferred-does-not-block-phase-1).
