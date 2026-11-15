@@ -51,28 +51,32 @@ export const findTasksByOwner = async (ownerId: string) => {
 const updateOptions = { new: true, runValidators: true };
 
 // completedAt follows status: it is stamped when a task moves into done, kept when a task that
-// is already done is saved as done again, and cleared when it leaves done. The stamp uses a
-// status filter so the check and the write are one atomic step.
+// is already done is saved as done again, and cleared when it leaves done. Each write filters on
+// the status it expects, so a concurrent reopen between the two writes cannot leave a done task
+// without a time; if both writes miss because status changed underneath, try once more.
 const writeUpdate = async (ownerId: string, taskId: string, updates: TaskUpdate) => {
-  if (updates.status === undefined) {
-    return Task.findOneAndUpdate({ _id: taskId, owner: ownerId }, updates, updateOptions);
-  }
+  const owned = { _id: taskId, owner: ownerId };
+  if (updates.status === undefined) return Task.findOneAndUpdate(owned, updates, updateOptions);
   if (updates.status !== 'done') {
-    return Task.findOneAndUpdate(
-      { _id: taskId, owner: ownerId },
-      { ...updates, completedAt: null },
+    return Task.findOneAndUpdate(owned, { ...updates, completedAt: null }, updateOptions);
+  }
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const newlyDone = await Task.findOneAndUpdate(
+      { ...owned, status: { $ne: 'done' } },
+      { ...updates, completedAt: new Date() },
       updateOptions,
     );
+    if (newlyDone) return newlyDone;
+    // Already done: keep the original completion time.
+    const stillDone = await Task.findOneAndUpdate(
+      { ...owned, status: 'done' },
+      updates,
+      updateOptions,
+    );
+    if (stillDone) return stillDone;
+    if (!(await Task.exists(owned))) return null;
   }
-  const newlyDone = await Task.findOneAndUpdate(
-    { _id: taskId, owner: ownerId, status: { $ne: 'done' } },
-    { ...updates, completedAt: new Date() },
-    updateOptions,
-  );
-  // Already done (or not the owner's): keep the original completion time.
-  return (
-    newlyDone ?? Task.findOneAndUpdate({ _id: taskId, owner: ownerId }, updates, updateOptions)
-  );
+  return Task.findOne(owned);
 };
 
 export const updateTaskById = async (ownerId: string, taskId: string, updates: TaskUpdate) => {

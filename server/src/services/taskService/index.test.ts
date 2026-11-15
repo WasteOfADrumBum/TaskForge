@@ -206,7 +206,7 @@ describe('taskService completion time', () => {
     ).resolves.toEqual(earlier);
     expect(mockedTask.findOneAndUpdate).toHaveBeenNthCalledWith(
       2,
-      { _id: taskId, owner: ownerId },
+      { _id: taskId, owner: ownerId, status: 'done' },
       { title: 'Renamed', status: 'done' },
       options,
     );
@@ -214,8 +214,34 @@ describe('taskService completion time', () => {
 
   it('returns null when the task is not the owner’s', async () => {
     mockedTask.findOneAndUpdate.mockResolvedValue(null);
+    mockedTask.exists.mockResolvedValue(null);
     await expect(updateTaskById(ownerId, taskId, { status: 'done' })).resolves.toBeNull();
     expect(mockedTask.findOneAndUpdate).toHaveBeenCalledTimes(2);
+    expect(mockedTask.exists).toHaveBeenCalledWith({ _id: taskId, owner: ownerId });
+  });
+
+  it('stamps the time when a concurrent reopen lands between the two writes', async () => {
+    const done = { ...unassigned, status: 'done', completedAt: now };
+    mockedTask.findOneAndUpdate
+      .mockResolvedValueOnce(null) // was done, so the stamp misses
+      .mockResolvedValueOnce(null) // reopened meanwhile, so the keep misses
+      .mockResolvedValueOnce(done as never); // retry stamps the reopened task
+    mockedTask.exists.mockResolvedValue({ _id: taskId } as never);
+    await expect(updateTaskById(ownerId, taskId, { status: 'done' })).resolves.toEqual(done);
+    expect(mockedTask.findOneAndUpdate).toHaveBeenNthCalledWith(
+      3,
+      { _id: taskId, owner: ownerId, status: { $ne: 'done' } },
+      { status: 'done', completedAt: now },
+      options,
+    );
+  });
+
+  it('returns the current task if status keeps changing on both attempts', async () => {
+    mockedTask.findOneAndUpdate.mockResolvedValue(null);
+    mockedTask.exists.mockResolvedValue({ _id: taskId } as never);
+    mockedTask.findOne.mockResolvedValue(unassigned as never);
+    await expect(updateTaskById(ownerId, taskId, { status: 'done' })).resolves.toEqual(unassigned);
+    expect(mockedTask.findOneAndUpdate).toHaveBeenCalledTimes(4);
   });
 
   it.each(['todo', 'in-progress'] as const)(
