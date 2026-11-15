@@ -1,12 +1,4 @@
-import {
-  Box,
-  Button,
-  HStack,
-  Link,
-  SimpleGrid,
-  Text,
-  VStack,
-} from '@chakra-ui/react';
+import { Box, Button, HStack, Link, SimpleGrid, Text, VStack } from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { isCurrentSession } from '../../api/authenticatedFetch';
