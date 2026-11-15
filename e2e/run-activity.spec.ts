@@ -255,3 +255,38 @@ test('opens run details by keyboard on mobile and renders hostile context as pla
     await api.dispose();
   }
 });
+
+test('shows agent activity on the Command Center and opens a run by keyboard', async ({
+  page,
+  playwright,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const token = await registerAndLogin(page);
+  const api = await playwright.request.newContext({
+    baseURL: apiURL,
+    extraHTTPHeaders: { Authorization: 'Bearer ' + token },
+  });
+  try {
+    const { task, agent } = await fixture(api);
+    const created = await api.post('/api/runs', {
+      headers: { 'Idempotency-Key': randomUUID() },
+      data: { taskId: task._id, agentId: agent._id, input: 'Command Center activity request' },
+    });
+    expect(created.status()).toBe(201);
+    const queued = (await created.json()).run;
+    await page.goto('/home');
+    const panel = page.getByRole('region', { name: /Agent activity/ });
+    const recent = panel.getByRole('list', { name: 'Most recent runs' });
+    await expect(recent).toBeVisible();
+    await expect(panel.getByText('Queued or running', { exact: true })).toBeVisible();
+    await expect(recent.getByText('Queued', { exact: true })).toBeVisible();
+    await expect(recent).toContainText(agent.name);
+    const link = recent.getByRole('link', { name: task.title, exact: true });
+    await link.focus();
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL('/workforce/runs/' + queued._id);
+    await expect(page.getByRole('heading', { name: 'Run detail', exact: true })).toBeVisible();
+  } finally {
+    await api.dispose();
+  }
+});

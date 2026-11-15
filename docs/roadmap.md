@@ -138,7 +138,7 @@ Release readiness and the approved bounded Phase 2 milestone are complete. Josh 
 - [ ] **IN PROGRESS**: Tasks (open, in-progress, completed, and overdue metrics; completion summary; recent task changes from task timestamps)
 - [x] **COMPLETE**: Projects (an Active projects panel with real open-task counts and completion; merged in PR #9)
 - [x] **COMPLETE**: Workforce summary (active, paused, and disabled agent counts, shown only when agents exist; merged in PR #10)
-- [ ] **PLANNED**: Agent activity (depends on agent runs in Phase 2)
+- [x] **COMPLETE**: Agent activity (KAN-55): drafts awaiting review, queued or running runs, recent failures and the five latest runs, read from the owner-scoped runs API
 - [ ] **PLANNED**: Calendar
 - [ ] **PLANNED**: Email highlights
 - [ ] **PLANNED**: Morning briefing (a fixed-text daily brief line exists; the agent-generated briefing is planned)
