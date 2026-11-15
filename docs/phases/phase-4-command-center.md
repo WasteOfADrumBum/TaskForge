@@ -24,13 +24,13 @@ The Command Center at `/home` is computed from the signed-in user's tasks and pr
 - **Task summary:** completion progress, plus counts by status.
 - **Recent task changes:** "created" or "updated", from each task's `createdAt`/`updatedAt`. The API keeps no change history, so this is not a full activity log.
 - **Recommended next:** fixed rules, labeled "Rule based" in the UI. Resolve overdue work, continue or finish in-progress work, start a high-priority task, plan for tasks due soon.
+- **Projects at risk** (KAN-56): rule based, not AI. An active project with at least one overdue open task is listed first in Active projects (most overdue first) with an "At risk: N overdue" badge under its name, and project cards on the Projects page show the same badge.
 - **Agent activity** (KAN-55): shown when the user has agents. Counts drafts awaiting review, runs queued or running, and runs failed in the last 7 days, and lists the five most recent runs (task, agent, status, time) linking to each run. It reads the existing owner-scoped `GET /api/runs`; no server change, no AI, no writes.
 - **Active projects** (branch `feat/work-projects-foundation`): shown only when the user has active projects. Each shows its name (linking to the project), its open-task count, and a completion bar. There are no project recommendations.
 
 ## Planned capabilities
 
 - Unified home dashboard across all sources
-- Deeper project views (for example, projects at risk based on overdue work)
 - Calendar
 - Email highlights
 - Agent-generated morning briefing

@@ -136,7 +136,7 @@ Release readiness and the approved bounded Phase 2 milestone are complete. Josh 
 - [ ] **IN PROGRESS**: Unified home dashboard (Command Center at `/home`; data sources so far are tasks, projects, and agent definitions)
 - [ ] **IN PROGRESS**: Today's priorities (derived from tasks: overdue, due today, high priority, due soon)
 - [ ] **IN PROGRESS**: Tasks (open, in-progress, completed, and overdue metrics; completion summary; recent task changes from task timestamps)
-- [x] **COMPLETE**: Projects (an Active projects panel with real open-task counts and completion; merged in PR #9)
+- [x] **COMPLETE**: Projects (an Active projects panel with real open-task counts and completion; merged in PR #9; at-risk projects flagged and listed first in KAN-56)
 - [x] **COMPLETE**: Workforce summary (active, paused, and disabled agent counts, shown only when agents exist; merged in PR #10)
 - [x] **COMPLETE**: Agent activity (KAN-55): drafts awaiting review, queued or running runs, recent failures and the five latest runs, read from the owner-scoped runs API
 - [ ] **PLANNED**: Calendar

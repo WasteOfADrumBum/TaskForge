@@ -5,6 +5,7 @@ import { toaster } from '../../components/ui/toaster';
 import { store } from '../../redux/store';
 import { clearAuth } from '../../redux/slices/authSlice';
 import {
+  daysFromNow,
   makeProject,
   makeTask,
   renderApp,
@@ -58,6 +59,21 @@ describe('Projects page', () => {
     expect(card('Launch').getByText('50%')).toBeInTheDocument();
     expect(card('Old site').getByText('Archived')).toBeInTheDocument();
     expect(card('Old site').getByText('No tasks yet')).toBeInTheDocument();
+  });
+
+  it('marks an active project with overdue work as at risk, but not an archived one', async () => {
+    signIn();
+    stubTaskApi(
+      [
+        makeTask({ _id: 'l1', title: 'Late', project: 'p1', dueDate: daysFromNow(-1) }),
+        makeTask({ _id: 'l2', title: 'Old late', project: 'p2', dueDate: daysFromNow(-5) }),
+      ],
+      [launch, archive],
+    );
+    renderApp('/work/projects');
+    await screen.findByRole('heading', { level: 1, name: 'Projects' });
+    await waitFor(() => expect(card('Launch').getByText(/At risk: 1 overdue/)).toBeInTheDocument());
+    expect(card('Old site').queryByText(/At risk/)).not.toBeInTheDocument();
   });
 
   it('marks the Projects tab as current and links back to Tasks', async () => {

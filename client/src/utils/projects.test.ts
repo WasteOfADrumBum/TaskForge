@@ -6,6 +6,8 @@ import {
   getProjectStats,
   getStatsForProject,
   getTasksForProject,
+  isProjectAtRisk,
+  sortByRisk,
   sortProjects,
 } from './projects';
 
@@ -124,6 +126,46 @@ describe('sortProjects', () => {
       'Beta:active',
       'Alpha:completed',
       'Zeta:archived',
+    ]);
+  });
+});
+
+describe('project risk', () => {
+  const stats = getProjectStats(
+    [
+      task({ _id: 'a', project: 'late', dueDate: '2026-10-10T00:00:00.000Z' }),
+      task({ _id: 'b', project: 'late', dueDate: '2026-10-11T00:00:00.000Z' }),
+      task({ _id: 'c', project: 'slip', dueDate: '2026-10-12T00:00:00.000Z' }),
+      task({ _id: 'd', project: 'done-late', status: 'done', dueDate: '2026-10-01T00:00:00.000Z' }),
+      task({ _id: 'e', project: 'parked', dueDate: '2026-10-01T00:00:00.000Z' }),
+      task({ _id: 'f', project: 'fine', dueDate: '2026-10-20T00:00:00.000Z' }),
+    ],
+    now,
+  );
+  const list = [
+    project({ _id: 'fine', name: 'Fine' }),
+    project({ _id: 'slip', name: 'Slip' }),
+    project({ _id: 'done-late', name: 'Done late' }),
+    project({ _id: 'parked', name: 'Parked', status: 'archived' }),
+    project({ _id: 'late', name: 'Late' }),
+    project({ _id: 'empty', name: 'Empty' }),
+  ];
+
+  it('flags only active projects with overdue open tasks', () => {
+    const flagged = list
+      .filter((item) => isProjectAtRisk(item, getStatsForProject(stats, item._id!)))
+      .map((item) => item.name);
+    expect(flagged).toEqual(['Slip', 'Late']);
+  });
+
+  it('puts at-risk projects first, most overdue first, and keeps the rest in order', () => {
+    expect(sortByRisk(list, stats).map((item) => item.name)).toEqual([
+      'Late',
+      'Slip',
+      'Fine',
+      'Done late',
+      'Parked',
+      'Empty',
     ]);
   });
 });

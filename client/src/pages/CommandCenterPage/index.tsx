@@ -23,6 +23,7 @@ import AgentActivityPanel from '../../components/commandCenter/AgentActivityPane
 import EmptyState from '../../components/common/EmptyState';
 import MetricCard from '../../components/common/MetricCard';
 import SectionHeader from '../../components/common/SectionHeader';
+import ProjectRiskBadge from '../../components/projects/ProjectRiskBadge';
 import PriorityTaskRow from '../../components/tasks/PriorityTaskRow';
 import { useGreeting } from '../../hooks/useGreeting';
 import { useToday } from '../../hooks/useToday';
@@ -31,7 +32,12 @@ import { getProjectId } from '../../types/project';
 import { getTaskId } from '../../types/task';
 import { getAgentSummary } from '../../utils/agents';
 import { getAssignmentSummary } from '../../utils/assignees';
-import { getProjectStats, getStatsForProject } from '../../utils/projects';
+import {
+  getProjectStats,
+  getStatsForProject,
+  isProjectAtRisk,
+  sortByRisk,
+} from '../../utils/projects';
 import {
   getRecentActivity,
   getRecommendations,
@@ -71,11 +77,15 @@ const CommandCenterPage = () => {
   const recommendations = useMemo(() => getRecommendations(tasks, now), [tasks, now]);
   const activity = useMemo(() => getRecentActivity(tasks), [tasks]);
   const projects = useAppSelector((state) => state.projects.items);
-  const activeProjects = useMemo(
-    () => projects.filter((project) => project.status === 'active'),
-    [projects],
-  );
   const projectStats = useMemo(() => getProjectStats(tasks, now), [tasks, now]);
+  const activeProjects = useMemo(
+    () =>
+      sortByRisk(
+        projects.filter((project) => project.status === 'active'),
+        projectStats,
+      ),
+    [projects, projectStats],
+  );
   const agents = useAppSelector((state) => state.agents.items);
   const agentSummary = useMemo(() => getAgentSummary(agents), [agents]);
   const assignmentSummary = useMemo(() => getAssignmentSummary(tasks, agents), [tasks, agents]);
@@ -285,6 +295,11 @@ const CommandCenterPage = () => {
                           {stats.total ? `${stats.open} open` : 'No tasks'}
                         </Text>
                       </HStack>
+                      {isProjectAtRisk(project, stats) && (
+                        <Box mb={1.5}>
+                          <ProjectRiskBadge overdue={stats.overdue} />
+                        </Box>
+                      )}
                       {stats.total > 0 && (
                         <Progress.Root value={stats.completion} size="xs" colorPalette="teal">
                           <Progress.Track aria-label={project.name + ' completion'}>

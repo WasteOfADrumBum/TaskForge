@@ -107,3 +107,21 @@ export const sortProjects = (projects: Project[]) =>
   [...projects].sort(
     (a, b) => statusOrder[a.status] - statusOrder[b.status] || a.name.localeCompare(b.name),
   );
+
+// Rule based, not AI: an active project is at risk when it has at least one overdue open task.
+export const isProjectAtRisk = (project: Project, stats: ProjectTaskStats) =>
+  project.status === 'active' && stats.overdue > 0;
+
+// At-risk projects first (most overdue first); everything else keeps its incoming order.
+export const sortByRisk = (projects: Project[], stats: Map<string, ProjectTaskStats>) =>
+  projects
+    .map((project, index) => {
+      const projectStats = getStatsForProject(stats, getProjectId(project));
+      return {
+        project,
+        index,
+        overdue: isProjectAtRisk(project, projectStats) ? projectStats.overdue : 0,
+      };
+    })
+    .sort((a, b) => b.overdue - a.overdue || a.index - b.index)
+    .map((entry) => entry.project);

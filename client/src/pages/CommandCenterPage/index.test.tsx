@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { store } from '../../redux/store';
 import { clearAuth } from '../../redux/slices/authSlice';
 import {
+  daysFromNow,
   makeAgent,
   makeProject,
   makeTask,
@@ -55,6 +56,38 @@ describe('Command Center active projects', () => {
       'aria-valuenow',
       '33',
     );
+  });
+
+  it('lists projects with overdue work first and says they are at risk', async () => {
+    signIn();
+    stubTaskApi(
+      [
+        makeTask({ _id: 't1', title: 'Fine task', project: 'p1', dueDate: daysFromNow(3) }),
+        makeTask({ _id: 't2', title: 'Late task', project: 'p2', dueDate: daysFromNow(-2) }),
+        makeTask({ _id: 't3', title: 'Later one', project: 'p3', dueDate: daysFromNow(-1) }),
+        makeTask({ _id: 't4', title: 'Later two', project: 'p3', dueDate: daysFromNow(-4) }),
+        makeTask({ _id: 't5', title: 'Shelved late', project: 'p4', dueDate: daysFromNow(-9) }),
+      ],
+      [
+        makeProject({ _id: 'p1', name: 'Alpha' }),
+        makeProject({ _id: 'p2', name: 'Beta' }),
+        makeProject({ _id: 'p3', name: 'Gamma' }),
+        makeProject({ _id: 'p4', name: 'Delta', status: 'archived' }),
+      ],
+    );
+    renderApp('/home');
+    await screen.findByRole('heading', { level: 1, name: /good/i });
+    const panel = await waitFor(() => activeProjects());
+    const rows = panel.getAllByRole('listitem').map((row) => within(row));
+    expect(rows).toHaveLength(3);
+    expect(rows[0].getByRole('link', { name: 'Gamma' })).toBeInTheDocument();
+    expect(rows[0].getByText(/At risk: 2 overdue/)).toBeInTheDocument();
+    expect(rows[0].getByText('2 open')).toBeInTheDocument();
+    expect(rows[1].getByRole('link', { name: 'Beta' })).toBeInTheDocument();
+    expect(rows[1].getByText(/At risk: 1 overdue/)).toBeInTheDocument();
+    expect(rows[2].getByRole('link', { name: 'Alpha' })).toBeInTheDocument();
+    expect(rows[2].queryByText(/At risk/)).not.toBeInTheDocument();
+    expect(panel.queryByText('Delta')).not.toBeInTheDocument();
   });
 
   it('links to the project and to all projects', async () => {
