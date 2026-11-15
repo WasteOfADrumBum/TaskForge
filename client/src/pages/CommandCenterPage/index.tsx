@@ -290,14 +290,15 @@ const CommandCenterPage = () => {
                             </Text>
                           </RouterLink>
                         </Link>
-                        {isProjectAtRisk(project, stats) ? (
-                          <ProjectRiskBadge overdue={stats.overdue} />
-                        ) : (
-                          <Text fontSize="xs" color="fg.muted" flexShrink={0}>
-                            {stats.total ? `${stats.open} open` : 'No tasks'}
-                          </Text>
-                        )}
+                        <Text fontSize="xs" color="fg.muted" flexShrink={0}>
+                          {stats.total ? `${stats.open} open` : 'No tasks'}
+                        </Text>
                       </HStack>
+                      {isProjectAtRisk(project, stats) && (
+                        <Box mb={1.5}>
+                          <ProjectRiskBadge overdue={stats.overdue} />
+                        </Box>
+                      )}
                       {stats.total > 0 && (
                         <Progress.Root value={stats.completion} size="xs" colorPalette="teal">
                           <Progress.Track aria-label={project.name + ' completion'}>
