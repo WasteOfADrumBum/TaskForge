@@ -5,7 +5,6 @@ import {
   Link,
   SimpleGrid,
   Text,
-  VisuallyHidden,
   VStack,
 } from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
@@ -143,11 +142,15 @@ function PanelContent({
                 >
                   <HStack justify="space-between" gap={3} flexWrap="wrap">
                     <Link asChild fontWeight="medium" color="accent.teal" overflowWrap="anywhere">
-                      <RouterLink to={'/workforce/runs/' + encodeURIComponent(run.id)}>
+                      <RouterLink
+                        to={'/workforce/runs/' + encodeURIComponent(run.id)}
+                        // Starts with the visible title (WCAG 2.5.3) and adds agent and status so
+                        // runs on the same task have distinct link names.
+                        aria-label={
+                          run.taskTitle + ', ' + run.agentName + ', ' + runStatusLabel[run.status]
+                        }
+                      >
                         {run.taskTitle}
-                        <VisuallyHidden>
-                          {', ' + run.agentName + ', ' + runStatusLabel[run.status]}
-                        </VisuallyHidden>
                       </RouterLink>
                     </Link>
                     <RunStatusBadge status={run.status} />
