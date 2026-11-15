@@ -105,7 +105,7 @@ These three Phase 1 items were moved to maintenance at closure:
 
 These are known minor polish issues from PR #7. They were never Phase 1 items:
 
-- **Greeting refresh:** the Command Center greeting only updates when the day changes.
+- **Greeting refresh:** resolved in KAN-54; the greeting follows the local time of day in an open tab.
 - **Hero logo contrast:** resolved in KAN-12 with the existing asset on a suitable light surface.
 
 ## Design reference
