@@ -32,7 +32,9 @@ const CareerGoals = () => {
           </Button>
         </VStack>
       ) : !loaded ? (
-        <Text color="fg.muted">Loading your career goals...</Text>
+        <Text role="status" color="fg.muted">
+          Loading your career goals...
+        </Text>
       ) : career.length ? (
         <Box as="ul" role="list" listStyleType="none" m={0} p={0} aria-label="Active career goals">
           {career.map((goal) => {
@@ -56,7 +58,9 @@ const CareerGoals = () => {
           })}
         </Box>
       ) : (
-        <Text color="fg.muted">No active career goals yet. Choose the Career area on Goals.</Text>
+        <Text color="fg.muted">
+          No active career goals yet. Set a goal&apos;s area to Career on Goals.
+        </Text>
       )}
       <Link asChild fontSize="sm" color="accent.teal" mt={3} display="inline-block">
         <RouterLink to="/goals">Add or update goals</RouterLink>

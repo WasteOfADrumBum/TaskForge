@@ -40,12 +40,14 @@ const GoalRow = ({
   now,
   busy,
   onStatus,
+  onArea,
   onDelete,
 }: {
   goal: Goal;
   now: Date;
   busy: boolean;
   onStatus: (status: GoalStatus) => void;
+  onArea: (area: GoalArea) => void;
   onDelete: () => void;
 }) => {
   const [confirming, setConfirming] = useState(false);
@@ -79,6 +81,20 @@ const GoalRow = ({
         </Text>
       )}
       <HStack gap={2} mt={2} flexWrap="wrap">
+        <NativeSelect.Root size="xs" width="auto">
+          <NativeSelect.Field
+            value={goal.area ?? 'general'}
+            onChange={(event) => onArea(event.target.value as GoalArea)}
+            aria-label={'Area for ' + goal.title}
+          >
+            {GOAL_AREAS.map((option) => (
+              <option key={option} value={option}>
+                {goalAreaLabel[option]}
+              </option>
+            ))}
+          </NativeSelect.Field>
+          <NativeSelect.Indicator />
+        </NativeSelect.Root>
         {goal.status === 'active' ? (
           <>
             <Button
@@ -181,6 +197,7 @@ const GoalsPage = () => {
     setTitle((value) => (value.trim() === submitted.title ? '' : value));
     setDescription((value) => (value === submitted.description ? '' : value));
     setTargetDate((value) => (value === submitted.targetDate ? '' : value));
+    // The area stays as chosen, so several goals for one area can be added in a row.
   };
 
   // Results go to the status line, which also takes focus because the pressed button is gone.
@@ -188,6 +205,14 @@ const GoalsPage = () => {
     if (message) setActionError(message);
     else setAnnouncement(success);
     statusRef.current?.focus();
+  };
+  // The area select stays on the page, so focus stays on it and only the status line changes.
+  const changeArea = async (goal: Goal, next: GoalArea) => {
+    setActionError(null);
+    setAnnouncement('');
+    const message = await update(getGoalId(goal), { area: next });
+    if (message) setActionError(message);
+    else setAnnouncement(goal.title + ' is now a ' + goalAreaLabel[next].toLowerCase() + ' goal.');
   };
   const changeStatus = async (goal: Goal, status: GoalStatus) => {
     setActionError(null);
@@ -357,6 +382,7 @@ const GoalsPage = () => {
                       now={now}
                       busy={isBusy(getGoalId(goal))}
                       onStatus={(next) => void changeStatus(goal, next)}
+                      onArea={(next) => void changeArea(goal, next)}
                       onDelete={() => void removeGoal(goal)}
                     />
                   ))}

@@ -170,3 +170,37 @@ describe('Goals page', () => {
     expect(section(/active goals/i).getByText('Learn Rust')).toBeInTheDocument();
   });
 });
+
+describe('Goal areas', () => {
+  it('shows the area in text unless general and changes it in place', async () => {
+    signIn();
+    const { goals } = stubTaskApi(
+      [],
+      [],
+      [],
+      [],
+      [
+        {
+          _id: 'g1',
+          title: 'Learn Rust',
+          description: '',
+          status: 'active',
+          area: 'learning',
+          targetDate: null,
+        },
+        { _id: 'g2', title: 'Run a 5K', description: '', status: 'active', targetDate: null },
+      ],
+    );
+    renderApp('/goals');
+    const active = await waitFor(() => section(/active goals/i));
+    expect(await active.findByText('Learning goal')).toBeInTheDocument();
+    expect(active.queryByText(/General goal/)).not.toBeInTheDocument();
+    const select = active.getByRole('combobox', { name: 'Area for Run a 5K' });
+    expect(select).toHaveValue('general');
+    await userEvent.selectOptions(select, 'Career');
+    expect(await screen.findByText('Run a 5K is now a career goal.')).toBeInTheDocument();
+    expect(active.getByText('Career goal')).toBeInTheDocument();
+    expect(select).toHaveFocus();
+    expect(goals[1]).toMatchObject({ area: 'career' });
+  });
+});

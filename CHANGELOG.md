@@ -4,7 +4,7 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
-- KAN-69: goals get an area (general, career or learning), chosen on the Goals page and shown in text, and the Career page lists active career goals with their targets.
+- KAN-69: goals get an area (general, career or learning), chosen when adding a goal or changed on any goal on the Goals page and shown in text, and the Career page lists active career goals with their targets.
 
 - KAN-68: Learning page (`/learning`, in the sidebar) for the learning roadmap: add courses, articles, books, videos, projects and practice with a skill, https link, target date and notes; move them between planned, in progress and done; delete after a confirming press; and add the skills open saved jobs need with one press.
 

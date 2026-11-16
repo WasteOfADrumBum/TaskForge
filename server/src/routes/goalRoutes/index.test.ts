@@ -90,6 +90,17 @@ describe('goal routes', () => {
       .set(authorization)
       .send({ status: 'achieved' });
     expect(mockedUpdate).toHaveBeenLastCalledWith(userId, goalId, { status: 'achieved' });
+    await request(app)
+      .patch('/api/goals/' + goalId)
+      .set(authorization)
+      .send({ area: 'learning' });
+    expect(mockedUpdate).toHaveBeenLastCalledWith(userId, goalId, { area: 'learning' });
+    const invalid = await request(app)
+      .patch('/api/goals/' + goalId)
+      .set(authorization)
+      .send({ area: ['career'] });
+    expect(invalid.status).toBe(400);
+    expect(invalid.body).toEqual({ message: 'Invalid goal area' });
     for (const targetDate of [null, '']) {
       await request(app)
         .patch('/api/goals/' + goalId)
