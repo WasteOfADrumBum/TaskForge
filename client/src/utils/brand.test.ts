@@ -48,7 +48,7 @@ describe('brand helpers', () => {
 
   it('treats only safe paths on this site and https links as logo links', () => {
     expect(isSitePath('/taskforge-logo.svg')).toBe(true);
-    for (const value of ['//evil.example', '/a/../b', '/a%2Fb', '/a b', 'logo.svg']) {
+    for (const value of ['//evil.example', '/a/../b', '/a/.%2e/b', '/a%2Fb', '/a b', 'logo.svg']) {
       expect(isSitePath(value)).toBe(false);
     }
     expect(safeLogoHref('/logo.svg')).toBe('/logo.svg');
@@ -85,7 +85,7 @@ describe('brand helpers', () => {
         '',
         '## Logos',
         '',
-        '- **Mark:** /taskforge-logo.svg',
+        '- **Mark:** </taskforge-logo.svg>',
         '',
         '## Brand voice',
         '',
@@ -100,6 +100,13 @@ describe('brand helpers', () => {
       ].join('\n'),
     );
     expect(brandGuideFileName(profile)).toBe('taskforge-brand-guide.md');
+    const tricky = brandGuideMarkdown({
+      ...profile,
+      name: '# Big [link](https://x.example)',
+      imagePrompts: ['*bold* <b>'],
+    });
+    expect(tricky).toContain('# \\# Big \\[link\\](https://x.example) brand guide');
+    expect(tricky).toContain('1. \\*bold\\* \\<b\\>');
     expect(brandGuideFileName({ ...profile, name: '!!!', kind: 'personal' })).toBe(
       'personal-brand-guide.md',
     );
@@ -112,7 +119,10 @@ describe('brand helpers', () => {
         tagline: '',
         colors: [{ name: ' Teal ', hex: '0f766e' }],
         fonts: [{ role: 'body', family: ' Inter ' }],
-        logos: [{ label: ' Mark ', url: ' /l.svg ' }],
+        logos: [
+          { label: ' Mark ', url: ' /l.svg ' },
+          { label: 'Site', url: ' HTTPS://Example.com ' },
+        ],
         voice: ' v ',
         writingStyle: '',
         imagePrompts: [' p '],
@@ -122,7 +132,10 @@ describe('brand helpers', () => {
       tagline: '',
       colors: [{ name: 'Teal', hex: '#0F766E' }],
       fonts: [{ role: 'body', family: 'Inter' }],
-      logos: [{ label: 'Mark', url: '/l.svg' }],
+      logos: [
+        { label: 'Mark', url: '/l.svg' },
+        { label: 'Site', url: 'https://example.com/' },
+      ],
       voice: 'v',
       writingStyle: '',
       imagePrompts: ['p'],

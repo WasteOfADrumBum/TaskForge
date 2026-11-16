@@ -72,7 +72,8 @@ describe('Brand Studio', () => {
     await userEvent.click(form.getByRole('button', { name: 'Add logo' }));
     await userEvent.type(form.getByRole('textbox', { name: 'Logo 1 label' }), 'Mark');
     await userEvent.type(form.getByRole('textbox', { name: 'Logo 1 link' }), '/taskforge-logo.svg');
-    expect(form.getByRole('img', { name: 'Mark' })).toHaveAttribute('src', '/taskforge-logo.svg');
+    expect(form.getByText('The preview appears after you save.')).toBeInTheDocument();
+    expect(form.queryByRole('img')).not.toBeInTheDocument();
     await userEvent.click(form.getByRole('button', { name: 'Add image prompt' }));
     await userEvent.type(form.getByRole('textbox', { name: 'Image prompt 1' }), 'Anvil icon');
 
@@ -90,7 +91,8 @@ describe('Brand Studio', () => {
       imagePrompts: ['Anvil icon'],
     });
     expect(brands[0]).toMatchObject({ kind: 'taskforge', colors: [{ hex: '#0F766E' }] });
-    expect(screen.getByRole('button', { name: 'Download brand guide' })).toBeInTheDocument();
+    expect(form.getByRole('img', { name: 'Mark' })).toHaveAttribute('src', '/taskforge-logo.svg');
+    expect(screen.getByRole('button', { name: 'Download saved brand guide' })).toBeInTheDocument();
   });
 
   it('removes a row and moves focus to that list’s add button', async () => {
@@ -132,6 +134,7 @@ describe('Brand Studio', () => {
       'personal',
     );
     const personal = within(screen.getByRole('form', { name: 'Edit Personal brand' }));
+    expect(personal.queryByRole('img')).not.toBeInTheDocument();
     expect(personal.getByRole('textbox', { name: /brand name/i })).toHaveValue('Joshua');
     expect(personal.getByRole('link', { name: 'Open Photo (opens in a new tab)' })).toHaveAttribute(
       'href',
@@ -144,6 +147,46 @@ describe('Brand Studio', () => {
     );
     expect(screen.getByRole('textbox', { name: /brand name/i })).toHaveValue('TaskForge 2');
     expect(pageStatus()).toHaveTextContent('Unsaved changes.');
+  });
+
+  it('names the row of the first problem, focuses it and saves nothing', async () => {
+    signIn();
+    const { fetchMock } = stub([
+      profile({
+        colors: [
+          { name: 'Teal', hex: '#0F766E' },
+          { name: 'Ink', hex: '#111827' },
+        ],
+      }),
+    ]);
+    renderApp('/brand');
+    const form = within(await screen.findByRole('form', { name: 'Edit TaskForge brand' }));
+    const second = form.getByRole('textbox', { name: 'Color 2 name' });
+    await userEvent.clear(second);
+    await userEvent.type(second, 'teal');
+    await userEvent.click(form.getByRole('button', { name: 'Save brand' }));
+    expect(form.getByRole('alert')).toHaveTextContent('Color 2 repeats a color name.');
+    expect(second).toHaveFocus();
+    expect(second).toHaveAttribute('aria-invalid', 'true');
+    await userEvent.type(second, '2');
+    expect(second).not.toHaveAttribute('aria-invalid');
+    await userEvent.click(form.getByRole('button', { name: 'Add font' }));
+    await userEvent.click(form.getByRole('button', { name: 'Save brand' }));
+    expect(form.getByRole('alert')).toHaveTextContent('Font 2 needs a family.');
+    expect(form.getByRole('textbox', { name: 'Font 2 family' })).toHaveFocus();
+    expect(requestsTo(fetchMock, 'PUT', '/api/brands/taskforge')).toHaveLength(0);
+  });
+
+  it('treats an https logo saved in URL form as saved', async () => {
+    signIn();
+    stub([profile({ logos: [] })]);
+    renderApp('/brand');
+    const form = within(await screen.findByRole('form', { name: 'Edit TaskForge brand' }));
+    await userEvent.click(form.getByRole('button', { name: 'Add logo' }));
+    await userEvent.type(form.getByRole('textbox', { name: 'Logo 1 label' }), 'Site');
+    await userEvent.type(form.getByRole('textbox', { name: 'Logo 1 link' }), 'https://example.com');
+    await userEvent.click(form.getByRole('button', { name: 'Save brand' }));
+    await waitFor(() => expect(pageStatus()).toHaveTextContent(/^Saved at /));
   });
 
   it('never renders an unsafe logo link', async () => {
@@ -166,14 +209,18 @@ describe('Brand Studio', () => {
     vi.stubGlobal('URL', Object.assign(URL, { createObjectURL, revokeObjectURL }));
     const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     renderApp('/brand');
-    await userEvent.click(await screen.findByRole('button', { name: 'Download brand guide' }));
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Download saved brand guide' }),
+    );
     expect(click).toHaveBeenCalledTimes(1);
     const blob = (createObjectURL.mock.calls[0] as unknown as [Blob])[0];
     const text = await blob.text();
     expect(text).toMatch(/^# TaskForge brand guide\n/);
     expect(text).toContain('- **Teal** `#0F766E`');
     expect((click.mock.contexts[0] as HTMLAnchorElement).download).toBe('taskforge-brand-guide.md');
-    expect(revokeObjectURL).toHaveBeenCalledWith('blob:guide');
+    await waitFor(() => expect(revokeObjectURL).toHaveBeenCalledWith('blob:guide'), {
+      timeout: 3000,
+    });
   });
 
   it('shows a failed save as an alert and retries a failed load', async () => {

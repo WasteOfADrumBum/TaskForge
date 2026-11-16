@@ -13,6 +13,8 @@ describe('brand logo links', () => {
     '/\\evil.example',
     '/a/../b',
     '/a/%2e%2e/b',
+    '/a/.%2E/b',
+    '/a/%2e./b',
     '/a/%2F/b',
     '/caf\u00e9.svg',
     '/a b',

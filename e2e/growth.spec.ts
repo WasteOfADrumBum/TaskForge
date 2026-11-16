@@ -309,7 +309,7 @@ test('growth flows on mobile by keyboard: progress, reviews, goals, career, appl
     await saveBrand.focus();
     await page.keyboard.press('Enter');
     await expect(page.getByText(/^Saved at /)).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Download brand guide' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Download saved brand guide' })).toBeVisible();
     const savedBrands = (await (await api.get('/api/brands')).json()).brands;
     expect(savedBrands).toEqual([
       expect.objectContaining({

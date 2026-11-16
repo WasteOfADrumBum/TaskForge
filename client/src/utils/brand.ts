@@ -66,7 +66,7 @@ export const contrastText = (check: ContrastCheck) =>
 
 // Mirrors the server's site-path rule, so only a path on this site is ever previewed as an image.
 const SITE_PATH = /^\/(?!\/)[\x21-\x7e]*$/;
-const HIDDEN = /(^|\/)\.\.(\/|$)|\\|%2f|%5c|%2e%2e/i;
+const HIDDEN = /(^|\/)(\.|%2e){2}(\/|$)|\\|%2f|%5c/i;
 export const isSitePath = (value: string) => SITE_PATH.test(value) && !HIDDEN.test(value);
 
 export const safeLogoHref = (value: string): string | null => {
@@ -79,37 +79,42 @@ export const safeLogoHref = (value: string): string | null => {
   }
 };
 
+// Escapes Markdown in text the user typed, so a name or prompt can't add headings or links.
+const md = (text: string) => text.replace(/[\\`*_[\]<>#|]/g, '\\$&');
+
 const section = (title: string, lines: string[]) =>
   lines.length ? ['## ' + title, '', ...lines, ''] : [];
 
 // A Markdown brand guide from a saved profile, built in the browser.
 export const brandGuideMarkdown = (profile: BrandProfile) => {
-  const quoted = (text: string) => text.split('\n').map((line) => (line ? '> ' + line : '>'));
+  const quoted = (text: string) => text.split('\n').map((line) => (line ? '> ' + md(line) : '>'));
   return [
-    '# ' + profile.name + ' brand guide',
+    '# ' + md(profile.name) + ' brand guide',
     '',
-    brandKindLabel[profile.kind] + ' brand' + (profile.tagline ? ': ' + profile.tagline : '.'),
+    brandKindLabel[profile.kind] + ' brand' + (profile.tagline ? ': ' + md(profile.tagline) : '.'),
     '',
     ...section(
       'Colors',
       profile.colors.map((color) => {
         const check = contrastCheck(color.hex);
-        return '- **' + color.name + '** `' + color.hex + '`: ' + contrastText(check);
+        return '- **' + md(color.name) + '** `' + color.hex + '`: ' + contrastText(check);
       }),
     ),
     ...section(
       'Fonts',
-      profile.fonts.map((font) => '- **' + brandFontRoleLabel[font.role] + ':** ' + font.family),
+      profile.fonts.map(
+        (font) => '- **' + brandFontRoleLabel[font.role] + ':** ' + md(font.family),
+      ),
     ),
     ...section(
       'Logos',
-      profile.logos.map((logo) => '- **' + logo.label + ':** ' + logo.url),
+      profile.logos.map((logo) => '- **' + md(logo.label) + ':** <' + logo.url + '>'),
     ),
     ...section('Brand voice', profile.voice ? quoted(profile.voice) : []),
     ...section('Writing style', profile.writingStyle ? quoted(profile.writingStyle) : []),
     ...section(
       'Image prompts',
-      profile.imagePrompts.map((prompt, index) => index + 1 + '. ' + prompt),
+      profile.imagePrompts.map((prompt, index) => index + 1 + '. ' + md(prompt)),
     ),
   ]
     .join('\n')
@@ -123,6 +128,18 @@ export const brandGuideFileName = (profile: BrandProfile) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '') || profile.kind) + '-brand-guide.md';
 
+// How the server stores a logo link: a site path as typed, an https link in URL form (so
+// "https://example.com" becomes "https://example.com/").
+const normalizeLogoUrl = (value: string) => {
+  const trimmed = value.trim();
+  if (isSitePath(trimmed)) return trimmed;
+  try {
+    return new URL(trimmed).toString();
+  } catch {
+    return trimmed;
+  }
+};
+
 // The values a save would send, trimmed and normalized like the server, so unsaved-change
 // checks compare like with like.
 export const normalizeBrandInput = (input: BrandInput): BrandInput => ({
@@ -133,7 +150,7 @@ export const normalizeBrandInput = (input: BrandInput): BrandInput => ({
     hex: normalizeHex(color.hex) ?? color.hex.trim(),
   })),
   fonts: input.fonts.map((font) => ({ role: font.role, family: font.family.trim() })),
-  logos: input.logos.map((logo) => ({ label: logo.label.trim(), url: logo.url.trim() })),
+  logos: input.logos.map((logo) => ({ label: logo.label.trim(), url: normalizeLogoUrl(logo.url) })),
   voice: input.voice.trim(),
   writingStyle: input.writingStyle.trim(),
   imagePrompts: input.imagePrompts.map((prompt) => prompt.trim()),

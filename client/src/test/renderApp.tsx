@@ -166,7 +166,11 @@ export const stubTaskApi = (
           hex: '#' + color.hex.trim().replace(/^#/, '').toUpperCase(),
         })),
         fonts: body.fonts ?? [],
-        logos: body.logos ?? [],
+        // Like the server, an https link is stored in URL form and a site path as typed.
+        logos: (body.logos ?? []).map((logo: { label: string; url: string }) => ({
+          label: logo.label.trim(),
+          url: logo.url.startsWith('/') ? logo.url.trim() : new URL(logo.url.trim()).toString(),
+        })),
         voice: String(body.voice ?? '').trim(),
         writingStyle: String(body.writingStyle ?? '').trim(),
         imagePrompts: body.imagePrompts ?? [],

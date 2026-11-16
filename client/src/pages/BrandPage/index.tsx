@@ -110,7 +110,8 @@ const downloadText = (fileName: string, text: string) => {
   document.body.appendChild(link);
   link.click();
   link.remove();
-  URL.revokeObjectURL(url);
+  // Revoked after the click has been handled, so no browser cancels the download.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 
 const ListSection = ({
@@ -142,7 +143,7 @@ const ListSection = ({
       {hint}
     </Text>
     {count > 0 && (
-      <Box as="ul" role="list" listStyleType="none" m={0} p={0} aria-labelledby={id}>
+      <Box as="ul" role="list" listStyleType="none" m={0} p={0}>
         {children}
       </Box>
     )}
@@ -181,7 +182,12 @@ const BrandPage = () => {
   const [kind, setKind] = useState<BrandKind>('taskforge');
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [savedAt, setSavedAt] = useState<Partial<Record<BrandKind, string>>>({});
+  // The field a client-side check flagged, marked invalid until the next edit.
+  const [invalidField, setInvalidField] = useState<string | null>(null);
+  const [savedAt, setSavedAt] = useState<{ key: string; at: Partial<Record<BrandKind, string>> }>({
+    key: '',
+    at: {},
+  });
   const [reloadKey, setReloadKey] = useState(0);
   const statusRef = useRef<HTMLParagraphElement>(null);
   const addColorRef = useRef<HTMLButtonElement>(null);
@@ -226,6 +232,7 @@ const BrandPage = () => {
   const draft = loaded ? data.drafts[kind] : null;
   const update = (change: (current: Draft) => Draft) => {
     setSaveError(null);
+    setInvalidField(null);
     setData((current) => {
       if (!current || current.key !== sessionKey) return current;
       return { ...current, drafts: { ...current.drafts, [kind]: change(current.drafts[kind]) } };
@@ -259,10 +266,72 @@ const BrandPage = () => {
     requestAnimationFrame(() => addRef.current?.focus());
   };
 
+  // The first problem a save would hit, with the field to focus, so the error names its row.
+  const findProblem = (current: Draft): { message: string; field: string } | null => {
+    if (!current.name.trim()) return { message: 'Give the brand a name.', field: 'brand-name' };
+    const colorNames = new Set<string>();
+    for (const [index, color] of current.colors.entries()) {
+      const n = index + 1;
+      const name = color.name.trim().toLowerCase();
+      if (!name)
+        return { message: 'Color ' + n + ' needs a name.', field: 'color-name-' + color.key };
+      if (colorNames.has(name))
+        return {
+          message: 'Color ' + n + ' repeats a color name.',
+          field: 'color-name-' + color.key,
+        };
+      colorNames.add(name);
+      if (!normalizeHex(color.hex))
+        return {
+          message: 'Color ' + n + ' needs a six-digit hex code, for example #0F766E.',
+          field: 'color-hex-' + color.key,
+        };
+    }
+    const roles = new Set<BrandFontRole>();
+    for (const [index, font] of current.fonts.entries()) {
+      const n = index + 1;
+      if (roles.has(font.role))
+        return {
+          message: 'Font ' + n + ' repeats a role. Use each role once.',
+          field: 'font-role-' + font.key,
+        };
+      roles.add(font.role);
+      if (!font.family.trim())
+        return { message: 'Font ' + n + ' needs a family.', field: 'font-family-' + font.key };
+    }
+    for (const [index, logo] of current.logos.entries()) {
+      const n = index + 1;
+      if (!logo.label.trim())
+        return { message: 'Logo ' + n + ' needs a label.', field: 'logo-label-' + logo.key };
+      if (!safeLogoHref(logo.url.trim()))
+        return {
+          message: 'Logo ' + n + ' needs a full https link or a path that starts with /.',
+          field: 'logo-url-' + logo.key,
+        };
+    }
+    for (const [index, prompt] of current.imagePrompts.entries()) {
+      if (!prompt.text.trim())
+        return {
+          message: 'Image prompt ' + (index + 1) + ' is empty. Fill it in or remove it.',
+          field: 'prompt-' + prompt.key,
+        };
+    }
+    return null;
+  };
+
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
     if (!draft || !token || !isCurrentSession(token, sessionVersion)) return;
-    if (!draft.name.trim()) return setSaveError('Give the brand a name.');
+    const problem = findProblem(draft);
+    if (problem) {
+      setSaveError(problem.message);
+      setInvalidField(problem.field);
+      // Each checked field carries data-field, so the failed one can take focus.
+      event.currentTarget
+        .querySelector<HTMLElement>('[data-field="' + problem.field + '"]')
+        ?.focus();
+      return;
+    }
     const request = write.begin();
     if (!request) return;
     setSaveError(null);
@@ -278,8 +347,11 @@ const BrandPage = () => {
             : current,
         );
         setSavedAt((current) => ({
-          ...current,
-          [savingKind]: brand.updatedAt ?? new Date().toISOString(),
+          key: savingKey,
+          at: {
+            ...(current.key === savingKey ? current.at : {}),
+            [savingKind]: brand.updatedAt ?? new Date().toISOString(),
+          },
         }));
       })
       .catch((failure: unknown) => {
@@ -295,7 +367,8 @@ const BrandPage = () => {
   };
 
   const dirty = !!draft && !sameInput(toInput(draft), brandInputOf(saved));
-  const lastSaved = savedAt[kind] ?? saved?.updatedAt;
+  const savedLogoUrls = new Set(saved?.logos.map((logo) => logo.url));
+  const lastSaved = (savedAt.key === sessionKey ? savedAt.at[kind] : undefined) ?? saved?.updatedAt;
   // Errors are announced by their alerts, so the status line stays quiet then.
   let status = '';
   if (read.pending)
@@ -354,11 +427,13 @@ const BrandPage = () => {
           <Box {...panel}>
             <Field.Root maxW="20rem">
               <Field.Label>Brand profile</Field.Label>
-              <NativeSelect.Root>
+              {/* A save in flight belongs to the profile on screen, so switching waits for it. */}
+              <NativeSelect.Root disabled={write.pending}>
                 <NativeSelect.Field
                   value={kind}
                   onChange={(event) => {
                     setSaveError(null);
+                    setInvalidField(null);
                     setKind(event.target.value as BrandKind);
                   }}
                 >
@@ -380,7 +455,7 @@ const BrandPage = () => {
                 onClick={() => downloadText(brandGuideFileName(saved), brandGuideMarkdown(saved))}
               >
                 <LuDownload aria-hidden="true" focusable="false" />
-                Download brand guide
+                Download saved brand guide
               </Button>
             )}
           </Box>
@@ -388,19 +463,20 @@ const BrandPage = () => {
           <chakra.form
             onSubmit={onSubmit}
             noValidate
-            aria-label={'Edit ' + kindLabel + ' brand'}
+            aria-labelledby="brand-form-heading"
             {...panel}
           >
-            <Heading as="h2" size="md" mb={4}>
-              {kindLabel} brand
+            <Heading as="h2" id="brand-form-heading" size="md" mb={4}>
+              Edit {kindLabel} brand
             </Heading>
             <VStack align="stretch" gap={5}>
-              <Field.Root required invalid={saveError === 'Give the brand a name.'}>
+              <Field.Root required invalid={invalidField === 'brand-name'}>
                 <Field.Label>
                   Brand name
                   <Field.RequiredIndicator />
                 </Field.Label>
                 <Input
+                  data-field="brand-name"
                   value={draft.name}
                   onChange={(event) => setField('name', event.target.value)}
                   maxLength={BRAND_NAME_MAX}
@@ -431,9 +507,14 @@ const BrandPage = () => {
                   return (
                     <Box {...rowStyle} key={color.key}>
                       <HStack gap={3} align="end" flexWrap="wrap">
-                        <Field.Root flex="1" minW="10rem">
+                        <Field.Root
+                          flex="1"
+                          minW="10rem"
+                          invalid={invalidField === 'color-name-' + color.key}
+                        >
                           <Field.Label>Color {number} name</Field.Label>
                           <Input
+                            data-field={'color-name-' + color.key}
                             value={color.name}
                             onChange={(event) =>
                               setRow('colors', color.key, { name: event.target.value })
@@ -441,9 +522,10 @@ const BrandPage = () => {
                             maxLength={BRAND_COLOR_NAME_MAX}
                           />
                         </Field.Root>
-                        <Field.Root w="9rem">
+                        <Field.Root w="9rem" invalid={invalidField === 'color-hex-' + color.key}>
                           <Field.Label>Color {number} hex</Field.Label>
                           <Input
+                            data-field={'color-hex-' + color.key}
                             value={color.hex}
                             onChange={(event) =>
                               setRow('colors', color.key, { hex: event.target.value })
@@ -509,10 +591,11 @@ const BrandPage = () => {
                   return (
                     <Box {...rowStyle} key={font.key}>
                       <HStack gap={3} align="end" flexWrap="wrap">
-                        <Field.Root w="10rem">
+                        <Field.Root w="10rem" invalid={invalidField === 'font-role-' + font.key}>
                           <Field.Label>Font {number} role</Field.Label>
                           <NativeSelect.Root>
                             <NativeSelect.Field
+                              data-field={'font-role-' + font.key}
                               value={font.role}
                               onChange={(event) =>
                                 setRow('fonts', font.key, {
@@ -529,9 +612,14 @@ const BrandPage = () => {
                             <NativeSelect.Indicator />
                           </NativeSelect.Root>
                         </Field.Root>
-                        <Field.Root flex="1" minW="10rem">
+                        <Field.Root
+                          flex="1"
+                          minW="10rem"
+                          invalid={invalidField === 'font-family-' + font.key}
+                        >
                           <Field.Label>Font {number} family</Field.Label>
                           <Input
+                            data-field={'font-family-' + font.key}
                             value={font.family}
                             onChange={(event) =>
                               setRow('fonts', font.key, { family: event.target.value })
@@ -571,9 +659,10 @@ const BrandPage = () => {
                   return (
                     <Box {...rowStyle} key={logo.key}>
                       <HStack gap={3} align="end" flexWrap="wrap">
-                        <Field.Root w="12rem">
+                        <Field.Root w="12rem" invalid={invalidField === 'logo-label-' + logo.key}>
                           <Field.Label>Logo {number} label</Field.Label>
                           <Input
+                            data-field={'logo-label-' + logo.key}
                             value={logo.label}
                             onChange={(event) =>
                               setRow('logos', logo.key, { label: event.target.value })
@@ -581,9 +670,14 @@ const BrandPage = () => {
                             maxLength={BRAND_LOGO_LABEL_MAX}
                           />
                         </Field.Root>
-                        <Field.Root flex="1" minW="12rem">
+                        <Field.Root
+                          flex="1"
+                          minW="12rem"
+                          invalid={invalidField === 'logo-url-' + logo.key}
+                        >
                           <Field.Label>Logo {number} link</Field.Label>
                           <Input
+                            data-field={'logo-url-' + logo.key}
                             value={logo.url}
                             onChange={(event) =>
                               setRow('logos', logo.key, { url: event.target.value })
@@ -603,7 +697,21 @@ const BrandPage = () => {
                         </Button>
                       </HStack>
                       {href && isSitePath(href) ? (
-                        <Image src={href} alt={label} maxH={12} maxW="12rem" mt={2} />
+                        // Only a saved path is loaded, so typing never requests each keystroke.
+                        savedLogoUrls.has(href) ? (
+                          <Image
+                            src={href}
+                            alt={label}
+                            loading="lazy"
+                            maxH={12}
+                            maxW="12rem"
+                            mt={2}
+                          />
+                        ) : (
+                          <Text fontSize="sm" color="fg.muted" mt={2}>
+                            The preview appears after you save.
+                          </Text>
+                        )
                       ) : href ? (
                         <Link
                           href={href}
@@ -658,7 +766,7 @@ const BrandPage = () => {
               <ListSection
                 id="brand-prompts"
                 title="Image prompts"
-                hint="Prompts to reuse with an image tool of your choice. TaskForge does not generate images."
+                hint="One line each, to reuse with an image tool of your choice. TaskForge does not generate images."
                 count={draft.imagePrompts.length}
                 max={BRAND_PROMPTS_MAX}
                 addLabel="Add image prompt"
@@ -670,14 +778,18 @@ const BrandPage = () => {
                   return (
                     <Box {...rowStyle} key={prompt.key}>
                       <HStack gap={3} align="end" flexWrap="wrap">
-                        <Field.Root flex="1" minW="12rem">
+                        <Field.Root
+                          flex="1"
+                          minW="12rem"
+                          invalid={invalidField === 'prompt-' + prompt.key}
+                        >
                           <Field.Label>Image prompt {number}</Field.Label>
-                          <Textarea
+                          <Input
+                            data-field={'prompt-' + prompt.key}
                             value={prompt.text}
                             onChange={(event) =>
                               setRow('imagePrompts', prompt.key, { text: event.target.value })
                             }
-                            rows={2}
                             maxLength={BRAND_PROMPT_MAX}
                           />
                         </Field.Root>
