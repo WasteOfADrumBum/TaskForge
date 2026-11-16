@@ -178,6 +178,76 @@ describe('Learning page', () => {
     );
   });
 
+  it('turns a portfolio-project idea into a roadmap project and marks planned ones', async () => {
+    signIn();
+    const { learning } = stub(
+      [item({ _id: 'l1', title: 'Docker side project', skill: 'docker', kind: 'project' })],
+      [skill('react'), skill('node-js')],
+      [
+        job('Frontend', ['react', 'graphql']),
+        job('Platform', ['node-js', 'docker', 'graphql'], 'interviewing'),
+        job('Old', ['kotlin'], 'rejected'),
+      ],
+    );
+    renderApp('/learning');
+    const projects = await waitFor(() => region(/portfolio project ideas/i));
+    const list = await projects.findByRole('list', {
+      name: 'Portfolio project ideas from your skill gaps',
+    });
+    const entries = within(list).getAllByRole('listitem');
+    expect(entries.map((entry) => entry.textContent)).toEqual([
+      'Portfolio project: graphql with node-jsAdd projectBuild a small project that uses graphql and shows your node-js. Wanted by: Frontend; Platform.',
+      'Portfolio project: docker with node-jsOn your roadmapBuild a small project that uses docker and shows your node-js. Wanted by: Platform.',
+    ]);
+    await userEvent.click(
+      projects.getByRole('button', {
+        name: 'Add project: Portfolio project: graphql with node-js',
+      }),
+    );
+    expect(
+      await screen.findByText('Added to your roadmap: Portfolio project: graphql with node-js.'),
+    ).toHaveFocus();
+    expect(learning[0]).toMatchObject({
+      title: 'Portfolio project: graphql with node-js',
+      skill: 'graphql',
+      kind: 'project',
+      notes:
+        'Build a small project that uses graphql and shows your node-js. Wanted by: Frontend; Platform.',
+    });
+    expect(projects.queryByRole('button', { name: /^Add project/ })).not.toBeInTheDocument();
+    // The project is learning for that skill, so the gap list counts it as planned too.
+    expect(
+      region(/from your skill gaps/i).queryByRole('button', { name: 'Add to roadmap: graphql' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('offers an idea again once its project is done and adds it once on a double press', async () => {
+    signIn();
+    const { learning } = stub(
+      [item({ _id: 'l1', title: 'Old', skill: 'go', kind: 'project', status: 'done' })],
+      [],
+      [job('Backend', ['go'])],
+    );
+    renderApp('/learning');
+    const projects = await waitFor(() => region(/portfolio project ideas/i));
+    const add = await projects.findByRole('button', { name: 'Add project: Portfolio project: go' });
+    await userEvent.dblClick(add);
+    expect(await screen.findByText('Added to your roadmap: Portfolio project: go.')).toHaveFocus();
+    expect(learning.filter((entry) => entry.title === 'Portfolio project: go')).toHaveLength(1);
+  });
+
+  it('explains when there are no project ideas', async () => {
+    signIn();
+    stub([], [skill('react')], [job('Frontend', ['react'])]);
+    renderApp('/learning');
+    const projects = await waitFor(() => region(/portfolio project ideas/i));
+    expect(
+      await projects.findByText(
+        'Your skills cover every open saved job, so there are no gaps to build a project around.',
+      ),
+    ).toBeInTheDocument();
+  });
+
   it('retries a failed roadmap load and a failed skill-gap load', async () => {
     signIn();
     const { fetchMock } = stub([item({ _id: 'l1', title: 'Rust book' })], [], [job('A', ['go'])]);

@@ -174,8 +174,8 @@ Learning:
 - [x] **COMPLETE**: Skills to develop (learning items tied to a skill, KAN-67, KAN-68)
 - [x] **COMPLETE**: Learning roadmap (KAN-67, KAN-68): `/learning`, grouped by status
 - [x] **COMPLETE**: Courses/articles (learning items with a kind and an https link, KAN-67, KAN-68)
-- [ ] **PLANNED**: Portfolio-project recommendations
-- [ ] **IN PROGRESS**: Connect job-market gaps to learning tasks/projects (a missing skill on a saved job becomes a learning task, KAN-64, or a roadmap item, KAN-68; projects planned)
+- [x] **COMPLETE**: Portfolio-project recommendations (KAN-71): rule-based ideas on `/learning` that pair a missing skill with one you have
+- [x] **COMPLETE**: Connect job-market gaps to learning tasks/projects (a missing skill on a saved job becomes a learning task, KAN-64, a roadmap item, KAN-68, or a portfolio project, KAN-71)
 
 ## Phase 7: Brand Studio ([details](phases/phase-7-brand-studio.md))
 

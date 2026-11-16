@@ -141,6 +141,7 @@ flowchart LR
 - **Model:** `LearningItem` has `title` (required, up to 120 characters), `skill` (optional, a skill slug so it lines up with the skills inventory; it is not required to be in the inventory, and `''` or `null` clears it while a blank string is rejected), `kind` (`course`, `article`, `book`, `video`, `project`, `practice` or `other`), `url` (optional, `https` only and without credentials, the same check as saved jobs; TaskForge never fetches it), `status` (`planned`, `in_progress` or `done`), `targetDate` (optional calendar date), `notes`, `completedAt`, `owner` and timestamps.
 - **Completion time:** `completedAt` is set by the server only, the same way as a task's: stamped on entering `done`, kept while done, cleared on leaving it.
 - **Ownership:** the same rules as goals: another user's item gets the same `404` as a missing one, and malformed ids get `404` without a query.
+- **Portfolio project ideas (KAN-71):** computed in the client (`client/src/utils/portfolio.ts`) from skills and saved jobs, with no API of their own. Adding one creates an ordinary learning item of kind `project`.
 
 **Agents (Agent Registry, Phase 2 foundation):**
 
