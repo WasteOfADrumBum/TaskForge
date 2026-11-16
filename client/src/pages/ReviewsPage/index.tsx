@@ -14,11 +14,13 @@ import {
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { LuSave } from 'react-icons/lu';
 import { Link as RouterLink } from 'react-router-dom';
+import { getJobs, getSkills } from '../../api/career';
 import { getReviews, saveReview } from '../../api/reviews';
 import { getTasks } from '../../api/tasks';
 import { isCurrentSession } from '../../api/authenticatedFetch';
 import { useDelayedRequest } from '../../hooks/useDelayedRequest';
 import { useGoals } from '../../hooks/useGoals';
+import { useOwnedList } from '../../hooks/useOwnedList';
 import { useToday } from '../../hooks/useToday';
 import { useAppSelector } from '../../redux/hooks/typedHooks';
 import {
@@ -27,11 +29,13 @@ import {
   REVIEW_REFLECTION_MAX,
   type ReviewKind,
 } from '../../types/review';
+import { getRecordId, skillLevelLabel, type SavedJob, type Skill } from '../../types/career';
 import { getGoalId, type Goal } from '../../types/goal';
 import { getTaskId, type Task } from '../../types/task';
 import { formatCalendarDate } from '../../utils/dates';
 import { goalTargetText } from '../../utils/goals';
 import { getReviewData } from '../../utils/reviews';
+import { getSkillGrowth } from '../../utils/skillGrowth';
 import { SessionExpiredError } from '../../utils/session';
 
 const LOOK_BACK_LIMIT = 10;
@@ -201,6 +205,156 @@ function GoalCheckIn({ now }: { now: Date }) {
   );
 }
 
+const SubList = ({ id, title, children }: { id: string; title: string; children: ReactNode }) => (
+  <Box mt={3}>
+    <Heading as="h4" id={id} size="sm" mb={1}>
+      {title}
+    </Heading>
+    <Box as="ul" role="list" listStyleType="none" m={0} p={0} aria-labelledby={id}>
+      {children}
+    </Box>
+  </Box>
+);
+
+const SubItem = ({ children }: { children: ReactNode }) => (
+  <Box as="li" py={1.5} borderTopWidth="1px" borderColor="border.muted">
+    {children}
+  </Box>
+);
+
+// Weekly skill growth: skills added or levelled this week, learning tasks finished, and the
+// skills open saved jobs need most. Rule-based, from the Career page's skills and saved jobs.
+function SkillGrowthStep({
+  now,
+  tasks,
+  tasksReady,
+  tasksPending,
+}: {
+  now: Date;
+  tasks: Task[];
+  tasksReady: boolean;
+  tasksPending: string;
+}) {
+  const skills = useOwnedList<Skill>(getSkills, 'Unable to load skills');
+  const jobs = useOwnedList<SavedJob>(getJobs, 'Unable to load saved jobs');
+  const loaded = skills.loaded && jobs.loaded;
+  const error = skills.error ?? jobs.error;
+  const pending = skills.pending || jobs.pending;
+  const growth = useMemo(
+    () => getSkillGrowth(skills.items, jobs.items, tasks, now),
+    [skills.items, jobs.items, tasks, now],
+  );
+  const changed = growth.added.length + growth.updated.length + growth.learned.length > 0;
+
+  // The Retry button leaves the page while loading, so focus moves to the status line.
+  const statusRef = useRef<HTMLParagraphElement>(null);
+  let status = '';
+  if (pending) status = 'Loading your skills and saved jobs...';
+  else if (error) status = 'Your skills or saved jobs could not be loaded.';
+  else if (loaded && !tasksReady) status = tasksPending;
+
+  return (
+    <>
+      <Text
+        ref={statusRef}
+        tabIndex={-1}
+        role="status"
+        aria-live="polite"
+        fontSize="sm"
+        color="fg.muted"
+        _focusVisible={{ outline: '2px solid', outlineColor: 'accent.teal' }}
+      >
+        {status}
+      </Text>
+      {error && !pending ? (
+        <VStack align="start" gap={2}>
+          <Text role="alert" color="fg.error">
+            {error}
+          </Text>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              if (skills.error) skills.reload();
+              if (jobs.error) jobs.reload();
+              statusRef.current?.focus();
+            }}
+          >
+            Retry loading skills
+          </Button>
+        </VStack>
+      ) : !loaded || !tasksReady ? null : skills.items.length === 0 && jobs.items.length === 0 ? (
+        <Text color="fg.muted">
+          Add your skills and the jobs you want in Career to track your growth here.
+        </Text>
+      ) : (
+        <>
+          {!changed && (
+            <Text color="fg.muted">
+              No skills added or updated and no learning tasks finished this week.
+            </Text>
+          )}
+          {growth.added.length > 0 && (
+            <SubList id="growth-added" title={'Skills added this week: ' + growth.added.length}>
+              {growth.added.map((skill) => (
+                <SubItem key={getRecordId(skill)}>
+                  <Text overflowWrap="anywhere">
+                    {skill.name}, {skillLevelLabel[skill.level].toLowerCase()}
+                  </Text>
+                </SubItem>
+              ))}
+            </SubList>
+          )}
+          {growth.updated.length > 0 && (
+            <SubList
+              id="growth-updated"
+              title={'Skills updated this week: ' + growth.updated.length}
+            >
+              {growth.updated.map((skill) => (
+                <SubItem key={getRecordId(skill)}>
+                  <Text overflowWrap="anywhere">
+                    {skill.name}, {skillLevelLabel[skill.level].toLowerCase()}
+                  </Text>
+                </SubItem>
+              ))}
+            </SubList>
+          )}
+          {growth.learned.length > 0 && (
+            <SubList
+              id="growth-learned"
+              title={'Learning tasks finished this week: ' + growth.learned.length}
+            >
+              {growth.learned.map((task) => (
+                <SubItem key={getTaskId(task)}>
+                  <Text overflowWrap="anywhere">{task.title}</Text>
+                </SubItem>
+              ))}
+            </SubList>
+          )}
+          {growth.topGaps.length > 0 ? (
+            <SubList id="growth-gaps" title="Skills your open saved jobs need most">
+              {growth.topGaps.map((gap) => (
+                <SubItem key={gap.skill}>
+                  <Text overflowWrap="anywhere">
+                    {gap.skill}: needed by {plural(gap.jobs, 'job', 'jobs')}
+                  </Text>
+                </SubItem>
+              ))}
+            </SubList>
+          ) : growth.hasOpenJobs ? (
+            <Text color="fg.muted" mt={3}>
+              Your skills cover every open saved job.
+            </Text>
+          ) : null}
+        </>
+      )}
+      <Link asChild fontSize="sm" color="accent.teal" mt={3} display="inline-block">
+        <RouterLink to="/career">Update skills and jobs in Career</RouterLink>
+      </Link>
+    </>
+  );
+}
+
 function ReviewForm({
   kind,
   token,
@@ -236,8 +390,8 @@ function ReviewForm({
   const max = REVIEW_FOCUS_MAX[kind];
   const text = copy[kind];
   const ids = (prefix: string) => kind + '-' + prefix;
-  // The weekly review adds a goal check-in.
-  const totalSteps = kind === 'weekly' ? 5 : 4;
+  // The weekly review adds a goal check-in and a skill-growth step.
+  const totalSteps = kind === 'weekly' ? 6 : 4;
 
   useEffect(() => {
     if (!isCurrentSession(token, sessionVersion)) return;
@@ -392,6 +546,17 @@ function ReviewForm({
           {kind === 'weekly' && (
             <Step id={ids('goals')} number={3} total={totalSteps} title="Check in on your goals">
               <GoalCheckIn now={now} />
+            </Step>
+          )}
+
+          {kind === 'weekly' && (
+            <Step id={ids('skills')} number={4} total={totalSteps} title="Review your skill growth">
+              <SkillGrowthStep
+                now={now}
+                tasks={tasks}
+                tasksReady={tasksReady}
+                tasksPending={tasksPending}
+              />
             </Step>
           )}
 

@@ -232,7 +232,7 @@ describe('Weekly goal check-in', () => {
     ).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Weekly review' }));
     const goalsStep = await waitFor(() => step(/check in on your goals/i));
-    expect(screen.getByText('Step 3 of 5')).toBeInTheDocument();
+    expect(screen.getByText('Step 3 of 6')).toBeInTheDocument();
     expect(await goalsStep.findByText('Learn Rust')).toBeInTheDocument();
     expect(goalsStep.queryByText('Old goal')).not.toBeInTheDocument();
     expect(goalsStep.getByRole('link', { name: 'Add or update goals' })).toHaveAttribute(
@@ -269,4 +269,193 @@ it('shows a failed goal check-in as an alert and keeps the goal listed', async (
   );
   expect(await goalsStep.findByRole('alert')).toHaveTextContent('Could not save goal');
   expect(goalsStep.getByText('Learn Rust')).toBeInTheDocument();
+});
+
+describe('Weekly skill growth', () => {
+  const ago = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString();
+  const thisWeek = () => new Date().toISOString();
+
+  it('shows new skills, finished learning tasks and the skills open jobs need most', async () => {
+    signIn();
+    stubTaskApi(
+      [
+        makeTask({
+          _id: 't1',
+          title: 'Learn graphql for Frontend Engineer',
+          status: 'done',
+          completedAt: justNow(),
+        }),
+      ],
+      [],
+      [],
+      [],
+      [],
+      [
+        {
+          _id: 's1',
+          name: 'typescript',
+          level: 'learning',
+          createdAt: thisWeek(),
+          updatedAt: thisWeek(),
+        },
+        { _id: 's2', name: 'react', level: 'strong', createdAt: ago(30), updatedAt: ago(30) },
+        { _id: 's3', name: 'node', level: 'expert', createdAt: ago(30), updatedAt: thisWeek() },
+      ],
+      [
+        {
+          _id: 'j1',
+          title: 'Frontend Engineer',
+          company: '',
+          url: '',
+          requiredSkills: ['react', 'graphql', 'aws'],
+          status: 'applied',
+          notes: '',
+        },
+        {
+          _id: 'j2',
+          title: 'Platform Engineer',
+          company: '',
+          url: '',
+          requiredSkills: ['aws'],
+          status: 'saved',
+          notes: '',
+        },
+      ],
+    );
+    renderApp('/reviews');
+    await userEvent.click(await screen.findByRole('button', { name: 'Weekly review' }));
+    const growth = await waitFor(() => step(/review your skill growth/i));
+    expect(screen.getByText('Step 4 of 6')).toBeInTheDocument();
+    const added = await growth.findByRole('list', { name: 'Skills added this week: 1' });
+    expect(within(added).getByText('typescript, learning')).toBeInTheDocument();
+    expect(growth.queryByText(/^react,/)).not.toBeInTheDocument();
+    const updated = growth.getByRole('list', { name: 'Skills updated this week: 1' });
+    expect(within(updated).getByText('node, expert')).toBeInTheDocument();
+    const learned = growth.getByRole('list', { name: 'Learning tasks finished this week: 1' });
+    expect(within(learned).getByText('Learn graphql for Frontend Engineer')).toBeInTheDocument();
+    const gaps = growth.getByRole('list', { name: 'Skills your open saved jobs need most' });
+    expect(
+      within(gaps)
+        .getAllByRole('listitem')
+        .map((item) => item.textContent),
+    ).toEqual(['aws: needed by 2 jobs', 'graphql: needed by 1 job']);
+    expect(growth.getByRole('link', { name: 'Update skills and jobs in Career' })).toHaveAttribute(
+      'href',
+      '/career',
+    );
+    expect(screen.getByText('Step 5 of 6')).toBeInTheDocument();
+    expect(screen.getByText('Step 6 of 6')).toBeInTheDocument();
+  });
+
+  it('points to Career when there are no skills or jobs yet', async () => {
+    signIn();
+    stubTaskApi([]);
+    renderApp('/reviews');
+    await userEvent.click(await screen.findByRole('button', { name: 'Weekly review' }));
+    const growth = await waitFor(() => step(/review your skill growth/i));
+    expect(
+      await growth.findByText(/Add your skills and the jobs you want in Career/),
+    ).toBeInTheDocument();
+  });
+
+  it('says when nothing changed and every open job is covered', async () => {
+    signIn();
+    stubTaskApi(
+      [],
+      [],
+      [],
+      [],
+      [],
+      [{ _id: 's2', name: 'react', level: 'strong', createdAt: ago(30), updatedAt: ago(30) }],
+      [
+        {
+          _id: 'j1',
+          title: 'Frontend Engineer',
+          company: '',
+          url: '',
+          requiredSkills: ['react'],
+          status: 'saved',
+          notes: '',
+        },
+      ],
+    );
+    renderApp('/reviews');
+    await userEvent.click(await screen.findByRole('button', { name: 'Weekly review' }));
+    const growth = await waitFor(() => step(/review your skill growth/i));
+    expect(
+      await growth.findByText(
+        'No skills added or updated and no learning tasks finished this week.',
+      ),
+    ).toBeInTheDocument();
+    expect(growth.getByText('Your skills cover every open saved job.')).toBeInTheDocument();
+  });
+
+  it('shows a load failure with a retry that recovers', async () => {
+    signIn();
+    const { fetchMock } = stubTaskApi(
+      [],
+      [],
+      [],
+      [],
+      [],
+      [{ _id: 's1', name: 'go', level: 'working', createdAt: thisWeek(), updatedAt: thisWeek() }],
+    );
+    const passThrough = fetchMock.getMockImplementation()!;
+    let failSkills = true;
+    fetchMock.mockImplementation(async (url: string, options: RequestInit = {}) =>
+      failSkills && /\/api\/skills$/.test(url)
+        ? { status: 500, ok: false, json: async () => ({ message: 'Skills are unavailable' }) }
+        : passThrough(url, options),
+    );
+    renderApp('/reviews');
+    await userEvent.click(await screen.findByRole('button', { name: 'Weekly review' }));
+    const growth = await waitFor(() => step(/review your skill growth/i));
+    expect(await growth.findByText('Skills are unavailable')).toBeInTheDocument();
+    expect(growth.getByText('Your skills or saved jobs could not be loaded.')).toBeInTheDocument();
+    expect(growth.getByRole('alert')).toHaveTextContent('Skills are unavailable');
+    failSkills = false;
+    await userEvent.click(growth.getByRole('button', { name: 'Retry loading skills' }));
+    expect(growth.getByRole('status')).toHaveFocus();
+    expect(await growth.findByText('go, working knowledge')).toBeInTheDocument();
+    expect(growth.queryByText('Skills are unavailable')).not.toBeInTheDocument();
+  });
+
+  it('retries only the saved jobs when only they failed to load', async () => {
+    signIn();
+    const { fetchMock } = stubTaskApi();
+    const passThrough = fetchMock.getMockImplementation()!;
+    let failJobs = true;
+    fetchMock.mockImplementation(async (url: string, options: RequestInit = {}) =>
+      failJobs && /\/api\/jobs$/.test(url)
+        ? { status: 500, ok: false, json: async () => ({ message: 'Jobs are unavailable' }) }
+        : passThrough(url, options),
+    );
+    renderApp('/reviews');
+    await userEvent.click(await screen.findByRole('button', { name: 'Weekly review' }));
+    const growth = await waitFor(() => step(/review your skill growth/i));
+    expect(await growth.findByRole('alert')).toHaveTextContent('Jobs are unavailable');
+    const skillReads = requestsTo(fetchMock, 'GET', '/api/skills').length;
+    failJobs = false;
+    await userEvent.click(growth.getByRole('button', { name: 'Retry loading skills' }));
+    expect(
+      await growth.findByText(/Add your skills and the jobs you want in Career/),
+    ).toBeInTheDocument();
+    expect(requestsTo(fetchMock, 'GET', '/api/skills')).toHaveLength(skillReads);
+  });
+
+  it('waits for tasks before showing skill growth', async () => {
+    signIn();
+    const { fetchMock } = stubTaskApi();
+    const passThrough = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation(async (url: string, options: RequestInit = {}) =>
+      /\/api\/tasks$/.test(url) ? new Promise(() => {}) : passThrough(url, options),
+    );
+    renderApp('/reviews');
+    await userEvent.click(await screen.findByRole('button', { name: 'Weekly review' }));
+    const growth = await waitFor(() => step(/review your skill growth/i));
+    expect(await growth.findByRole('status')).toHaveTextContent(
+      'Waiting for your tasks to load...',
+    );
+    expect(growth.queryByText(/Add your skills/)).not.toBeInTheDocument();
+  });
 });
