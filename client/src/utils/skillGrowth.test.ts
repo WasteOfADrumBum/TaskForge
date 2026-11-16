@@ -32,7 +32,7 @@ const task = (overrides: Partial<Task> & { title: string }): Task => ({
 });
 
 describe('getSkillGrowth', () => {
-  it('lists skills added this week and older skills whose level changed this week', () => {
+  it('lists skills added this week and older skills updated this week', () => {
     const skills = [
       skill('typescript', 18),
       skill('react', 16),
@@ -44,7 +44,7 @@ describe('getSkillGrowth', () => {
     ];
     const growth = getSkillGrowth(skills, [], [], now);
     expect(growth.added.map((item) => item.name)).toEqual(['go', 'react', 'typescript']);
-    expect(growth.levelChanged.map((item) => item.name)).toEqual(['node']);
+    expect(growth.updated.map((item) => item.name)).toEqual(['node']);
   });
 
   it('counts the whole local week from Monday to Sunday', () => {

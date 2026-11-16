@@ -182,11 +182,12 @@ test('growth flows on mobile by keyboard: progress, reviews, goals, career and s
     await weeklyAgain.focus();
     await page.keyboard.press('Enter');
     const growthStep = page.getByRole('region', { name: 'Review your skill growth' });
-    await expect(growthStep.getByRole('list', { name: 'Skills added this week: 1' })).toContainText(
+    // List names start with a count, so match the start: other flows on this account may add more.
+    await expect(growthStep.getByRole('list', { name: /^Skills added this week: / })).toContainText(
       'react, working knowledge',
     );
     await expect(
-      growthStep.getByRole('list', { name: 'Learning tasks finished this week: 1' }),
+      growthStep.getByRole('list', { name: /^Learning tasks finished this week: / }),
     ).toContainText(learningTitle);
     await expect(
       growthStep.getByRole('list', { name: 'Skills your open saved jobs need most' }),

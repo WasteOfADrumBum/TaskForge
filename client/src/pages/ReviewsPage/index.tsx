@@ -210,7 +210,7 @@ const SubList = ({ id, title, children }: { id: string; title: string; children:
     <Heading as="h4" id={id} size="sm" mb={1}>
       {title}
     </Heading>
-    <Box as="ul" listStyleType="none" m={0} p={0} aria-labelledby={id}>
+    <Box as="ul" role="list" listStyleType="none" m={0} p={0} aria-labelledby={id}>
       {children}
     </Box>
   </Box>
@@ -244,41 +244,55 @@ function SkillGrowthStep({
     () => getSkillGrowth(skills.items, jobs.items, tasks, now),
     [skills.items, jobs.items, tasks, now],
   );
-  const changed = growth.added.length + growth.levelChanged.length + growth.learned.length > 0;
+  const changed = growth.added.length + growth.updated.length + growth.learned.length > 0;
 
+  // The Retry button leaves the page while loading, so focus moves to the status line.
+  const statusRef = useRef<HTMLParagraphElement>(null);
   let status = '';
   if (pending) status = 'Loading your skills and saved jobs...';
   else if (error) status = 'Your skills or saved jobs could not be loaded.';
+  else if (loaded && !tasksReady) status = tasksPending;
 
   return (
     <>
-      <Text role="status" aria-live="polite" fontSize="sm" color="fg.muted">
+      <Text
+        ref={statusRef}
+        tabIndex={-1}
+        role="status"
+        aria-live="polite"
+        fontSize="sm"
+        color="fg.muted"
+        _focusVisible={{ outline: '2px solid', outlineColor: 'accent.teal' }}
+      >
         {status}
       </Text>
       {error && !pending ? (
         <VStack align="start" gap={2}>
-          <Text color="fg.error">{error}</Text>
+          <Text role="alert" color="fg.error">
+            {error}
+          </Text>
           <Button
             size="sm"
             variant="outline"
             onClick={() => {
               if (skills.error) skills.reload();
               if (jobs.error) jobs.reload();
+              statusRef.current?.focus();
             }}
           >
             Retry loading skills
           </Button>
         </VStack>
-      ) : !loaded ? null : !tasksReady ? (
-        <Text color="fg.muted">{tasksPending}</Text>
-      ) : skills.items.length === 0 && jobs.items.length === 0 ? (
+      ) : !loaded || !tasksReady ? null : skills.items.length === 0 && jobs.items.length === 0 ? (
         <Text color="fg.muted">
           Add your skills and the jobs you want in Career to track your growth here.
         </Text>
       ) : (
         <>
           {!changed && (
-            <Text color="fg.muted">No new skills, level changes or learning tasks this week.</Text>
+            <Text color="fg.muted">
+              No skills added or updated and no learning tasks finished this week.
+            </Text>
           )}
           {growth.added.length > 0 && (
             <SubList id="growth-added" title={'Skills added this week: ' + growth.added.length}>
@@ -291,15 +305,15 @@ function SkillGrowthStep({
               ))}
             </SubList>
           )}
-          {growth.levelChanged.length > 0 && (
+          {growth.updated.length > 0 && (
             <SubList
-              id="growth-levels"
-              title={'Levels updated this week: ' + growth.levelChanged.length}
+              id="growth-updated"
+              title={'Skills updated this week: ' + growth.updated.length}
             >
-              {growth.levelChanged.map((skill) => (
+              {growth.updated.map((skill) => (
                 <SubItem key={getRecordId(skill)}>
                   <Text overflowWrap="anywhere">
-                    {skill.name}, now {skillLevelLabel[skill.level].toLowerCase()}
+                    {skill.name}, {skillLevelLabel[skill.level].toLowerCase()}
                   </Text>
                 </SubItem>
               ))}

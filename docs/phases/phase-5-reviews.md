@@ -25,7 +25,8 @@ Daily review, weekly review, progress analytics, agent recommendations, goal rev
 - Goals API (KAN-61): the goals model that goal review depends on, with status and an optional target date.
 
 - Goals page and weekly goal check-in (KAN-62): the Goals page (`/goals`) adds goals and marks them achieved, dropped or active again; an active goal past its target says so in text. The weekly review gains a step to check in on active goals.
-- Skill-growth review (KAN-66): the weekly review gains a step that lists skills added this week, older skills whose level changed this week, learning tasks made from a saved job's skill gap and finished this week, and the skills most often missing across open saved jobs (saved, applied or interviewing), up to 5. It reads the Career page's skills and saved jobs (Phase 6) and is rule-based.
+
+- Skill-growth review (KAN-66): the weekly review gains a step that lists skills added this week, older skills updated this week (usually a new level; the previous level is not stored), learning tasks made from a saved job's skill gap and finished this week, and the skills most often missing across open saved jobs (saved, applied or interviewing), up to 5. It reads the Career page's skills and saved jobs (Phase 6) and is rule-based.
 
 ## Planned capabilities
 

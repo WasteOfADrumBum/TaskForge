@@ -18,8 +18,8 @@ export interface SkillGap {
 export interface SkillGrowth {
   // Skills added to the inventory this week, by name.
   added: Skill[];
-  // Older skills whose level was changed this week, by name.
-  levelChanged: Skill[];
+  // Older skills updated this week (usually a level change), by name.
+  updated: Skill[];
   // Learning tasks made from a saved job's skill gap and finished this week, newest first.
   learned: Task[];
   // The skills most often missing across open saved jobs, most needed first.
@@ -53,15 +53,17 @@ export const getSkillGrowth = (
   };
 
   const added = skills.filter((skill) => inWeek(skill.createdAt)).sort(byName);
-  // Only the level of a skill can be edited, so an update this week to an older skill is a
-  // level change.
-  const levelChanged = skills
+  // An older skill saved again this week. That is usually a new level, but the record does not
+  // keep the previous level, so this says "updated" rather than claiming a change.
+  const updated = skills
     .filter(
       (skill) =>
         !inWeek(skill.createdAt) && inWeek(skill.updatedAt) && skill.updatedAt !== skill.createdAt,
     )
     .sort(byName);
 
+  // Matched against current saved jobs, so a learning task drops out if its job is deleted or
+  // renamed afterwards.
   const learningTitles = new Set(
     jobs.flatMap((job) => job.requiredSkills.map((skill) => learningTaskTitle(skill, job))),
   );
@@ -85,5 +87,5 @@ export const getSkillGrowth = (
     .sort((a, b) => b.jobs - a.jobs || a.skill.localeCompare(b.skill))
     .slice(0, TOP_GAP_LIMIT);
 
-  return { added, levelChanged, learned, topGaps, hasOpenJobs: openJobs.length > 0 };
+  return { added, updated, learned, topGaps, hasOpenJobs: openJobs.length > 0 };
 };
