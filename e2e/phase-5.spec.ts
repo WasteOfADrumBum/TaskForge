@@ -2,14 +2,14 @@ import { randomUUID } from 'node:crypto';
 import { expect, test, type Page } from '@playwright/test';
 
 const apiURL = 'http://127.0.0.1:5051';
-const password = 'Progress QA passphrase 2026!';
+const password = 'Phase 5 QA passphrase 2026!';
 
 test.beforeEach(async ({ baseURL }) => {
-  expect(baseURL, 'Progress QA requires the guarded local client').toBe('http://127.0.0.1:5174');
+  expect(baseURL, 'Phase 5 QA requires the guarded local client').toBe('http://127.0.0.1:5174');
 });
 
 const registerAndLogin = async (page: Page) => {
-  const email = 'progress-' + randomUUID() + '@example.test';
+  const email = 'phase5-' + randomUUID() + '@example.test';
   await page.goto('/register');
   await page.getByLabel(/^Email/).fill(email);
   await page.getByLabel(/^Password/).fill(password);
@@ -24,7 +24,9 @@ const registerAndLogin = async (page: Page) => {
   return token;
 };
 
-test('shows real completions on the Progress page on mobile and switches range by keyboard', async ({
+// One account for both Phase 5 flows: the guarded API caps registrations per run, so each new
+// spec should reuse an account where it can.
+test('shows progress and completes and reopens a daily review on mobile by keyboard', async ({
   page,
   playwright,
 }) => {
@@ -71,6 +73,40 @@ test('shows real completions on the Progress page on mobile and switches range b
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true);
+
+    // Daily review: the completed task is in Look back; choose an open task as focus.
+    const title = 'Review focus ' + randomUUID();
+    const open = await api.post('/api/tasks', { data: { title } });
+    expect(open.status()).toBe(201);
+    const focusTask = (await open.json()).task;
+    await page.goto('/reviews');
+    await expect(page.getByRole('heading', { level: 1, name: 'Reviews' })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Look back' })).toContainText(task.title);
+    const focus = page.getByRole('checkbox', { name: new RegExp(title) });
+    await focus.focus();
+    await page.keyboard.press('Space');
+    await expect(focus).toBeChecked();
+    const reflection = page.getByRole('textbox', { name: /what went well today/i });
+    await reflection.focus();
+    await page.keyboard.type('Synthetic reflection.');
+    const save = page.getByRole('button', { name: 'Save daily review', exact: true });
+    await save.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('main').getByText(/^Saved at /)).toBeVisible();
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+    ).toBe(true);
+    const saved = (await (await api.get('/api/reviews?kind=daily&limit=1')).json()).reviews;
+    expect(saved).toHaveLength(1);
+    expect(saved[0]).toMatchObject({
+      reflection: 'Synthetic reflection.',
+      focusTasks: [focusTask._id],
+    });
+    await page.reload();
+    await expect(page.getByRole('textbox', { name: /what went well today/i })).toHaveValue(
+      'Synthetic reflection.',
+    );
+    await expect(page.getByRole('checkbox', { name: new RegExp(title) })).toBeChecked();
   } finally {
     await api.dispose();
   }
