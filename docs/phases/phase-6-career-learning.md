@@ -32,9 +32,11 @@ It supports the goal of reaching senior engineer or tech lead by turning "skills
 
 - Portfolio project ideas (KAN-71): the Learning page suggests up to three projects, one for each skill open saved jobs need most. Each pairs the missing skill with the skill you have at working level or above that those jobs list most often (ties go to the higher level, then the name), names up to three of the jobs, and adds itself to the roadmap as a project with one press, or says a project for that skill is already there. Rule-based, client-only.
 
+- Applications (KAN-72): saved jobs record when their status last changed (server-set). The Career page's Applications section counts applied, interviewing and offer, lists those applications longest unchanged first with the status and since when in words, and offers a follow-up task for one still "applied" after 14 days. Jobs saved before this show no date. Rule-based.
+
 ## Planned capabilities
 
-- Career: job opportunities, applications
+- Career: job opportunities (needs an external job source)
 
 ## Dependencies
 

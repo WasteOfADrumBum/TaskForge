@@ -27,10 +27,12 @@ import {
 } from '../../api/career';
 import { isCurrentSession } from '../../api/authenticatedFetch';
 import { createTask } from '../../api/tasks';
+import ApplicationsSection from '../../components/career/ApplicationsSection';
 import CareerGoals from '../../components/career/CareerGoals';
 import ConfirmDeleteButton from '../../components/common/ConfirmDeleteButton';
 import ResumeSection from '../../components/career/ResumeSection';
 import { useOwnedList } from '../../hooks/useOwnedList';
+import { followUpTaskTitle } from '../../utils/applications';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks/typedHooks';
 import { addTask } from '../../redux/slices/taskSlice';
 import {
@@ -89,6 +91,8 @@ const CareerPage = () => {
   const [notes, setNotes] = useState('');
   const [jobError, setJobError] = useState<string | null>(null);
   const [taskBusy, setTaskBusy] = useState<string[]>([]);
+  // Follow-up adds in flight, checked synchronously so two presses in one tick add once.
+  const followingUp = useRef(new Set<string>());
 
   const begin = () => {
     setAnnouncement('');
@@ -187,6 +191,39 @@ const CareerPage = () => {
         return;
       setActionError(failure instanceof Error ? failure.message : 'Unable to add learning task');
     } finally {
+      setTaskBusy((current) => current.filter((item) => item !== key));
+    }
+  };
+
+  const addFollowUpTask = async (job: SavedJob) => {
+    if (!token || !isCurrentSession(token, sessionVersion)) return;
+    const key = 'follow-up:' + getRecordId(job);
+    if (followingUp.current.has(key)) return;
+    followingUp.current.add(key);
+    const title = followUpTaskTitle(job);
+    begin();
+    setTaskBusy((current) => [...current, key]);
+    try {
+      const task = await createTask(token, {
+        title,
+        description:
+          'Follow-up for the application to "' +
+          job.title +
+          (job.company ? '" at ' + job.company : '"') +
+          '. Added from Career applications.',
+        priority: 'medium',
+        status: 'todo',
+      });
+      if (!isCurrentSession(token, sessionVersion)) return;
+      dispatch(addTask(task));
+      // The button is replaced by "Follow-up task added", so focus the status line.
+      settle(null, 'Added follow-up task: ' + title + '.', true);
+    } catch (failure) {
+      if (failure instanceof SessionExpiredError || !isCurrentSession(token, sessionVersion))
+        return;
+      setActionError(failure instanceof Error ? failure.message : 'Unable to add follow-up task');
+    } finally {
+      followingUp.current.delete(key);
       setTaskBusy((current) => current.filter((item) => item !== key));
     }
   };
@@ -554,6 +591,16 @@ const CareerPage = () => {
           </Box>
         )}
       </Box>
+
+      <ApplicationsSection
+        jobs={jobs.items}
+        jobsLoaded={jobs.loaded}
+        jobsFailed={!jobs.loaded && !!jobs.error && !jobs.pending}
+        tasks={tasks}
+        tasksLoaded={tasksLoaded}
+        isBusy={(job) => taskBusy.includes('follow-up:' + getRecordId(job))}
+        onFollowUp={(job) => void addFollowUpTask(job)}
+      />
 
       <ResumeSection
         skills={skills.items}

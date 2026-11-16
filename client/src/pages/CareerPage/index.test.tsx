@@ -407,3 +407,80 @@ describe('Resume section', () => {
     expect(await section.findByRole('textbox', { name: 'Headline' })).toBeInTheDocument();
   });
 });
+
+describe('Applications', () => {
+  const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString();
+
+  it('counts active applications, lists them oldest first and adds a follow-up task once', async () => {
+    signIn();
+    const { fetchMock, tasks } = stub(
+      [],
+      [
+        job({ _id: 'j1', title: 'Saved only', statusChangedAt: daysAgo(40) }),
+        job({ _id: 'j2', title: 'Interview', status: 'interviewing', statusChangedAt: daysAgo(3) }),
+        job({ _id: 'j3', title: 'Waiting', status: 'applied', statusChangedAt: daysAgo(20) }),
+        job({ _id: 'j4', title: 'Legacy', status: 'applied', company: '' }),
+      ],
+    );
+    renderApp('/career');
+    const section = await waitFor(() => region(/^applications$/i));
+    const counts = await section.findByRole('list', { name: 'Applications by status' });
+    expect(
+      within(counts)
+        .getAllByRole('listitem')
+        .map((entry) => entry.textContent),
+    ).toEqual(['Applied: 2', 'Interviewing: 1', 'Offers: 0']);
+    const rows = within(section.getByRole('list', { name: 'Active applications' })).getAllByRole(
+      'listitem',
+    );
+    expect(rows.map((row) => row.querySelector('p')?.textContent)).toEqual([
+      'Waiting at Example Co',
+      'Interview at Example Co',
+      'Legacy',
+    ]);
+    expect(rows[0]).toHaveTextContent(/No update in \d+ days\. Time to follow up\./);
+    expect(rows[1]).not.toHaveTextContent(/follow up/i);
+    expect(rows[2]).toHaveTextContent(/^LegacyApplied$/);
+
+    const add = within(rows[0]).getByRole('button', { name: 'Add follow-up task: Waiting' });
+    await waitFor(() => expect(add).toBeEnabled());
+    await userEvent.dblClick(add);
+    expect(await section.findByText('Follow-up task added')).toBeInTheDocument();
+    expect(pageStatus()).toHaveFocus();
+    expect(pageStatus()).toHaveTextContent(
+      'Added follow-up task: Follow up on Waiting at Example Co.',
+    );
+    const posts = requestsTo(fetchMock, 'POST', '/api/tasks');
+    expect(posts).toHaveLength(1);
+    expect(JSON.parse(String(posts[0][1]?.body))).toMatchObject({
+      title: 'Follow up on Waiting at Example Co',
+      status: 'todo',
+    });
+    expect(tasks[0].title).toBe('Follow up on Waiting at Example Co');
+  });
+
+  it('shows an existing follow-up task as added and an empty state', async () => {
+    signIn();
+    stub(
+      [],
+      [job({ _id: 'j3', title: 'Waiting', status: 'applied', statusChangedAt: daysAgo(30) })],
+      [makeTask({ _id: 't1', title: 'Follow up on Waiting at Example Co' })],
+    );
+    renderApp('/career');
+    const section = await waitFor(() => region(/^applications$/i));
+    expect(await section.findByText('Follow-up task added')).toBeInTheDocument();
+    expect(section.queryByRole('button', { name: /follow-up/i })).not.toBeInTheDocument();
+  });
+
+  it('says when there are no active applications', async () => {
+    signIn();
+    stub([], [job({ status: 'rejected' })]);
+    renderApp('/career');
+    const section = await waitFor(() => region(/^applications$/i));
+    expect(
+      await section.findByText(
+        'No active applications. Set a saved job to Applied when you apply.',
+      ),
+    ).toBeInTheDocument();
+  });
+});

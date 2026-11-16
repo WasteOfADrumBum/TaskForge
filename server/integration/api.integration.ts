@@ -563,6 +563,16 @@ it('keeps skills and saved jobs private, one skill per name, with slug matching'
     requiredSkills: ['typescript', 'react'],
   });
   const jobId = job.body.job._id;
+  expect(Number.isFinite(Date.parse(job.body.job.statusChangedAt))).toBe(true);
+  // Backdate the stamp so a change is measurable. A client value is ignored, and saving the
+  // same status or other fields leaves the stamp alone.
+  const old = new Date('2020-01-01T00:00:00Z');
+  await SavedJob.updateOne({ _id: jobId }, { statusChangedAt: old });
+  const notes = await request(app)
+    .patch(`/api/jobs/${jobId}`)
+    .set(auth(aliceToken))
+    .send({ notes: 'Referral', statusChangedAt: '2025-01-01T00:00:00Z', status: 'saved' });
+  expect(notes.body.job.statusChangedAt).toBe(old.toISOString());
   expect((await request(app).get('/api/jobs').set(auth(bobToken))).body.jobs).toEqual([]);
   expect(
     (await request(app).patch(`/api/jobs/${jobId}`).set(auth(bobToken)).send({ status: 'applied' }))
@@ -573,6 +583,7 @@ it('keeps skills and saved jobs private, one skill per name, with slug matching'
     .set(auth(aliceToken))
     .send({ status: 'applied' });
   expect(applied.body.job.status).toBe('applied');
+  expect(Date.parse(applied.body.job.statusChangedAt)).toBeGreaterThan(old.getTime());
 
   expect((await request(app).delete(`/api/jobs/${jobId}`).set(auth(aliceToken))).status).toBe(204);
   expect(await SavedJob.findById(jobId)).toBeNull();

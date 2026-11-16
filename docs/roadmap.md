@@ -165,7 +165,7 @@ Career:
 - [x] **COMPLETE**: Skills inventory (KAN-63, KAN-64)
 - [ ] **PLANNED**: Job opportunities
 - [x] **COMPLETE**: Saved jobs (KAN-63, KAN-64), with application status
-- [ ] **IN PROGRESS**: Applications (saved jobs track an application status, KAN-64)
+- [x] **COMPLETE**: Applications (KAN-72): counts and active applications on `/career`, dated by the server's status-change time, with a rule-based follow-up task after 14 days
 - [x] **COMPLETE**: Skill-gap analysis (KAN-64): rule-based, by exact skill name
 - [x] **COMPLETE**: Career goals (KAN-69): goals with the career area, listed on the Career page
 

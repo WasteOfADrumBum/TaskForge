@@ -49,6 +49,9 @@ export interface SavedJob {
   requiredSkills: string[];
   status: JobStatus;
   notes: string;
+  // Set by the server when the job is saved and whenever its status changes; null or missing
+  // on jobs saved before KAN-72.
+  statusChangedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }
