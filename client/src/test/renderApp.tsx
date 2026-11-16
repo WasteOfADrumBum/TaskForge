@@ -11,6 +11,7 @@ import type { Agent } from '../types/agent';
 import type { SavedJob, Skill } from '../types/career';
 import type { LearningItem } from '../types/learning';
 import type { Resume } from '../types/resume';
+import type { BrandProfile } from '../types/brand';
 import type { Goal } from '../types/goal';
 import type { Project } from '../types/project';
 import type { Review } from '../types/review';
@@ -87,6 +88,7 @@ export const stubTaskApi = (
   initialJobs: SavedJob[] = [],
   initialLearning: LearningItem[] = [],
   initialResume: Resume | null = null,
+  initialBrands: BrandProfile[] = [],
 ) => {
   const tasks = [...initial];
   const projects = [...initialProjects];
@@ -97,6 +99,7 @@ export const stubTaskApi = (
   const jobs = [...initialJobs];
   const learning = [...initialLearning];
   let resume: Resume | null = initialResume;
+  const brands = [...initialBrands];
   let nextId = 1;
   const fetchMock = vi.fn(async (url: string, options: RequestInit = {}) => {
     const method = options.method ?? 'GET';
@@ -145,6 +148,34 @@ export const stubTaskApi = (
       }
       list.splice(index, 1);
       return json(204);
+    }
+    if (url.endsWith('/api/brands') && method === 'GET') return json(200, { brands });
+    const brandMatch = url.match(/\/api\/brands\/([^/]+)$/);
+    if (brandMatch && method === 'PUT') {
+      const kind = brandMatch[1] as BrandProfile['kind'];
+      if (!String(body.name ?? '').trim()) return json(400, { message: 'Brand name is required' });
+      const now = new Date().toISOString();
+      const index = brands.findIndex((brand) => brand.kind === kind);
+      const brand: BrandProfile = {
+        _id: index === -1 ? 'brand-' + nextId++ : brands[index]._id,
+        kind,
+        name: String(body.name).trim(),
+        tagline: String(body.tagline ?? '').trim(),
+        colors: (body.colors ?? []).map((color: { name: string; hex: string }) => ({
+          name: color.name.trim(),
+          hex: '#' + color.hex.trim().replace(/^#/, '').toUpperCase(),
+        })),
+        fonts: body.fonts ?? [],
+        logos: body.logos ?? [],
+        voice: String(body.voice ?? '').trim(),
+        writingStyle: String(body.writingStyle ?? '').trim(),
+        imagePrompts: body.imagePrompts ?? [],
+        createdAt: index === -1 ? now : brands[index].createdAt,
+        updatedAt: now,
+      };
+      if (index === -1) brands.push(brand);
+      else brands[index] = brand;
+      return json(200, { brand });
     }
     if (url.endsWith('/api/resume')) {
       if (method === 'GET') return json(200, { resume });
@@ -355,6 +386,7 @@ export const stubTaskApi = (
     jobs,
     learning,
     getResume: () => resume,
+    brands,
   };
 };
 
