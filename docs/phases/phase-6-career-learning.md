@@ -1,6 +1,6 @@
 # Phase 6: Career + Learning
 
-**Status: PLANNED**
+**Status: IN PROGRESS**
 
 ## Objective
 
@@ -15,6 +15,10 @@ It supports the goal of reaching senior engineer or tech lead by turning "skills
 **Career:** resume, skills inventory, job opportunities, saved jobs, applications, skill-gap analysis, career goals.
 
 **Learning:** skills to develop, learning roadmap, courses and articles, portfolio-project recommendations, and links from job-market gaps to learning tasks and projects.
+
+## Implemented
+
+- Skills inventory and saved jobs API (KAN-63): skills with a level, one per name, and jobs saved by hand with required skills and an application status. Skill names are slugs so a job's requirements can be matched against your skills.
 
 ## Planned capabilities
 

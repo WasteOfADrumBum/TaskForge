@@ -9,6 +9,8 @@ import { Project } from '../src/models/projectModel';
 import { Agent } from '../src/models/agentModel';
 import { Review } from '../src/models/reviewModel';
 import { Goal } from '../src/models/goalModel';
+import { SavedJob } from '../src/models/jobModel';
+import { Skill } from '../src/models/skillModel';
 
 // No credentials, remote hosts, options, or application database names are permitted.
 const uri = process.env.TEST_MONGO_URI;
@@ -407,4 +409,62 @@ it('keeps goals private to their owner and records when one is achieved', async 
     204,
   );
   expect(await Goal.findById(goal._id)).toBeNull();
+});
+
+it('keeps skills and saved jobs private, one skill per name, with slug matching', async () => {
+  const skill = await request(app)
+    .post('/api/skills')
+    .set(auth(aliceToken))
+    .send({ name: 'Type Script', level: 'strong' });
+  expect(skill.status).toBe(201);
+  expect(skill.body.skill).toMatchObject({ name: 'type-script', level: 'strong', owner: aliceId });
+  const [again, other] = await Promise.all([
+    request(app).post('/api/skills').set(auth(aliceToken)).send({ name: 'typescript-' }),
+    request(app).post('/api/skills').set(auth(aliceToken)).send({ name: 'type_script' }),
+  ]);
+  expect(again.status).toBe(400);
+  expect(other.status).toBe(409);
+  // Another user may hold the same skill name.
+  expect(
+    (await request(app).post('/api/skills').set(auth(bobToken)).send({ name: 'type-script' }))
+      .status,
+  ).toBe(201);
+  expect(await Skill.countDocuments({ name: 'type-script' })).toBe(2);
+
+  const job = await request(app)
+    .post('/api/jobs')
+    .set(auth(aliceToken))
+    .send({
+      title: 'Frontend Engineer',
+      company: 'Example Co',
+      url: 'https://jobs.example.com/1',
+      requiredSkills: ['TypeScript', 'React', 'react'],
+    });
+  expect(job.status).toBe(201);
+  expect(job.body.job).toMatchObject({
+    owner: aliceId,
+    status: 'saved',
+    requiredSkills: ['typescript', 'react'],
+  });
+  const jobId = job.body.job._id;
+  expect((await request(app).get('/api/jobs').set(auth(bobToken))).body.jobs).toEqual([]);
+  expect(
+    (await request(app).patch(`/api/jobs/${jobId}`).set(auth(bobToken)).send({ status: 'applied' }))
+      .status,
+  ).toBe(404);
+  const applied = await request(app)
+    .patch(`/api/jobs/${jobId}`)
+    .set(auth(aliceToken))
+    .send({ status: 'applied' });
+  expect(applied.body.job.status).toBe('applied');
+
+  expect((await request(app).delete(`/api/jobs/${jobId}`).set(auth(aliceToken))).status).toBe(204);
+  expect(await SavedJob.findById(jobId)).toBeNull();
+  for (const token of [aliceToken, bobToken]) {
+    const [mine] = (await request(app).get('/api/skills').set(auth(token))).body.skills;
+    expect((await request(app).delete(`/api/skills/${mine._id}`).set(auth(token))).status).toBe(
+      204,
+    );
+  }
+  expect(await Skill.countDocuments()).toBe(0);
 });
