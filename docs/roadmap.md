@@ -181,14 +181,14 @@ Learning:
 
 **Status: IN PROGRESS**
 
-- [ ] **IN PROGRESS**: TaskForge brand (stored by the brand profiles API, KAN-73; page planned)
-- [ ] **IN PROGRESS**: Personal brand (stored by the brand profiles API, KAN-73; page planned)
-- [ ] **IN PROGRESS**: Colors (stored by the brand profiles API, KAN-73; page planned)
-- [ ] **IN PROGRESS**: Fonts (stored by the brand profiles API, KAN-73; page planned)
-- [ ] **IN PROGRESS**: Logos (stored by the brand profiles API, KAN-73; page planned)
-- [ ] **IN PROGRESS**: Brand voice (stored by the brand profiles API, KAN-73; page planned)
-- [ ] **IN PROGRESS**: Writing style (stored by the brand profiles API, KAN-73; page planned)
-- [ ] **IN PROGRESS**: Image prompts (stored by the brand profiles API, KAN-73; page planned)
+- [x] **COMPLETE**: TaskForge brand (KAN-73, KAN-74: `/brand`)
+- [x] **COMPLETE**: Personal brand (KAN-73, KAN-74: `/brand`)
+- [x] **COMPLETE**: Colors (KAN-73, KAN-74: `/brand` with a rule-based WCAG contrast check)
+- [x] **COMPLETE**: Fonts (KAN-73, KAN-74: `/brand`)
+- [x] **COMPLETE**: Logos (KAN-73, KAN-74: `/brand` as links (site paths previewed))
+- [x] **COMPLETE**: Brand voice (KAN-73, KAN-74: `/brand`)
+- [x] **COMPLETE**: Writing style (KAN-73, KAN-74: `/brand`)
+- [x] **COMPLETE**: Image prompts (KAN-73, KAN-74: `/brand` (stored to reuse elsewhere; TaskForge generates no images))
 - [ ] **PLANNED**: Generated assets
 - [ ] **PLANNED**: LinkedIn/GitHub presentation support
 

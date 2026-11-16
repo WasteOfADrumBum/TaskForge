@@ -26,7 +26,7 @@ const registerAndLogin = async (page: Page) => {
 
 // One account for the Phase 5 and 6 flows: the guarded API caps registrations per run, so each new
 // spec should reuse an account where it can.
-test('growth flows on mobile by keyboard: progress, reviews, goals, career, applications, skill growth, learning and project ideas', async ({
+test('growth flows on mobile by keyboard: progress, reviews, goals, career, applications, skill growth, learning, project ideas and brand', async ({
   page,
   playwright,
 }) => {
@@ -282,6 +282,42 @@ test('growth flows on mobile by keyboard: progress, reviews, goals, career, appl
         expect.objectContaining({ title: projectTitle, skill: 'graphql', kind: 'project' }),
       ]),
     );
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+    ).toBe(true);
+
+    // Brand Studio: a TaskForge brand with one color, saved by keyboard, with its contrast check.
+    await page.goto('/brand');
+    await expect(page.getByRole('heading', { level: 1, name: 'Brand Studio' })).toBeVisible();
+    const brandForm = page.getByRole('form', { name: 'Edit TaskForge brand' });
+    const brandName = brandForm.getByRole('textbox', { name: /brand name/i });
+    await brandName.focus();
+    await page.keyboard.type('TaskForge');
+    const addColor = brandForm.getByRole('button', { name: 'Add color' });
+    await addColor.focus();
+    await page.keyboard.press('Enter');
+    await brandForm.getByRole('textbox', { name: 'Color 1 name' }).focus();
+    await page.keyboard.type('Teal');
+    await brandForm.getByRole('textbox', { name: 'Color 1 hex' }).focus();
+    await page.keyboard.type('#0f766e');
+    await expect(
+      brandForm.getByText(
+        '#0F766E: White text 5.4:1 (passes AA), black text 3.8:1 (fails AA). Use white text.',
+      ),
+    ).toBeVisible();
+    const saveBrand = brandForm.getByRole('button', { name: 'Save brand', exact: true });
+    await saveBrand.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByText(/^Saved at /)).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Download saved brand guide' })).toBeVisible();
+    const savedBrands = (await (await api.get('/api/brands')).json()).brands;
+    expect(savedBrands).toEqual([
+      expect.objectContaining({
+        kind: 'taskforge',
+        name: 'TaskForge',
+        colors: [{ name: 'Teal', hex: '#0F766E' }],
+      }),
+    ]);
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true);
