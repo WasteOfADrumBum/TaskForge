@@ -20,15 +20,7 @@ interface ProjectCardProps {
 }
 
 const ProjectCard = ({ project, stats, onEdit, onDelete }: ProjectCardProps) => (
-  <Box
-    as="li"
-    bg="bg.panel"
-    borderWidth="1px"
-    borderRadius="lg"
-    p={{ base: 4, md: 5 }}
-    opacity={project.status === 'archived' ? 0.75 : 1}
-    minW="0"
-  >
+  <Box as="li" bg="bg.panel" borderWidth="1px" borderRadius="lg" p={{ base: 4, md: 5 }} minW="0">
     <HStack justify="space-between" align="flex-start" gap={3} mb={2}>
       <Heading as="h3" size="md" minW="0">
         <Link asChild color="fg" _hover={{ color: 'accent.teal' }}>

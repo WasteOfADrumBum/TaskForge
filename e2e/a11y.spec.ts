@@ -133,7 +133,28 @@ test('every signed-in page passes on desktop and phone', async ({ page, playwrig
         data: { title: title + ' ' + randomUUID(), priority, project: projectId },
       });
       expect(task.status()).toBe(201);
+      // One finished task, so the done styling is checked too.
+      if (priority === 'low') {
+        const done = await api.patch('/api/tasks/' + (await task.json()).task._id, {
+          data: { status: 'done' },
+        });
+        expect(done.status()).toBe(200);
+      }
     }
+    // Inactive states (archived project, disabled agent) render differently, so check them too.
+    const archived = await api.post('/api/projects', {
+      data: { name: 'A11y archived ' + randomUUID(), description: 'Old work.', status: 'archived' },
+    });
+    expect(archived.status()).toBe(201);
+    const disabled = await api.post('/api/agents', {
+      data: {
+        name: 'A11y disabled agent ' + randomUUID(),
+        role: 'Reviewer',
+        permissions: ['task.read'],
+        status: 'disabled',
+      },
+    });
+    expect(disabled.status()).toBe(201);
     const source = await api.post('/api/knowledge', {
       headers: { 'Idempotency-Key': randomUUID() },
       data: {

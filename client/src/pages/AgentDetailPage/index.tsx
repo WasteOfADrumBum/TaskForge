@@ -286,9 +286,10 @@ const AgentDetailPage = () => {
                     py={2.5}
                     borderTopWidth="1px"
                     borderColor="border.muted"
-                    opacity={granted ? 1 : 0.6}
                   >
                     <Box minW="0">
+                      {/* Full-strength text either way: dimming failed contrast (KAN-76), and the
+                          badge already names the state in words. */}
                       <Text fontSize="sm" fontWeight="medium">
                         {item.label}
                       </Text>
