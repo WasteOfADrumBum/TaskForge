@@ -117,11 +117,13 @@ test('research quotes supplied text without URL retrieval and reviews without ta
       .getByLabel('Review note (optional)', { exact: true })
       .fill('Reviewed research interpretation');
     // Wait for the review request itself, not only the page text, before reading the record.
-    const reviewed = page.waitForResponse(
-      (r) => r.url() === apiURL + '/api/runs/' + queued._id + '/review',
+    const reviewRequest = page.waitForResponse(
+      (r) =>
+        r.url() === apiURL + '/api/runs/' + queued._id + '/review' &&
+        r.request().method() === 'POST',
     );
     await page.getByRole('button', { name: 'Approve draft', exact: true }).click();
-    expect((await reviewed).status()).toBe(200);
+    expect((await reviewRequest).status()).toBe(200);
     await expect(page.getByText('Reviewed research interpretation', { exact: true })).toBeVisible();
     const approved = (await (await api.get('/api/runs/' + queued._id)).json()).run;
     expect(approved.review.resultDigest).toBe(draft.resultDigest);

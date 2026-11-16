@@ -161,7 +161,14 @@ test('explicitly hands approved output to a different assigned agent without exe
     await page
       .getByLabel('Review note (optional)', { exact: true })
       .fill('Separate child decision');
+    // Wait for the review request itself, not only the page text, before reading the record.
+    const reviewRequest = page.waitForResponse(
+      (r) =>
+        r.url() === apiURL + '/api/runs/' + child._id + '/review' &&
+        r.request().method() === 'POST',
+    );
     await page.getByRole('button', { name: 'Approve draft', exact: true }).click();
+    expect((await reviewRequest).status()).toBe(200);
     await expect(page.getByText('Separate child decision', { exact: true })).toBeVisible();
     expect((await (await api.get('/api/runs/' + child._id)).json()).run.status).toBe('approved');
     expect((await (await api.get('/api/runs/' + parent._id)).json()).run).toEqual(approved);
