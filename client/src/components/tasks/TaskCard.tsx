@@ -144,11 +144,7 @@ const TaskCard = ({
             </Badge>
             {overdue && <Badge colorPalette="red">Overdue</Badge>}
           </HStack>
-          <Heading
-            size="md"
-            textDecoration={task.status === 'done' ? 'line-through' : undefined}
-            opacity={task.status === 'done' ? 0.7 : 1}
-          >
+          <Heading size="md" textDecoration={task.status === 'done' ? 'line-through' : undefined}>
             {task.title}
           </Heading>
           <Text color="fg.muted" mt={2}>
