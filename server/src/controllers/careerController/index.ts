@@ -22,6 +22,7 @@ import {
   type JobInput,
   type SkillInput,
 } from '../../services/careerService';
+import { readHttpsLink } from '../../utils/httpsLink';
 import { isObjectIdString } from '../../utils/objectId';
 import { toSkillSlug } from '../../utils/skillSlug';
 
@@ -53,22 +54,12 @@ const text = (value: unknown, max: number, label: string, tooLong: string): Fiel
   return { value: value.trim() };
 };
 
-// Only https links are kept; TaskForge never fetches them.
 const readUrl = (value: unknown): Fields<string> => {
-  if (value === '' || value === null) return { value: '' };
-  if (typeof value !== 'string' || value.length > JOB_URL_MAX) return { error: 'Invalid job link' };
-  try {
-    const url = new URL(value.trim());
-    if (url.protocol !== 'https:' || url.username || url.password) {
-      return { error: 'Job link must be an https address' };
-    }
-    const normalized = url.toString();
-    // Normalizing can lengthen a link (percent-encoding), so check the stored form too.
-    if (normalized.length > JOB_URL_MAX) return { error: 'Invalid job link' };
-    return { value: normalized };
-  } catch {
-    return { error: 'Invalid job link' };
-  }
+  const link = readHttpsLink(value, JOB_URL_MAX);
+  if ('value' in link) return link;
+  return {
+    error: link.error === 'not-https' ? 'Job link must be an https address' : 'Invalid job link',
+  };
 };
 
 const readJob = (body: Record<string, unknown>, create: boolean): Fields<Partial<JobInput>> => {

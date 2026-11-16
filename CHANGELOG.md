@@ -4,6 +4,8 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+- KAN-67: owner-scoped learning roadmap API (`/api/learning`) for courses, articles, books, videos, projects and practice, each optionally tied to a skill, with an https link, status, target date and a server-recorded completion time; no UI yet. The https link check is now shared with saved jobs.
+
 - KAN-66: the weekly review gains a skill-growth step: skills added or updated this week, learning tasks from skill gaps finished this week, and the skills open saved jobs need most; rule-based, from the Career data.
 
 - KAN-64: Career page (`/career`) with a skills inventory, saved jobs with status, a rule-based skill gap per job, and one-press learning tasks for missing skills.

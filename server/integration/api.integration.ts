@@ -9,6 +9,7 @@ import { Project } from '../src/models/projectModel';
 import { Agent } from '../src/models/agentModel';
 import { Review } from '../src/models/reviewModel';
 import { Goal } from '../src/models/goalModel';
+import { LearningItem } from '../src/models/learningModel';
 import { SavedJob } from '../src/models/jobModel';
 import { Skill } from '../src/models/skillModel';
 
@@ -409,6 +410,70 @@ it('keeps goals private to their owner and records when one is achieved', async 
     204,
   );
   expect(await Goal.findById(goal._id)).toBeNull();
+});
+
+it('keeps learning items private to their owner and records when one is done', async () => {
+  const created = await request(app).post('/api/learning').set(auth(aliceToken)).send({
+    title: 'Learning QA',
+    skill: 'Type Script',
+    kind: 'article',
+    url: 'https://learn.example.com/a b',
+    targetDate: '2028-02-29',
+    owner: bobId,
+    completedAt: '2020-01-01',
+  });
+  expect(created.status).toBe(201);
+  const item = created.body.item;
+  expect(item).toMatchObject({
+    owner: aliceId,
+    skill: 'type-script',
+    kind: 'article',
+    url: 'https://learn.example.com/a%20b',
+    status: 'planned',
+    completedAt: null,
+    targetDate: '2028-02-29T00:00:00.000Z',
+  });
+
+  expect((await request(app).get('/api/learning').set(auth(bobToken))).body.items).toEqual([]);
+  expect(
+    (await request(app).patch(`/api/learning/${item._id}`).set(auth(bobToken)).send({ title: 'X' }))
+      .status,
+  ).toBe(404);
+  expect((await request(app).delete(`/api/learning/${item._id}`).set(auth(bobToken))).status).toBe(
+    404,
+  );
+
+  const done = await request(app)
+    .patch(`/api/learning/${item._id}`)
+    .set(auth(aliceToken))
+    .send({ status: 'done' });
+  const stamped = done.body.item.completedAt;
+  expect(Date.parse(stamped)).toBeGreaterThan(Date.parse('2026-01-01T00:00:00.000Z'));
+  const again = await request(app)
+    .patch(`/api/learning/${item._id}`)
+    .set(auth(aliceToken))
+    .send({ notes: 'Finished', status: 'done' });
+  expect(again.body.item).toMatchObject({ completedAt: stamped, notes: 'Finished' });
+  const reopened = await request(app)
+    .patch(`/api/learning/${item._id}`)
+    .set(auth(aliceToken))
+    .send({ status: 'in_progress', skill: '', url: '', targetDate: null });
+  expect(reopened.body.item).toMatchObject({
+    completedAt: null,
+    skill: '',
+    url: '',
+    targetDate: null,
+  });
+  expect(
+    (await request(app).get('/api/learning').set(auth(aliceToken))).body.items.map(
+      (entry: { _id: string }) => entry._id,
+    ),
+  ).toEqual([item._id]);
+
+  expect(
+    (await request(app).delete(`/api/learning/${item._id}`).set(auth(aliceToken))).status,
+  ).toBe(204);
+  expect(await LearningItem.findById(item._id)).toBeNull();
 });
 
 it('keeps skills and saved jobs private, one skill per name, with slug matching', async () => {
