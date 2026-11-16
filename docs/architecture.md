@@ -98,6 +98,10 @@ flowchart LR
 | `POST /api/jobs`                 | JWT  | Save a job by hand                              |
 | `PATCH /api/jobs/:id`            | JWT  | Update a saved job                              |
 | `DELETE /api/jobs/:id`           | JWT  | Delete a saved job                              |
+| `GET /api/learning`              | JWT  | List the user's learning roadmap                |
+| `POST /api/learning`             | JWT  | Add a learning item owned by the user           |
+| `PATCH /api/learning/:id`        | JWT  | Update one of the user's learning items         |
+| `DELETE /api/learning/:id`       | JWT  | Delete one of the user's learning items         |
 
 **Projects and tasks:**
 
@@ -123,6 +127,12 @@ flowchart LR
 - **Saved jobs:** `SavedJob` has `title` (required, up to 120 characters), `company`, `url` (optional, `https` only and without credentials; TaskForge never fetches it), `requiredSkills` (up to 30 slugs, de-duplicated), `status` (`saved`, `applied`, `interviewing`, `offer`, `rejected` or `closed`), `notes`, `owner` and timestamps.
 - **Ownership:** this follows the same rules as goals. Another user's record gets the same `404` as a missing one, and malformed ids get `404` without a query.
 - **Skill gaps:** a job's required skills are compared with the user's skills by slug in the client. Nothing is scraped or inferred.
+
+**Learning roadmap (Phase 6):**
+
+- **Model:** `LearningItem` has `title` (required, up to 120 characters), `skill` (optional, a skill slug so it lines up with the skills inventory; it is not required to be in the inventory, and `''` or `null` clears it while a blank string is rejected), `kind` (`course`, `article`, `book`, `video`, `project`, `practice` or `other`), `url` (optional, `https` only and without credentials, the same check as saved jobs; TaskForge never fetches it), `status` (`planned`, `in_progress` or `done`), `targetDate` (optional calendar date), `notes`, `completedAt`, `owner` and timestamps.
+- **Completion time:** `completedAt` is set by the server only, the same way as a task's: stamped on entering `done`, kept while done, cleared on leaving it.
+- **Ownership:** the same rules as goals: another user's item gets the same `404` as a missing one, and malformed ids get `404` without a query.
 
 **Agents (Agent Registry, Phase 2 foundation):**
 

@@ -171,9 +171,9 @@ Career:
 
 Learning:
 
-- [ ] **PLANNED**: Skills to develop
-- [ ] **PLANNED**: Learning roadmap
-- [ ] **PLANNED**: Courses/articles
+- [ ] **IN PROGRESS**: Skills to develop (learning items tied to a skill, API in KAN-67)
+- [ ] **IN PROGRESS**: Learning roadmap (API in KAN-67; page planned)
+- [ ] **IN PROGRESS**: Courses/articles (stored as learning items with an https link, KAN-67)
 - [ ] **PLANNED**: Portfolio-project recommendations
 - [ ] **IN PROGRESS**: Connect job-market gaps to learning tasks/projects (a missing skill on a saved job becomes a learning task, KAN-64; projects planned)
 

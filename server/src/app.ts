@@ -6,6 +6,7 @@ import aiRoutes from './routes/aiRoutes';
 import authRoutes from './routes/authRoutes';
 import { jobRoutes, skillRoutes } from './routes/careerRoutes';
 import goalRoutes from './routes/goalRoutes';
+import learningRoutes from './routes/learningRoutes';
 import projectRoutes from './routes/projectRoutes';
 import reviewRoutes from './routes/reviewRoutes';
 import runRoutes from './routes/runRoutes';
@@ -49,6 +50,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/runs', runRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/goals', goalRoutes);
+app.use('/api/learning', learningRoutes);
 app.use('/api/skills', skillRoutes);
 app.use('/api/jobs', jobRoutes);
 
