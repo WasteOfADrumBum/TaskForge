@@ -52,9 +52,9 @@ describe('brand routes', () => {
         fonts: [{ role: 'heading', family: ' Inter ' }],
         logos: [
           { label: 'Mark', url: '/taskforge-logo.svg' },
-          { label: 'Wordmark', url: 'https://example.com/logo.png' },
+          { label: 'Wordmark', url: ' HTTPS://Example.com/logo.png ' },
         ],
-        voice: ' Plain and direct ',
+        voice: ' Plain and direct\n\nWarm ',
         writingStyle: 'Short sentences',
         imagePrompts: [' Anvil and spark, flat icon '],
         owner: 'someone-else',
@@ -72,7 +72,7 @@ describe('brand routes', () => {
         { label: 'Mark', url: '/taskforge-logo.svg' },
         { label: 'Wordmark', url: 'https://example.com/logo.png' },
       ],
-      voice: 'Plain and direct',
+      voice: 'Plain and direct\n\nWarm',
       writingStyle: 'Short sentences',
       imagePrompts: ['Anvil and spark, flat icon'],
     });
@@ -96,7 +96,7 @@ describe('brand routes', () => {
     expect(saveBrand).not.toHaveBeenCalled();
   });
 
-  it.each([
+  it.each<[object, string]>([
     [{}, 'Brand name is required'],
     [{ name: '   ' }, 'Brand name is required'],
     [{ name: 'n'.repeat(81) }, 'Brand name is too long'],
@@ -124,6 +124,50 @@ describe('brand routes', () => {
     [
       { name: 'X', logos: [{ label: 'L', url: 'javascript:alert(1)' }] },
       'Logo link must be an https address or a path such as /logo.svg',
+    ],
+    ...[
+      'https://user:pass@example.com/l.png',
+      'https://example.com/' + 'a'.repeat(2000),
+      '/\\evil.example/l.png',
+      '/logos/ mark.svg',
+      '/logos/\u0001.svg',
+      '/../secret',
+      '/logos/%2F%2Fevil',
+      '/logos/%5cevil',
+      'data:image/svg+xml,<svg/>',
+    ].map((url): [object, string] => [
+      { name: 'X', logos: [{ label: 'L', url }] },
+      'Logo link must be an https address or a path such as /logo.svg',
+    ]),
+    [{ name: 'X', logos: [{ label: ' ', url: '/l.svg' }] }, 'Logo label is required'],
+    [{ name: 'X', logos: ['/l.svg'] }, 'Invalid logos'],
+    [{ name: 'X', colors: ['#000000'] }, 'Invalid colors'],
+    [{ name: 'X', fonts: ['Inter'] }, 'Invalid fonts'],
+    [{ name: 'X', tagline: 5 }, 'Invalid tagline'],
+    [{ name: 'Line\nbreak' }, 'Brand name must be one line of text'],
+    [
+      { name: 'X', fonts: [{ role: 'body', family: 'x;}body{display:none' }] },
+      'Use letters, numbers, spaces, dots or hyphens for a font family',
+    ],
+    [
+      {
+        name: 'X',
+        fonts: [
+          { role: 'body', family: 'Inter' },
+          { role: 'body', family: 'Roboto' },
+        ],
+      },
+      'Use each font role once',
+    ],
+    [
+      {
+        name: 'X',
+        colors: [
+          { name: 'Teal', hex: '#0F766E' },
+          { name: 'teal', hex: '#000000' },
+        ],
+      },
+      'Use each color name once',
     ],
     [{ name: 'X', voice: { $ne: '' } }, 'Invalid brand voice'],
     [{ name: 'X', writingStyle: 'w'.repeat(2001) }, 'Writing style is too long'],

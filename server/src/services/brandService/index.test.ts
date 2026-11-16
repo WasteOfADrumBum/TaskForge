@@ -71,6 +71,12 @@ describe('brandService', () => {
     expect(mocked.findOneAndUpdate).toHaveBeenCalledTimes(2);
   });
 
+  it('passes a second duplicate-key failure through', async () => {
+    const duplicate = Object.assign(new Error('dup'), { code: 11000 });
+    mocked.findOneAndUpdate.mockRejectedValueOnce(duplicate).mockRejectedValueOnce(duplicate);
+    await expect(service.saveBrand(owner, 'taskforge', input)).rejects.toBe(duplicate);
+  });
+
   it('passes other errors through', async () => {
     mocked.findOneAndUpdate.mockRejectedValueOnce(new Error('db down'));
     await expect(service.saveBrand(owner, 'taskforge', input)).rejects.toThrow('db down');

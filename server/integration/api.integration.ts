@@ -561,12 +561,20 @@ it('keeps one private brand profile per owner and kind', async () => {
     expect((await request(app).get('/api/brands').set(auth(bobToken))).body).toEqual({
       brands: [],
     });
+    // Two first saves of the same kind race; the unique index keeps one, the other updates it.
+    const racing = await Promise.all(
+      ['Bob A', 'Bob B'].map((name) =>
+        request(app).put('/api/brands/taskforge').set(auth(bobToken)).send({ name }),
+      ),
+    );
+    expect(racing.map((response) => response.status)).toEqual([200, 200]);
+    expect(await Brand.countDocuments({ owner: bobId, kind: 'taskforge' })).toBe(1);
     const bad = await request(app)
       .put('/api/brands/personal')
       .set(auth(bobToken))
       .send({ name: 'Bob', logos: [{ label: 'L', url: 'http://example.com/l.png' }] });
     expect(bad.status).toBe(400);
-    expect(await Brand.countDocuments({ owner: bobId })).toBe(0);
+    expect(await Brand.countDocuments({ owner: bobId, kind: 'personal' })).toBe(0);
   } finally {
     await Brand.deleteMany({ owner: { $in: [aliceId, bobId] } });
   }

@@ -1,4 +1,5 @@
 import { Schema, model } from 'mongoose';
+import { isBrandLogoUrl } from '../../utils/brandLogoUrl';
 
 export const BRAND_KINDS = ['taskforge', 'personal'] as const;
 export type BrandKind = (typeof BRAND_KINDS)[number];
@@ -59,7 +60,12 @@ const brandSchema = new Schema(
         {
           _id: false,
           label: { type: String, required: true, trim: true, maxlength: BRAND_LOGO_LABEL_MAX },
-          url: { type: String, required: true, maxlength: BRAND_LOGO_URL_MAX },
+          url: {
+            type: String,
+            required: true,
+            maxlength: BRAND_LOGO_URL_MAX,
+            validate: { validator: isBrandLogoUrl, message: 'Invalid logo link' },
+          },
         },
       ],
       default: [],
