@@ -10,6 +10,7 @@ import { Agent } from '../src/models/agentModel';
 import { Review } from '../src/models/reviewModel';
 import { Goal } from '../src/models/goalModel';
 import { LearningItem } from '../src/models/learningModel';
+import { Resume } from '../src/models/resumeModel';
 import { SavedJob } from '../src/models/jobModel';
 import { Skill } from '../src/models/skillModel';
 
@@ -479,6 +480,51 @@ it('keeps learning items private to their owner and records when one is done', a
     (await request(app).delete(`/api/learning/${item._id}`).set(auth(aliceToken))).status,
   ).toBe(204);
   expect(await LearningItem.findById(item._id)).toBeNull();
+});
+
+it('keeps one private resume per owner', async () => {
+  try {
+    expect((await request(app).get('/api/resume').set(auth(aliceToken))).body).toEqual({
+      resume: null,
+    });
+    const first = await request(app).put('/api/resume').set(auth(aliceToken)).send({
+      headline: ' Developer ',
+      summary: 'React and Node.js',
+      body: 'Experience',
+      owner: bobId,
+    });
+    expect(first.status).toBe(200);
+    expect(first.body.resume).toMatchObject({
+      owner: aliceId,
+      headline: 'Developer',
+      summary: 'React and Node.js',
+      body: 'Experience',
+    });
+    const second = await request(app)
+      .put('/api/resume')
+      .set(auth(aliceToken))
+      .send({ headline: 'Senior developer' });
+    expect(second.body.resume).toMatchObject({
+      _id: first.body.resume._id,
+      headline: 'Senior developer',
+      summary: '',
+      body: '',
+    });
+    expect(await Resume.countDocuments({ owner: aliceId })).toBe(1);
+    expect((await request(app).get('/api/resume').set(auth(bobToken))).body).toEqual({
+      resume: null,
+    });
+    expect(
+      (
+        await request(app)
+          .put('/api/resume')
+          .set(auth(bobToken))
+          .send({ body: 'b'.repeat(20001) })
+      ).status,
+    ).toBe(400);
+  } finally {
+    await Resume.deleteMany({ owner: { $in: [aliceId, bobId] } });
+  }
 });
 
 it('keeps skills and saved jobs private, one skill per name, with slug matching', async () => {

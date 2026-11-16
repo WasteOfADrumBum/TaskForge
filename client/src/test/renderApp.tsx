@@ -10,6 +10,7 @@ import { setToken } from '../redux/slices/authSlice';
 import type { Agent } from '../types/agent';
 import type { SavedJob, Skill } from '../types/career';
 import type { LearningItem } from '../types/learning';
+import type { Resume } from '../types/resume';
 import type { Goal } from '../types/goal';
 import type { Project } from '../types/project';
 import type { Review } from '../types/review';
@@ -85,6 +86,7 @@ export const stubTaskApi = (
   initialSkills: Skill[] = [],
   initialJobs: SavedJob[] = [],
   initialLearning: LearningItem[] = [],
+  initialResume: Resume | null = null,
 ) => {
   const tasks = [...initial];
   const projects = [...initialProjects];
@@ -94,6 +96,7 @@ export const stubTaskApi = (
   const skills = [...initialSkills];
   const jobs = [...initialJobs];
   const learning = [...initialLearning];
+  let resume: Resume | null = initialResume;
   let nextId = 1;
   const fetchMock = vi.fn(async (url: string, options: RequestInit = {}) => {
     const method = options.method ?? 'GET';
@@ -142,6 +145,19 @@ export const stubTaskApi = (
       }
       list.splice(index, 1);
       return json(204);
+    }
+    if (url.endsWith('/api/resume')) {
+      if (method === 'GET') return json(200, { resume });
+      const now = new Date().toISOString();
+      resume = {
+        _id: resume?._id ?? 'resume-1',
+        headline: String(body.headline ?? '').trim(),
+        summary: String(body.summary ?? '').trim(),
+        body: String(body.body ?? ''),
+        createdAt: resume?.createdAt ?? now,
+        updatedAt: now,
+      };
+      return json(200, { resume });
     }
     const learningMatch = url.match(/\/api\/learning(?:\/([^/]+))?$/);
     if (learningMatch) {
@@ -328,7 +344,18 @@ export const stubTaskApi = (
     return json(204);
   });
   vi.stubGlobal('fetch', fetchMock);
-  return { fetchMock, tasks, projects, agents, reviews, goals, skills, jobs, learning };
+  return {
+    fetchMock,
+    tasks,
+    projects,
+    agents,
+    reviews,
+    goals,
+    skills,
+    jobs,
+    learning,
+    getResume: () => resume,
+  };
 };
 
 // Calls made to one endpoint and method, for example requestsTo(fetchMock, 'GET', '/api/tasks').

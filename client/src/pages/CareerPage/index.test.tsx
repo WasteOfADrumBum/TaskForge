@@ -29,6 +29,8 @@ const job = (overrides: Partial<SavedJob> = {}): SavedJob => ({
   notes: '',
   ...overrides,
 });
+// The page's own status line comes first; sections below have their own.
+const pageStatus = () => screen.getAllByRole('status')[0];
 const stub = (
   skills: Skill[] = [],
   jobs: SavedJob[] = [],
@@ -53,7 +55,7 @@ describe('Career page', () => {
     await userEvent.selectOptions(section.getByRole('combobox', { name: 'Level' }), 'strong');
     await userEvent.click(section.getByRole('button', { name: 'Add skill' }));
     expect(await section.findByText('type-script')).toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveTextContent('Added skill: type-script.');
+    expect(pageStatus()).toHaveTextContent('Added skill: type-script.');
     expect(JSON.parse(String(requestsTo(fetchMock, 'POST', '/api/skills')[0][1]?.body))).toEqual({
       name: 'type-script',
       level: 'strong',
@@ -69,7 +71,7 @@ describe('Career page', () => {
       'expert',
     );
     await waitFor(() => expect(skills.find((item) => item.name === 'react')?.level).toBe('expert'));
-    expect(screen.getByRole('status')).toHaveTextContent('react is now Expert.');
+    expect(pageStatus()).toHaveTextContent('react is now Expert.');
   });
 
   it('saves a job with parsed skills and shows what you have and what is missing', async () => {
@@ -127,8 +129,8 @@ describe('Career page', () => {
     });
     await userEvent.click(add);
     expect(await screen.findByText('Learning task added')).toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveFocus();
-    expect(screen.getByRole('status')).toHaveTextContent(
+    expect(pageStatus()).toHaveFocus();
+    expect(pageStatus()).toHaveTextContent(
       'Added learning task: Learn graphql for Frontend Engineer.',
     );
     const [post] = requestsTo(fetchMock, 'POST', '/api/tasks');
@@ -167,7 +169,7 @@ describe('Career page', () => {
     expect(screen.getByRole('button', { name: 'Confirm delete: Frontend Engineer' })).toHaveFocus();
     await userEvent.keyboard('{Enter}');
     await waitFor(() => expect(jobs).toHaveLength(0));
-    expect(screen.getByRole('status')).toHaveFocus();
+    expect(pageStatus()).toHaveFocus();
     expect(screen.getByText('No saved jobs yet.')).toBeInTheDocument();
   });
 
@@ -237,7 +239,7 @@ it('keeps focus on a level select after changing it', async () => {
   renderApp('/career');
   const select = await screen.findByRole('combobox', { name: 'Level for react' });
   await userEvent.selectOptions(select, 'expert');
-  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('react is now Expert.'));
+  await waitFor(() => expect(pageStatus()).toHaveTextContent('react is now Expert.'));
   expect(select).toBeEnabled();
   expect(select).toHaveFocus();
 });
@@ -299,5 +301,109 @@ describe('Career goals panel', () => {
     fail = false;
     await userEvent.click(panel.getByRole('button', { name: 'Retry loading goals' }));
     expect(await panel.findByText(/No active career goals yet/)).toBeInTheDocument();
+  });
+});
+
+describe('Resume section', () => {
+  const resumeStub = (resume: Parameters<typeof stubTaskApi>[8] = null) =>
+    stubTaskApi(
+      [],
+      [],
+      [],
+      [],
+      [],
+      [skill('react'), skill('node-js'), skill('aws')],
+      [
+        job({ _id: 'j1', title: 'Frontend Engineer', requiredSkills: ['react', 'graphql'] }),
+        job({ _id: 'j2', title: 'Platform', requiredSkills: ['graphql', 'docker'] }),
+      ],
+      [],
+      resume,
+    );
+
+  it('loads the saved resume, checks skills by whole word and saves changes', async () => {
+    signIn();
+    const { fetchMock, getResume } = resumeStub({
+      _id: 'r1',
+      headline: 'Developer',
+      summary: 'Builds with React and Node.js.',
+      body: '',
+      updatedAt: new Date().toISOString(),
+    });
+    renderApp('/career');
+    const section = within(await screen.findByRole('region', { name: 'Resume' }));
+    const summary = await section.findByRole('textbox', { name: 'Summary' });
+    expect(summary).toHaveValue('Builds with React and Node.js.');
+    expect(section.getByText(/^Saved at /)).toBeInTheDocument();
+    const mentioned = await section.findByRole('list', { name: 'Your skills it mentions: 2' });
+    expect(
+      within(mentioned)
+        .getAllByRole('listitem')
+        .map((item) => item.textContent),
+    ).toEqual(['node-js', 'react']);
+    expect(
+      within(section.getByRole('list', { name: 'Your skills it does not mention: 1' })).getByText(
+        'aws',
+      ),
+    ).toBeInTheDocument();
+    const needs = section.getByRole('list', {
+      name: 'Skills your open saved jobs need that it does not mention',
+    });
+    expect(
+      within(needs)
+        .getAllByRole('listitem')
+        .map((item) => item.textContent),
+    ).toEqual(['graphql: needed by 2 jobs', 'docker: needed by 1 job']);
+
+    await userEvent.type(
+      section.getByRole('textbox', { name: /experience, education/i }),
+      'AWS Lambda',
+    );
+    expect(section.getByRole('list', { name: 'Your skills it mentions: 3' })).toBeInTheDocument();
+    expect(section.getByText('Unsaved changes.')).toBeInTheDocument();
+    await userEvent.click(section.getByRole('button', { name: 'Save resume' }));
+    await waitFor(() => expect(getResume()?.body).toBe('AWS Lambda'));
+    expect(await section.findByText(/^Saved at /)).toBeInTheDocument();
+    expect(JSON.parse(String(requestsTo(fetchMock, 'PUT', '/api/resume')[0][1]?.body))).toEqual({
+      headline: 'Developer',
+      summary: 'Builds with React and Node.js.',
+      body: 'AWS Lambda',
+    });
+  });
+
+  it('starts empty when there is no resume and shows a failed save as an alert', async () => {
+    signIn();
+    const { fetchMock } = resumeStub();
+    const passThrough = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation(async (url: string, options: RequestInit = {}) =>
+      options.method === 'PUT'
+        ? { status: 503, ok: false, json: async () => ({ message: 'Resume unavailable' }) }
+        : passThrough(url, options),
+    );
+    renderApp('/career');
+    const section = within(await screen.findByRole('region', { name: 'Resume' }));
+    expect(await section.findByRole('textbox', { name: 'Headline' })).toHaveValue('');
+    await userEvent.click(section.getByRole('button', { name: 'Save resume' }));
+    expect(await section.findByRole('alert')).toHaveTextContent('Resume unavailable');
+    expect(section.getByRole('status')).toHaveTextContent('');
+  });
+
+  it('retries a failed load', async () => {
+    signIn();
+    const { fetchMock } = resumeStub();
+    const passThrough = fetchMock.getMockImplementation()!;
+    let fail = true;
+    fetchMock.mockImplementation(async (url: string, options: RequestInit = {}) =>
+      fail && url.endsWith('/api/resume')
+        ? { status: 500, ok: false, json: async () => ({ message: 'Resume is down' }) }
+        : passThrough(url, options),
+    );
+    renderApp('/career');
+    const section = within(await screen.findByRole('region', { name: 'Resume' }));
+    expect(await section.findByRole('alert')).toHaveTextContent('Resume is down');
+    fail = false;
+    await userEvent.click(section.getByRole('button', { name: 'Retry loading resume' }));
+    expect(section.getByRole('status')).toHaveFocus();
+    expect(await section.findByRole('textbox', { name: 'Headline' })).toBeInTheDocument();
   });
 });

@@ -29,6 +29,7 @@ import { isCurrentSession } from '../../api/authenticatedFetch';
 import { createTask } from '../../api/tasks';
 import CareerGoals from '../../components/career/CareerGoals';
 import ConfirmDeleteButton from '../../components/common/ConfirmDeleteButton';
+import ResumeSection from '../../components/career/ResumeSection';
 import { useOwnedList } from '../../hooks/useOwnedList';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks/typedHooks';
 import { addTask } from '../../redux/slices/taskSlice';
@@ -553,6 +554,12 @@ const CareerPage = () => {
           </Box>
         )}
       </Box>
+
+      <ResumeSection
+        skills={skills.items}
+        jobs={jobs.items}
+        careerLoaded={skills.loaded && jobs.loaded}
+      />
     </VStack>
   );
 };

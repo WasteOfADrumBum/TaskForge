@@ -102,6 +102,8 @@ flowchart LR
 | `POST /api/learning`             | JWT  | Add a learning item owned by the user           |
 | `PATCH /api/learning/:id`        | JWT  | Update one of the user's learning items         |
 | `DELETE /api/learning/:id`       | JWT  | Delete one of the user's learning items         |
+| `GET /api/resume`                | JWT  | Get the user's resume, or null                  |
+| `PUT /api/resume`                | JWT  | Create or replace the user's resume             |
 
 **Projects and tasks:**
 
@@ -127,6 +129,12 @@ flowchart LR
 - **Saved jobs:** `SavedJob` has `title` (required, up to 120 characters), `company`, `url` (optional, `https` only and without credentials; TaskForge never fetches it), `requiredSkills` (up to 30 slugs, de-duplicated), `status` (`saved`, `applied`, `interviewing`, `offer`, `rejected` or `closed`), `notes`, `owner` and timestamps.
 - **Ownership:** this follows the same rules as goals. Another user's record gets the same `404` as a missing one, and malformed ids get `404` without a query.
 - **Skill gaps:** a job's required skills are compared with the user's skills by slug in the client. Nothing is scraped or inferred.
+
+**Resume (Phase 6):**
+
+- **Model:** `Resume` has `headline` (up to 120 characters), `summary` (up to 2000), `body` (plain text, up to 20000), `owner` and timestamps. There is one per owner: a unique `{ owner }` index is created lazily on first save with the same fail-closed guard as runs (`503` if it can't be confirmed), and a racing first save retries as an update.
+- **Input:** `PUT` reads only the three text fields; a missing or `null` field saves as empty. `owner`, `_id` and timestamps in a body are ignored.
+- **Skill check:** the client compares the resume text with the user's skills and the skills open saved jobs need, by whole word, where a hyphen in a skill name can match a space, dot, underscore or nothing (`node-js` matches `Node.js`). Nothing is uploaded, parsed from files or inferred.
 
 **Learning roadmap (Phase 6):**
 
