@@ -24,10 +24,11 @@ Daily review, weekly review, progress analytics, agent recommendations, goal rev
 
 - Goals API (KAN-61): the goals model that goal review depends on, with status and an optional target date.
 
+- Goals page and weekly goal check-in (KAN-62): the Goals page (`/goals`) adds goals and marks them achieved, dropped or active again; an active goal past its target says so in text. The weekly review gains a step to check in on active goals.
+
 ## Planned capabilities
 
 - Agent recommendations
-- Goal review
 - Skill-growth review
 
 ## Dependencies

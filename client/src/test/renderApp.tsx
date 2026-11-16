@@ -8,6 +8,7 @@ import { system } from '../assets/theme/theme';
 import { store } from '../redux/store';
 import { setToken } from '../redux/slices/authSlice';
 import type { Agent } from '../types/agent';
+import type { Goal } from '../types/goal';
 import type { Project } from '../types/project';
 import type { Review } from '../types/review';
 import type { Task } from '../types/task';
@@ -78,11 +79,13 @@ export const stubTaskApi = (
   initialProjects: Project[] = [],
   initialAgents: Agent[] = [],
   initialReviews: Review[] = [],
+  initialGoals: Goal[] = [],
 ) => {
   const tasks = [...initial];
   const projects = [...initialProjects];
   const agents = [...initialAgents];
   const reviews = [...initialReviews];
+  const goals = [...initialGoals];
   let nextId = 1;
   const fetchMock = vi.fn(async (url: string, options: RequestInit = {}) => {
     const method = options.method ?? 'GET';
@@ -96,6 +99,39 @@ export const stubTaskApi = (
       return json(200, { message: 'Logged in successfully', token: validToken() });
     }
     if (url.includes('/api/runs/approvals') && method === 'GET') return json(200, { runs: [] });
+    const goalMatch = url.match(/\/api\/goals(?:\/([^/]+))?$/);
+    if (goalMatch) {
+      const goalId = goalMatch[1] && decodeURIComponent(goalMatch[1]);
+      const now = new Date().toISOString();
+      if (method === 'GET' && !goalId) return json(200, { goals });
+      if (method === 'POST') {
+        const goal: Goal = {
+          _id: 'goal-' + nextId++,
+          title: String(body.title ?? '').trim(),
+          description: String(body.description ?? '').trim(),
+          status: body.status ?? 'active',
+          targetDate: body.targetDate ? body.targetDate.slice(0, 10) + 'T00:00:00.000Z' : null,
+          achievedAt: body.status === 'achieved' ? now : null,
+          createdAt: now,
+          updatedAt: now,
+        };
+        goals.unshift(goal);
+        return json(201, { goal });
+      }
+      const index = goals.findIndex((goal) => goal._id === goalId);
+      if (index === -1) return json(404, { message: 'Goal not found' });
+      if (method === 'PATCH') {
+        const previous = goals[index];
+        // Mirrors the server: achievedAt is stamped on entering achieved and cleared on leaving.
+        let achievedAt = previous.achievedAt ?? null;
+        if (body.status === 'achieved' && previous.status !== 'achieved') achievedAt = now;
+        else if (body.status !== undefined && body.status !== 'achieved') achievedAt = null;
+        goals[index] = { ...previous, ...body, achievedAt, updatedAt: now };
+        return json(200, { goal: goals[index] });
+      }
+      goals.splice(index, 1);
+      return json(204);
+    }
     const reviewMatch = url.match(/\/api\/reviews(?:\/(daily|weekly)\/([^/?]+))?(?:\?(.*))?$/);
     if (reviewMatch) {
       const [, kind, period, query] = reviewMatch;
@@ -211,7 +247,7 @@ export const stubTaskApi = (
     return json(204);
   });
   vi.stubGlobal('fetch', fetchMock);
-  return { fetchMock, tasks, projects, agents, reviews };
+  return { fetchMock, tasks, projects, agents, reviews, goals };
 };
 
 // Calls made to one endpoint and method, for example requestsTo(fetchMock, 'GET', '/api/tasks').

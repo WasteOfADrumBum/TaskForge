@@ -11,13 +11,14 @@ import {
   Textarea,
   VStack,
 } from '@chakra-ui/react';
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { LuSave } from 'react-icons/lu';
 import { Link as RouterLink } from 'react-router-dom';
 import { getReviews, saveReview } from '../../api/reviews';
 import { getTasks } from '../../api/tasks';
 import { isCurrentSession } from '../../api/authenticatedFetch';
 import { useDelayedRequest } from '../../hooks/useDelayedRequest';
+import { useGoals } from '../../hooks/useGoals';
 import { useToday } from '../../hooks/useToday';
 import { useAppSelector } from '../../redux/hooks/typedHooks';
 import {
@@ -26,8 +27,10 @@ import {
   REVIEW_REFLECTION_MAX,
   type ReviewKind,
 } from '../../types/review';
+import { getGoalId, type Goal } from '../../types/goal';
 import { getTaskId, type Task } from '../../types/task';
 import { formatCalendarDate } from '../../utils/dates';
+import { goalTargetText } from '../../utils/goals';
 import { getReviewData } from '../../utils/reviews';
 import { SessionExpiredError } from '../../utils/session';
 
@@ -81,11 +84,13 @@ const TaskList = ({ tasks, label }: { tasks: Task[]; label: string }) => (
 const Step = ({
   id,
   number,
+  total,
   title,
   children,
 }: {
   id: string;
   number: number;
+  total: number;
   title: string;
   children: ReactNode;
 }) => (
@@ -98,7 +103,7 @@ const Step = ({
     p={{ base: 4, md: 5 }}
   >
     <Text color="fg.muted" fontSize="sm" fontWeight="medium">
-      Step {number} of 4
+      Step {number} of {total}
     </Text>
     <Heading as="h3" id={id} size="md" mb={3}>
       {title}
@@ -106,6 +111,95 @@ const Step = ({
     {children}
   </Box>
 );
+
+// Weekly goal check-in: active goals with their targets, and a quick way to mark one achieved.
+function GoalCheckIn({ now }: { now: Date }) {
+  const { goals, loaded, error, pending, isBusy, reload, update } = useGoals();
+  const [message, setMessage] = useState<string | null>(null);
+  const [failure, setFailure] = useState<string | null>(null);
+  // The pressed button leaves the list, so focus moves to the result line.
+  const resultRef = useRef<HTMLParagraphElement>(null);
+  const active = goals.filter((goal) => goal.status === 'active');
+  const achieve = async (goal: Goal) => {
+    setMessage(null);
+    setFailure(null);
+    const error = await update(getGoalId(goal), { status: 'achieved' });
+    if (error) setFailure(error);
+    else {
+      setMessage('Marked achieved: ' + goal.title + '.');
+      resultRef.current?.focus();
+    }
+  };
+  return (
+    <>
+      <Text
+        ref={resultRef}
+        tabIndex={-1}
+        role="status"
+        aria-live="polite"
+        fontSize="sm"
+        color="fg.muted"
+        _focusVisible={{ outline: '2px solid', outlineColor: 'accent.teal' }}
+      >
+        {pending ? 'Loading your goals...' : (message ?? '')}
+      </Text>
+      {failure && (
+        <Text role="alert" color="fg.error" fontSize="sm">
+          {failure}
+        </Text>
+      )}
+      {error && !pending ? (
+        <VStack align="start" gap={2}>
+          <Text color="fg.error">{error}</Text>
+          <Button size="sm" variant="outline" onClick={reload}>
+            Retry loading goals
+          </Button>
+        </VStack>
+      ) : loaded && active.length ? (
+        <Box as="ul" listStyleType="none" m={0} p={0} aria-label="Active goals">
+          {active.map((goal) => {
+            const target = goalTargetText(goal, now);
+            return (
+              <HStack
+                as="li"
+                key={getGoalId(goal)}
+                justify="space-between"
+                gap={3}
+                py={2}
+                borderTopWidth="1px"
+                borderColor="border.muted"
+                flexWrap="wrap"
+              >
+                <Box minW="0">
+                  <Text overflowWrap="anywhere">{goal.title}</Text>
+                  {target && (
+                    <Text fontSize="xs" color="fg.muted">
+                      {target}
+                    </Text>
+                  )}
+                </Box>
+                <Button
+                  size="xs"
+                  variant="outline"
+                  disabled={isBusy(getGoalId(goal))}
+                  onClick={() => void achieve(goal)}
+                  aria-label={'Mark achieved: ' + goal.title}
+                >
+                  Mark achieved
+                </Button>
+              </HStack>
+            );
+          })}
+        </Box>
+      ) : loaded ? (
+        <Text color="fg.muted">No active goals yet.</Text>
+      ) : null}
+      <Link asChild fontSize="sm" color="accent.teal" mt={3} display="inline-block">
+        <RouterLink to="/goals">Add or update goals</RouterLink>
+      </Link>
+    </>
+  );
+}
 
 function ReviewForm({
   kind,
@@ -142,6 +236,8 @@ function ReviewForm({
   const max = REVIEW_FOCUS_MAX[kind];
   const text = copy[kind];
   const ids = (prefix: string) => kind + '-' + prefix;
+  // The weekly review adds a goal check-in.
+  const totalSteps = kind === 'weekly' ? 5 : 4;
 
   useEffect(() => {
     if (!isCurrentSession(token, sessionVersion)) return;
@@ -260,7 +356,7 @@ function ReviewForm({
 
       {loaded && (
         <>
-          <Step id={ids('look-back')} number={1} title="Look back">
+          <Step id={ids('look-back')} number={1} total={totalSteps} title="Look back">
             {tasksReady && (
               <Text fontWeight="medium" mb={2}>
                 {text.done}: {data.completed.length}
@@ -275,7 +371,7 @@ function ReviewForm({
             )}
           </Step>
 
-          <Step id={ids('attention')} number={2} title="Needs attention">
+          <Step id={ids('attention')} number={2} total={totalSteps} title="Needs attention">
             {tasksReady && (
               <Text fontWeight="medium" mb={2}>
                 {text.attention}: {data.attention.length}
@@ -293,7 +389,18 @@ function ReviewForm({
             </Link>
           </Step>
 
-          <Step id={ids('focus')} number={3} title="Choose your focus">
+          {kind === 'weekly' && (
+            <Step id={ids('goals')} number={3} total={totalSteps} title="Check in on your goals">
+              <GoalCheckIn now={now} />
+            </Step>
+          )}
+
+          <Step
+            id={ids('focus')}
+            number={totalSteps - 1}
+            total={totalSteps}
+            title="Choose your focus"
+          >
             {!tasksReady ? (
               <Text color="fg.muted">{tasksPending}</Text>
             ) : data.candidates.length ? (
@@ -339,7 +446,7 @@ function ReviewForm({
             )}
           </Step>
 
-          <Step id={ids('reflect')} number={4} title="Reflect">
+          <Step id={ids('reflect')} number={totalSteps} total={totalSteps} title="Reflect">
             <Field.Root>
               <Field.Label>{text.reflect}</Field.Label>
               <Textarea

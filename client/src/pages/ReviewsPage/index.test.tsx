@@ -211,3 +211,62 @@ describe('Reviews page', () => {
     expect(screen.queryByText(/No open tasks/)).not.toBeInTheDocument();
   });
 });
+
+describe('Weekly goal check-in', () => {
+  it('lists active goals in the weekly review and marks one achieved', async () => {
+    signIn();
+    const { goals } = stubTaskApi(
+      [makeTask({ _id: 'o1', title: 'Write notes' })],
+      [],
+      [],
+      [],
+      [
+        { _id: 'g1', title: 'Learn Rust', description: '', status: 'active', targetDate: null },
+        { _id: 'g2', title: 'Old goal', description: '', status: 'dropped', targetDate: null },
+      ],
+    );
+    renderApp('/reviews');
+    expect(await screen.findByText('Step 1 of 4')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('region', { name: /check in on your goals/i }),
+    ).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Weekly review' }));
+    const goalsStep = await waitFor(() => step(/check in on your goals/i));
+    expect(screen.getByText('Step 3 of 5')).toBeInTheDocument();
+    expect(await goalsStep.findByText('Learn Rust')).toBeInTheDocument();
+    expect(goalsStep.queryByText('Old goal')).not.toBeInTheDocument();
+    expect(goalsStep.getByRole('link', { name: 'Add or update goals' })).toHaveAttribute(
+      'href',
+      '/goals',
+    );
+    await userEvent.click(goalsStep.getByRole('button', { name: 'Mark achieved: Learn Rust' }));
+    expect(await goalsStep.findByText('Marked achieved: Learn Rust.')).toHaveFocus();
+    expect(goalsStep.getByText('No active goals yet.')).toBeInTheDocument();
+    expect(goals[0]).toMatchObject({ status: 'achieved', achievedAt: expect.any(String) });
+  });
+});
+
+it('shows a failed goal check-in as an alert and keeps the goal listed', async () => {
+  signIn();
+  const { fetchMock } = stubTaskApi(
+    [],
+    [],
+    [],
+    [],
+    [{ _id: 'g1', title: 'Learn Rust', description: '', status: 'active', targetDate: null }],
+  );
+  const passThrough = fetchMock.getMockImplementation()!;
+  fetchMock.mockImplementation(async (url: string, options: RequestInit = {}) =>
+    (options.method ?? 'GET') === 'PATCH'
+      ? { status: 500, ok: false, json: async () => ({ message: 'Could not save goal' }) }
+      : passThrough(url, options),
+  );
+  renderApp('/reviews');
+  await userEvent.click(await screen.findByRole('button', { name: 'Weekly review' }));
+  const goalsStep = await waitFor(() => step(/check in on your goals/i));
+  await userEvent.click(
+    await goalsStep.findByRole('button', { name: 'Mark achieved: Learn Rust' }),
+  );
+  expect(await goalsStep.findByRole('alert')).toHaveTextContent('Could not save goal');
+  expect(goalsStep.getByText('Learn Rust')).toBeInTheDocument();
+});

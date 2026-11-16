@@ -26,7 +26,7 @@ const registerAndLogin = async (page: Page) => {
 
 // One account for both Phase 5 flows: the guarded API caps registrations per run, so each new
 // spec should reuse an account where it can.
-test('shows progress and completes and reopens a daily review on mobile by keyboard', async ({
+test('shows progress, completes a daily review, and checks in on a goal on mobile by keyboard', async ({
   page,
   playwright,
 }) => {
@@ -107,6 +107,36 @@ test('shows progress and completes and reopens a daily review on mobile by keybo
       'Synthetic reflection.',
     );
     await expect(page.getByRole('checkbox', { name: new RegExp(title) })).toBeChecked();
+
+    // Goals: add one by keyboard, then check in on it from the weekly review.
+    const goalTitle = 'Goal ' + randomUUID();
+    await page.goto('/goals');
+    await expect(page.getByRole('heading', { level: 1, name: 'Goals' })).toBeVisible();
+    const goalField = page.getByRole('textbox', { name: /title/i });
+    await goalField.focus();
+    await page.keyboard.type(goalTitle);
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('region', { name: /active goals/i })).toContainText(goalTitle);
+    await page.goto('/reviews');
+    const weekly = page.getByRole('button', { name: 'Weekly review', exact: true });
+    await weekly.focus();
+    await page.keyboard.press('Enter');
+    const goalsStep = page.getByRole('region', { name: 'Check in on your goals' });
+    const achieve = goalsStep.getByRole('button', { name: 'Mark achieved: ' + goalTitle });
+    await achieve.focus();
+    await page.keyboard.press('Enter');
+    await expect(goalsStep.getByText('Marked achieved: ' + goalTitle + '.')).toBeVisible();
+    const storedGoals = (await (await api.get('/api/goals')).json()).goals;
+    expect(storedGoals).toEqual([
+      expect.objectContaining({
+        title: goalTitle,
+        status: 'achieved',
+        achievedAt: expect.any(String),
+      }),
+    ]);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+    ).toBe(true);
   } finally {
     await api.dispose();
   }
