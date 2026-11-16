@@ -8,6 +8,7 @@ import { User } from '../src/models/userModel';
 import { Project } from '../src/models/projectModel';
 import { Agent } from '../src/models/agentModel';
 import { Review } from '../src/models/reviewModel';
+import { Goal } from '../src/models/goalModel';
 
 // No credentials, remote hosts, options, or application database names are permitted.
 const uri = process.env.TEST_MONGO_URI;
@@ -360,4 +361,50 @@ it('saves one owner-scoped review per period and rejects another user’s tasks'
   expect((await request(app).delete(`/api/tasks/${focusId}`).set(auth(aliceToken))).status).toBe(
     204,
   );
+});
+
+it('keeps goals private to their owner and records when one is achieved', async () => {
+  const created = await request(app)
+    .post('/api/goals')
+    .set(auth(aliceToken))
+    .send({ title: 'Goal QA', targetDate: '2028-02-29', owner: bobId, achievedAt: '2020-01-01' });
+  expect(created.status).toBe(201);
+  const goal = created.body.goal;
+  expect(goal).toMatchObject({
+    owner: aliceId,
+    status: 'active',
+    achievedAt: null,
+    targetDate: '2028-02-29T00:00:00.000Z',
+  });
+
+  expect((await request(app).get('/api/goals').set(auth(bobToken))).body.goals).toEqual([]);
+  expect(
+    (await request(app).patch(`/api/goals/${goal._id}`).set(auth(bobToken)).send({ title: 'X' }))
+      .status,
+  ).toBe(404);
+  expect((await request(app).delete(`/api/goals/${goal._id}`).set(auth(bobToken))).status).toBe(
+    404,
+  );
+
+  const achieved = await request(app)
+    .patch(`/api/goals/${goal._id}`)
+    .set(auth(aliceToken))
+    .send({ status: 'achieved' });
+  const stamped = achieved.body.goal.achievedAt;
+  expect(Date.parse(stamped)).toBeGreaterThan(Date.parse('2026-01-01T00:00:00.000Z'));
+  const again = await request(app)
+    .patch(`/api/goals/${goal._id}`)
+    .set(auth(aliceToken))
+    .send({ title: 'Goal QA renamed', status: 'achieved' });
+  expect(again.body.goal.achievedAt).toBe(stamped);
+  const reopened = await request(app)
+    .patch(`/api/goals/${goal._id}`)
+    .set(auth(aliceToken))
+    .send({ status: 'active', targetDate: null });
+  expect(reopened.body.goal).toMatchObject({ achievedAt: null, targetDate: null });
+
+  expect((await request(app).delete(`/api/goals/${goal._id}`).set(auth(aliceToken))).status).toBe(
+    204,
+  );
+  expect(await Goal.findById(goal._id)).toBeNull();
 });

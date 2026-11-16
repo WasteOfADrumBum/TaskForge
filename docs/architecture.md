@@ -86,6 +86,10 @@ flowchart LR
 | `DELETE /api/agents/:id`         | JWT  | Delete an agent; its tasks become unassigned    |
 | `GET /api/reviews`               | JWT  | List the user's recent daily and weekly reviews |
 | `PUT /api/reviews/:kind/:period` | JWT  | Save (create or replace) one review             |
+| `GET /api/goals`                 | JWT  | List the user's goals                           |
+| `POST /api/goals`                | JWT  | Create a goal owned by the user                 |
+| `PATCH /api/goals/:id`           | JWT  | Update one of the user's goals                  |
+| `DELETE /api/goals/:id`          | JWT  | Delete one of the user's goals                  |
 
 **Projects and tasks:**
 
@@ -98,6 +102,12 @@ flowchart LR
 - **Model:** `Review` has `owner`, `kind` (`daily` or `weekly`), `period` (the user's local calendar date of the day reviewed, or the Monday of the week, as `YYYY-MM-DD`), `reflection` (up to 2000 characters), `focusTasks` (at most 3 daily or 5 weekly, all the owner's own tasks when saved) and timestamps. A focus task deleted later simply stops resolving.
 - **One per period:** a unique `{ owner, kind, period }` index, created lazily on first save with the same fail-closed guard as runs (`503` if it cannot be confirmed). `PUT` is an upsert, so saving again replaces the review; two racing first saves leave one document.
 - **Validation and ownership:** an invalid kind, a date that is not a real `YYYY-MM-DD` day, or a weekly period that is not a Monday gets `400`. Focus task ids are de-duplicated; malformed ids, too many, or any id that is not the owner's task get `400` without saving. `GET /api/reviews` accepts `kind` and `limit` (1 to 30, default 14) and returns the owner's reviews, newest period first.
+
+**Goals (Phase 5):**
+
+- **Model:** `Goal` has `title` (required, up to 120 characters), `description` (up to 2000), `status` (`active`, `achieved` or `dropped`), `targetDate` (optional calendar date, validated like task due dates), `achievedAt`, `owner` and timestamps. Goals stand alone for now, with no project or task links, so deleting a project or task never touches them.
+- **Achieved time:** `achievedAt` is set by `goalService` only, the same way as a task's `completedAt`: stamped when a goal becomes achieved, kept while it stays achieved, cleared when it leaves. Request input never sets it.
+- **Ownership:** every goal query filters by `owner`. Another user's goal gets the same `404 Goal not found` as a missing one, and malformed ids get `404` without a query. `owner`, `_id`, `achievedAt` and timestamps in a body are ignored.
 
 **Agents (Agent Registry, Phase 2 foundation):**
 

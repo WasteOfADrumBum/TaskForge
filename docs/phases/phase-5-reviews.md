@@ -22,6 +22,8 @@ Daily review, weekly review, progress analytics, agent recommendations, goal rev
 
 - Guided daily and weekly reviews (KAN-60): the Reviews page (`/reviews`) walks through four steps: look back at tasks completed today (or Monday to Sunday), see what is overdue or coming due, choose up to 3 (or 5) focus tasks, and write a reflection. Saving stores today's (or this week's) review; reopening the page loads it. Rule-based and labelled as such.
 
+- Goals API (KAN-61): the goals model that goal review depends on, with status and an optional target date.
+
 ## Planned capabilities
 
 - Agent recommendations

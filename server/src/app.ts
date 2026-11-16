@@ -4,6 +4,7 @@ import knowledgeRoutes from './routes/knowledgeRoutes';
 import agentRoutes from './routes/agentRoutes';
 import aiRoutes from './routes/aiRoutes';
 import authRoutes from './routes/authRoutes';
+import goalRoutes from './routes/goalRoutes';
 import projectRoutes from './routes/projectRoutes';
 import reviewRoutes from './routes/reviewRoutes';
 import runRoutes from './routes/runRoutes';
@@ -46,6 +47,7 @@ app.use('/api/agents', agentRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/runs', runRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/goals', goalRoutes);
 
 app.get('/', (_req, res) => {
   res.send('TaskForge API is running!');
