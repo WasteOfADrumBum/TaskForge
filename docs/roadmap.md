@@ -157,14 +157,14 @@ Release readiness and the approved bounded Phase 2 milestone are complete. Josh 
 
 ## Phase 6: Career + Learning ([details](phases/phase-6-career-learning.md))
 
-**Status: PLANNED**
+**Status: IN PROGRESS**
 
 Career:
 
 - [ ] **PLANNED**: Resume
-- [ ] **PLANNED**: Skills inventory
+- [ ] **IN PROGRESS**: Skills inventory (API in KAN-63; screens next)
 - [ ] **PLANNED**: Job opportunities
-- [ ] **PLANNED**: Saved jobs
+- [ ] **IN PROGRESS**: Saved jobs (API in KAN-63; screens next)
 - [ ] **PLANNED**: Applications
 - [ ] **PLANNED**: Skill-gap analysis
 - [ ] **PLANNED**: Career goals

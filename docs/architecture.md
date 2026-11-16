@@ -90,6 +90,14 @@ flowchart LR
 | `POST /api/goals`                | JWT  | Create a goal owned by the user                 |
 | `PATCH /api/goals/:id`           | JWT  | Update one of the user's goals                  |
 | `DELETE /api/goals/:id`          | JWT  | Delete one of the user's goals                  |
+| `GET /api/skills`                | JWT  | List the user's skills inventory                |
+| `POST /api/skills`               | JWT  | Add a skill (one per name)                      |
+| `PATCH /api/skills/:id`          | JWT  | Rename a skill or change its level              |
+| `DELETE /api/skills/:id`         | JWT  | Remove a skill                                  |
+| `GET /api/jobs`                  | JWT  | List the user's saved jobs                      |
+| `POST /api/jobs`                 | JWT  | Save a job by hand                              |
+| `PATCH /api/jobs/:id`            | JWT  | Update a saved job                              |
+| `DELETE /api/jobs/:id`           | JWT  | Delete a saved job                              |
 
 **Projects and tasks:**
 
@@ -108,6 +116,13 @@ flowchart LR
 - **Model:** `Goal` has `title` (required, up to 120 characters), `description` (up to 2000), `status` (`active`, `achieved` or `dropped`), `targetDate` (optional calendar date, validated like task due dates), `achievedAt`, `owner` and timestamps. Goals stand alone for now, with no project or task links, so deleting a project or task never touches them.
 - **Achieved time:** `achievedAt` is set by `goalService` only, the same way as a task's `completedAt`: stamped when a goal becomes achieved, kept while it stays achieved, cleared when it leaves. Request input never sets it.
 - **Ownership:** every goal query filters by `owner`. Another user's goal gets the same `404 Goal not found` as a missing one, and malformed ids get `404` without a query. `owner`, `_id`, `achievedAt` and timestamps in a body are ignored.
+
+**Skills and saved jobs (Phase 6):**
+
+- **Skills:** `Skill` has `name`, `level` (`learning`, `working`, `strong` or `expert`), `owner` and timestamps. Names are slugs, the same rule as agent skills, so `Node JS` and `node_js` both become `node-js`. A unique `{ owner, name }` index is created lazily on first write with the same fail-closed guard as runs (`503` if it can't be confirmed), and a duplicate name gets `409`.
+- **Saved jobs:** `SavedJob` has `title` (required, up to 120 characters), `company`, `url` (optional, `https` only and without credentials; TaskForge never fetches it), `requiredSkills` (up to 30 slugs, de-duplicated), `status` (`saved`, `applied`, `interviewing`, `offer`, `rejected` or `closed`), `notes`, `owner` and timestamps.
+- **Ownership:** this follows the same rules as goals. Another user's record gets the same `404` as a missing one, and malformed ids get `404` without a query.
+- **Skill gaps:** a job's required skills are compared with the user's skills by slug in the client. Nothing is scraped or inferred.
 
 **Agents (Agent Registry, Phase 2 foundation):**
 
