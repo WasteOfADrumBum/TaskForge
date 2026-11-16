@@ -4,6 +4,8 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+- KAN-58: Progress page (`/progress`, in the sidebar) with completions per day or week, the previous-window comparison, tasks created, on-time rate, average per day and completions by project; rule-based, computed from recorded completion times.
+
 - KAN-57: tasks record when they were completed (`completedAt`, set by the server only and cleared on reopen) so Phase 5 analytics reflect real history; existing data is not backfilled.
 
 - KAN-56: rule-based "At risk" flag for active projects with overdue work, listed first on the Command Center and shown on project cards.

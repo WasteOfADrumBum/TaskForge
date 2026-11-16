@@ -40,3 +40,4 @@ Thumbs.db
 # Local browser test artifacts
 test-results/
 playwright-report/
+*.tsbuildinfo

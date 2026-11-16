@@ -150,7 +150,7 @@ Release readiness and the approved bounded Phase 2 milestone are complete. Josh 
 
 - [ ] **PLANNED**: Daily review
 - [ ] **PLANNED**: Weekly review
-- [ ] **IN PROGRESS**: Progress analytics (tasks now record when they were completed, KAN-57)
+- [x] **COMPLETE**: Progress analytics (KAN-58): `/progress` shows completions per day or week, tasks created, on-time rate and completions by project from recorded completion times (KAN-57); rule-based
 - [ ] **PLANNED**: Agent recommendations
 - [ ] **PLANNED**: Goal review
 - [ ] **PLANNED**: Skill-growth review

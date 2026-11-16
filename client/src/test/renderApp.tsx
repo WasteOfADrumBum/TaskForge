@@ -153,14 +153,27 @@ export const stubTaskApi = (
     const id = match[1];
     if (method === 'GET') return json(200, { tasks });
     if (method === 'POST') {
-      const task = makeTask({ _id: 'new-' + nextId++, ...body });
+      // Mirrors the server: completedAt is stamped for a task created as done, never taken from input.
+      const task = makeTask({
+        _id: 'new-' + nextId++,
+        ...body,
+        completedAt: body.status === 'done' ? new Date().toISOString() : null,
+      });
       tasks.unshift(task);
       return json(201, { task });
     }
     const index = tasks.findIndex((task) => task._id === id);
     if (index === -1) return json(404, { message: 'Task not found' });
     if (method === 'PATCH') {
-      tasks[index] = { ...tasks[index], ...body, updatedAt: new Date().toISOString() };
+      const previous = tasks[index];
+      const changes = { ...body };
+      delete changes.completedAt;
+      // Mirrors the server: stamped on entering done, kept while done, cleared on reopen.
+      let completedAt = previous.completedAt ?? null;
+      if (changes.status === 'done' && previous.status !== 'done')
+        completedAt = new Date().toISOString();
+      else if (changes.status !== undefined && changes.status !== 'done') completedAt = null;
+      tasks[index] = { ...previous, ...changes, completedAt, updatedAt: new Date().toISOString() };
       return json(200, { task: tasks[index] });
     }
     tasks.splice(index, 1);

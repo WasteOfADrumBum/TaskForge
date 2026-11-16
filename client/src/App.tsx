@@ -20,12 +20,13 @@ const KnowledgePage = lazy(() => import('./pages/KnowledgePage'));
 const KnowledgeDetailPage = lazy(() => import('./pages/KnowledgeDetailPage'));
 const AskPage = lazy(() => import('./pages/AskPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const ProgressPage = lazy(() => import('./pages/ProgressPage'));
 
 // Public: `/` (landing), `/login`, `/register`.
 // Authenticated, inside the app shell: `/home` (Command Center), `/work` (tasks),
 // `/work/projects`, `/work/projects/:id`, `/workforce` (Agent Registry), `/workforce/:id`,
 // `/workforce/runs`, `/workforce/runs/:id`, `/knowledge`, `/knowledge/ask` (Ask TaskForge),
-// `/knowledge/:id`, `/settings`.
+// `/knowledge/:id`, `/progress` (Phase 5 progress analytics), `/settings`.
 export const AppRoutes = () => (
   <Suspense fallback={<div>Loading...</div>}>
     <Routes>
@@ -45,6 +46,7 @@ export const AppRoutes = () => (
           <Route path="/knowledge" element={<KnowledgePage />} />
           <Route path="/knowledge/ask" element={<AskPage />} />
           <Route path="/knowledge/:id" element={<KnowledgeDetailPage />} />
+          <Route path="/progress" element={<ProgressPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Route>
