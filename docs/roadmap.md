@@ -167,7 +167,7 @@ Career:
 - [x] **COMPLETE**: Saved jobs (KAN-63, KAN-64), with application status
 - [ ] **IN PROGRESS**: Applications (saved jobs track an application status, KAN-64)
 - [x] **COMPLETE**: Skill-gap analysis (KAN-64): rule-based, by exact skill name
-- [ ] **PLANNED**: Career goals
+- [x] **COMPLETE**: Career goals (KAN-69): goals with the career area, listed on the Career page
 
 Learning:
 

@@ -39,14 +39,17 @@ describe('Goals page', () => {
     await userEvent.type(screen.getByRole('textbox', { name: /title/i }), '  Ship TaskForge v1  ');
     await userEvent.type(screen.getByRole('textbox', { name: /why it matters/i }), 'Portfolio');
     await userEvent.type(screen.getByLabelText(/target date/i), '2026-12-31');
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Area' }), 'Career');
     await userEvent.click(screen.getByRole('button', { name: 'Add goal' }));
 
     expect(await section(/active goals/i).findByText('Ship TaskForge v1')).toBeInTheDocument();
+    expect(section(/active goals/i).getByText(/^Career goal · /)).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('Added goal: Ship TaskForge v1.');
     const [post] = requestsTo(fetchMock, 'POST', '/api/goals');
     expect(JSON.parse(String(post[1]?.body))).toEqual({
       title: 'Ship TaskForge v1',
       description: 'Portfolio',
+      area: 'career',
       targetDate: '2026-12-31',
     });
     expect(goals).toHaveLength(1);
@@ -165,5 +168,39 @@ describe('Goals page', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Drop: Learn Rust' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Could not save');
     expect(section(/active goals/i).getByText('Learn Rust')).toBeInTheDocument();
+  });
+});
+
+describe('Goal areas', () => {
+  it('shows the area in text unless general and changes it in place', async () => {
+    signIn();
+    const { goals } = stubTaskApi(
+      [],
+      [],
+      [],
+      [],
+      [
+        {
+          _id: 'g1',
+          title: 'Learn Rust',
+          description: '',
+          status: 'active',
+          area: 'learning',
+          targetDate: null,
+        },
+        { _id: 'g2', title: 'Run a 5K', description: '', status: 'active', targetDate: null },
+      ],
+    );
+    renderApp('/goals');
+    const active = await waitFor(() => section(/active goals/i));
+    expect(await active.findByText('Learning goal')).toBeInTheDocument();
+    expect(active.queryByText(/General goal/)).not.toBeInTheDocument();
+    const select = active.getByRole('combobox', { name: 'Area for Run a 5K' });
+    expect(select).toHaveValue('general');
+    await userEvent.selectOptions(select, 'Career');
+    expect(await screen.findByText('Run a 5K is now a career goal.')).toBeInTheDocument();
+    expect(active.getByText('Career goal')).toBeInTheDocument();
+    expect(select).toHaveFocus();
+    expect(goals[1]).toMatchObject({ area: 'career' });
   });
 });

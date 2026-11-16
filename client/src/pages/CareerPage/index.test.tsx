@@ -241,3 +241,63 @@ it('keeps focus on a level select after changing it', async () => {
   expect(select).toBeEnabled();
   expect(select).toHaveFocus();
 });
+
+describe('Career goals panel', () => {
+  it('lists active career goals with their targets and links to Goals', async () => {
+    signIn();
+    stubTaskApi(
+      [],
+      [],
+      [],
+      [],
+      [
+        {
+          _id: 'g1',
+          title: 'Reach senior engineer',
+          description: '',
+          status: 'active',
+          area: 'career',
+          targetDate: '2099-06-30T00:00:00.000Z',
+        },
+        { _id: 'g2', title: 'Run a 5K', description: '', status: 'active', targetDate: null },
+        {
+          _id: 'g3',
+          title: 'Old career goal',
+          description: '',
+          status: 'achieved',
+          area: 'career',
+          targetDate: null,
+        },
+      ],
+    );
+    renderApp('/career');
+    const panel = within(await screen.findByRole('region', { name: 'Career goals' }));
+    const list = await panel.findByRole('list', { name: 'Active career goals' });
+    expect(within(list).getAllByRole('listitem')).toHaveLength(1);
+    expect(within(list).getByText('Reach senior engineer')).toBeInTheDocument();
+    expect(within(list).getByText(/^Target /)).toBeInTheDocument();
+    expect(panel.queryByText('Run a 5K')).not.toBeInTheDocument();
+    expect(panel.getByRole('link', { name: 'Add or update goals' })).toHaveAttribute(
+      'href',
+      '/goals',
+    );
+  });
+
+  it('shows an empty state and retries a failed load', async () => {
+    signIn();
+    const { fetchMock } = stubTaskApi();
+    const passThrough = fetchMock.getMockImplementation()!;
+    let fail = true;
+    fetchMock.mockImplementation(async (url: string, options: RequestInit = {}) =>
+      fail && /\/api\/goals$/.test(url)
+        ? { status: 500, ok: false, json: async () => ({ message: 'Goals are unavailable' }) }
+        : passThrough(url, options),
+    );
+    renderApp('/career');
+    const panel = within(await screen.findByRole('region', { name: 'Career goals' }));
+    expect(await panel.findByRole('alert')).toHaveTextContent('Goals are unavailable');
+    fail = false;
+    await userEvent.click(panel.getByRole('button', { name: 'Retry loading goals' }));
+    expect(await panel.findByText(/No active career goals yet/)).toBeInTheDocument();
+  });
+});

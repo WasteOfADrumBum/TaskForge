@@ -49,6 +49,7 @@ describe('goal routes', () => {
     const response = await request(app).post('/api/goals').set(authorization).send({
       title: '  Ship v1  ',
       description: 'Release TaskForge',
+      area: 'career',
       targetDate: '2026-12-31',
       owner: 'someone-else',
       achievedAt: '2020-01-01T00:00:00.000Z',
@@ -58,6 +59,7 @@ describe('goal routes', () => {
     expect(mockedCreate).toHaveBeenCalledWith(userId, {
       title: 'Ship v1',
       description: 'Release TaskForge',
+      area: 'career',
       targetDate: '2026-12-31T00:00:00.000Z',
     });
   });
@@ -69,6 +71,8 @@ describe('goal routes', () => {
     [{ title: 'Ok', description: 5 }, 'Invalid goal description'],
     [{ title: 'Ok', description: 'd'.repeat(2001) }, 'Goal description is too long'],
     [{ title: 'Ok', status: 'paused' }, 'Invalid goal status'],
+    [{ title: 'Ok', area: 'health' }, 'Invalid goal area'],
+    [{ title: 'Ok', area: { $ne: 'general' } }, 'Invalid goal area'],
     [{ title: 'Ok', targetDate: '2026-02-30' }, 'Invalid target date'],
     [{ title: 'Ok', targetDate: '2026-12-31T12:00:00.000Z' }, 'Invalid target date'],
     [{ title: 'Ok', targetDate: 20261231 }, 'Invalid target date'],
@@ -86,6 +90,17 @@ describe('goal routes', () => {
       .set(authorization)
       .send({ status: 'achieved' });
     expect(mockedUpdate).toHaveBeenLastCalledWith(userId, goalId, { status: 'achieved' });
+    await request(app)
+      .patch('/api/goals/' + goalId)
+      .set(authorization)
+      .send({ area: 'learning' });
+    expect(mockedUpdate).toHaveBeenLastCalledWith(userId, goalId, { area: 'learning' });
+    const invalid = await request(app)
+      .patch('/api/goals/' + goalId)
+      .set(authorization)
+      .send({ area: ['career'] });
+    expect(invalid.status).toBe(400);
+    expect(invalid.body).toEqual({ message: 'Invalid goal area' });
     for (const targetDate of [null, '']) {
       await request(app)
         .patch('/api/goals/' + goalId)

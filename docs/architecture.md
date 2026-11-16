@@ -117,7 +117,7 @@ flowchart LR
 
 **Goals (Phase 5):**
 
-- **Model:** `Goal` has `title` (required, up to 120 characters), `description` (up to 2000), `status` (`active`, `achieved` or `dropped`), `targetDate` (optional calendar date, validated like task due dates), `achievedAt`, `owner` and timestamps. Goals stand alone for now, with no project or task links, so deleting a project or task never touches them.
+- **Model:** `Goal` has `title` (required, up to 120 characters), `description` (up to 2000), `status` (`active`, `achieved` or `dropped`), `area` (`general`, `career` or `learning`; goals saved before KAN-69 read as `general`), `targetDate` (optional calendar date, validated like task due dates), `achievedAt`, `owner` and timestamps. Goals stand alone for now, with no project or task links, so deleting a project or task never touches them.
 - **Achieved time:** `achievedAt` is set by `goalService` only, the same way as a task's `completedAt`: stamped when a goal becomes achieved, kept while it stays achieved, cleared when it leaves. Request input never sets it.
 - **Ownership:** every goal query filters by `owner`. Another user's goal gets the same `404 Goal not found` as a missing one, and malformed ids get `404` without a query. `owner`, `_id`, `achievedAt` and timestamps in a body are ignored.
 

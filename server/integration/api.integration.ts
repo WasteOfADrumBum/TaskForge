@@ -375,6 +375,7 @@ it('keeps goals private to their owner and records when one is achieved', async 
   const goal = created.body.goal;
   expect(goal).toMatchObject({
     owner: aliceId,
+    area: 'general',
     status: 'active',
     achievedAt: null,
     targetDate: '2028-02-29T00:00:00.000Z',
@@ -403,8 +404,12 @@ it('keeps goals private to their owner and records when one is achieved', async 
   const reopened = await request(app)
     .patch(`/api/goals/${goal._id}`)
     .set(auth(aliceToken))
-    .send({ status: 'active', targetDate: null });
-  expect(reopened.body.goal).toMatchObject({ achievedAt: null, targetDate: null });
+    .send({ status: 'active', targetDate: null, area: 'career' });
+  expect(reopened.body.goal).toMatchObject({ achievedAt: null, targetDate: null, area: 'career' });
+  expect(
+    (await request(app).patch(`/api/goals/${goal._id}`).set(auth(aliceToken)).send({ area: 'x' }))
+      .status,
+  ).toBe(400);
 
   expect((await request(app).delete(`/api/goals/${goal._id}`).set(auth(aliceToken))).status).toBe(
     204,

@@ -1,5 +1,10 @@
 import type { Request, Response } from 'express';
-import { GOAL_DESCRIPTION_MAX, GOAL_STATUSES, GOAL_TITLE_MAX } from '../../models/goalModel';
+import {
+  GOAL_AREAS,
+  GOAL_DESCRIPTION_MAX,
+  GOAL_STATUSES,
+  GOAL_TITLE_MAX,
+} from '../../models/goalModel';
 import {
   createGoal,
   deleteGoalById,
@@ -21,7 +26,7 @@ const readGoalFields = (
   body: Record<string, unknown>,
   requireTitle: boolean,
 ): { value: GoalUpdate } | { error: string } => {
-  const { title, description, status, targetDate } = body;
+  const { title, description, status, area, targetDate } = body;
   const value: GoalUpdate = {};
   if (requireTitle || title !== undefined) {
     if (typeof title !== 'string' || !title.trim()) return { error: 'Goal title is required' };
@@ -38,6 +43,10 @@ const readGoalFields = (
   if (status !== undefined) {
     if (!GOAL_STATUSES.includes(status as never)) return { error: 'Invalid goal status' };
     value.status = status as GoalUpdate['status'];
+  }
+  if (area !== undefined) {
+    if (!GOAL_AREAS.includes(area as never)) return { error: 'Invalid goal area' };
+    value.area = area as GoalUpdate['area'];
   }
   if (targetDate !== undefined) {
     if (targetDate === null || targetDate === '') value.targetDate = null;

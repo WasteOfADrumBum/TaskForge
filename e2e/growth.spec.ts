@@ -138,9 +138,19 @@ test('growth flows on mobile by keyboard: progress, reviews, goals, career, skil
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true);
 
-    // Career: a skill, a saved job, and a learning task from its skill gap.
+    // Career: a career goal, a skill, a saved job, and a learning task from its skill gap.
+    const careerGoal = 'Career goal ' + randomUUID().slice(0, 8);
+    const createdGoal = await api.post('/api/goals', {
+      data: { title: careerGoal, area: 'career' },
+    });
+    expect(createdGoal.status()).toBe(201);
     await page.goto('/career');
     await expect(page.getByRole('heading', { level: 1, name: 'Career' })).toBeVisible();
+    await expect(
+      page.getByRole('region', { name: 'Career goals' }).getByRole('list', {
+        name: 'Active career goals',
+      }),
+    ).toContainText(careerGoal);
     const skillsSection = page.getByRole('region', { name: /^skills/i });
     const skillField = skillsSection.getByRole('textbox', { name: /skill/i });
     await skillField.focus();
