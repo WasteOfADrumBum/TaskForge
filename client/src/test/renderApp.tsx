@@ -9,6 +9,7 @@ import { store } from '../redux/store';
 import { setToken } from '../redux/slices/authSlice';
 import type { Agent } from '../types/agent';
 import type { SavedJob, Skill } from '../types/career';
+import type { LearningItem } from '../types/learning';
 import type { Goal } from '../types/goal';
 import type { Project } from '../types/project';
 import type { Review } from '../types/review';
@@ -83,6 +84,7 @@ export const stubTaskApi = (
   initialGoals: Goal[] = [],
   initialSkills: Skill[] = [],
   initialJobs: SavedJob[] = [],
+  initialLearning: LearningItem[] = [],
 ) => {
   const tasks = [...initial];
   const projects = [...initialProjects];
@@ -91,6 +93,7 @@ export const stubTaskApi = (
   const goals = [...initialGoals];
   const skills = [...initialSkills];
   const jobs = [...initialJobs];
+  const learning = [...initialLearning];
   let nextId = 1;
   const fetchMock = vi.fn(async (url: string, options: RequestInit = {}) => {
     const method = options.method ?? 'GET';
@@ -138,6 +141,42 @@ export const stubTaskApi = (
         return json(200, { [key]: list[index] });
       }
       list.splice(index, 1);
+      return json(204);
+    }
+    const learningMatch = url.match(/\/api\/learning(?:\/([^/]+))?$/);
+    if (learningMatch) {
+      const itemId = learningMatch[1] && decodeURIComponent(learningMatch[1]);
+      const now = new Date().toISOString();
+      if (method === 'GET' && !itemId) return json(200, { items: learning });
+      if (method === 'POST') {
+        const item: LearningItem = {
+          _id: 'learning-' + nextId++,
+          title: String(body.title ?? '').trim(),
+          skill: body.skill ?? '',
+          kind: body.kind ?? 'course',
+          url: body.url ?? '',
+          status: body.status ?? 'planned',
+          targetDate: body.targetDate ? body.targetDate.slice(0, 10) + 'T00:00:00.000Z' : null,
+          notes: String(body.notes ?? '').trim(),
+          completedAt: body.status === 'done' ? now : null,
+          createdAt: now,
+          updatedAt: now,
+        };
+        learning.unshift(item);
+        return json(201, { item });
+      }
+      const index = learning.findIndex((item) => item._id === itemId);
+      if (index === -1) return json(404, { message: 'Learning item not found' });
+      if (method === 'PATCH') {
+        const previous = learning[index];
+        // Mirrors the server: completedAt is stamped on entering done and cleared on leaving.
+        let completedAt = previous.completedAt ?? null;
+        if (body.status === 'done' && previous.status !== 'done') completedAt = now;
+        else if (body.status !== undefined && body.status !== 'done') completedAt = null;
+        learning[index] = { ...previous, ...body, completedAt, updatedAt: now };
+        return json(200, { item: learning[index] });
+      }
+      learning.splice(index, 1);
       return json(204);
     }
     const goalMatch = url.match(/\/api\/goals(?:\/([^/]+))?$/);
@@ -288,7 +327,7 @@ export const stubTaskApi = (
     return json(204);
   });
   vi.stubGlobal('fetch', fetchMock);
-  return { fetchMock, tasks, projects, agents, reviews, goals, skills, jobs };
+  return { fetchMock, tasks, projects, agents, reviews, goals, skills, jobs, learning };
 };
 
 // Calls made to one endpoint and method, for example requestsTo(fetchMock, 'GET', '/api/tasks').

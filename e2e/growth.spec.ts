@@ -26,7 +26,7 @@ const registerAndLogin = async (page: Page) => {
 
 // One account for the Phase 5 and 6 flows: the guarded API caps registrations per run, so each new
 // spec should reuse an account where it can.
-test('growth flows on mobile by keyboard: progress, reviews, goals, career and skill growth', async ({
+test('growth flows on mobile by keyboard: progress, reviews, goals, career, skill growth and learning', async ({
   page,
   playwright,
 }) => {
@@ -195,6 +195,29 @@ test('growth flows on mobile by keyboard: progress, reviews, goals, career and s
     const careerLink = growthStep.getByRole('link', { name: 'Update skills and jobs in Career' });
     await careerLink.focus();
     await expect(careerLink).toBeFocused();
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+    ).toBe(true);
+
+    // Learning: the graphql gap becomes a roadmap item, then it is started, all by keyboard.
+    await page.goto('/learning');
+    await expect(page.getByRole('heading', { level: 1, name: 'Learning' })).toBeVisible();
+    const gapsSection = page.getByRole('region', { name: /from your skill gaps/i });
+    const addGap = gapsSection.getByRole('button', { name: 'Add to roadmap: graphql' });
+    await addGap.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByText('Added to your roadmap: Learn graphql.')).toBeFocused();
+    await expect(gapsSection.getByText('On your roadmap')).toBeVisible();
+    const start = page
+      .getByRole('region', { name: /^planned/i })
+      .getByRole('button', { name: 'Start: Learn graphql' });
+    await start.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByText('Learn graphql is now in progress.')).toBeFocused();
+    const roadmap = (await (await api.get('/api/learning')).json()).items;
+    expect(roadmap).toEqual([
+      expect.objectContaining({ title: 'Learn graphql', skill: 'graphql', status: 'in_progress' }),
+    ]);
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true);
