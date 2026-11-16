@@ -144,6 +144,7 @@ flowchart LR
 - **Text only:** no uploads, no image generation and no AI. A logo `url` is an `https` link without credentials or a path on this site such as `/taskforge-logo.svg`: printable ASCII only, never `//host`, and no backslash, `..` segment or encoded slash (`server/src/utils/brandLogoUrl.ts`, also enforced by the schema). TaskForge never fetches it.
 - **Plain values:** single-line fields (name, tagline, color and font names, logo labels, image prompts) refuse control characters; voice and writing style may span lines. Font families are letters, numbers, spaces, dots, underscores or hyphens, so a page can use them in CSS safely. Color names and font roles are each used once per profile.
 - **Page (KAN-74):** `/brand` edits both profiles. Contrast checks (`client/src/utils/brand.ts`) use WCAG 2.x relative luminance and are rounded down, so a failing ratio never reads as passing. The Markdown brand guide is built and downloaded in the browser; only a logo path that passes the same site-path rule is ever loaded as an image.
+- **Profile kit (KAN-75):** `client/src/utils/profileKit.ts` builds LinkedIn and GitHub drafts in the browser from saved data; typed text is Markdown-escaped in the README and nothing is sent anywhere.
 - **Writes:** `PUT /api/brands/:kind` replaces the whole profile; missing or `null` optional fields save as empty, an unknown kind gets `404`, and a non-object body gets `400` rather than wiping the profile.
 
 **Learning roadmap (Phase 6):**

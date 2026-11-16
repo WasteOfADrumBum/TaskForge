@@ -80,41 +80,58 @@ export const safeLogoHref = (value: string): string | null => {
 };
 
 // Escapes Markdown in text the user typed, so a name or prompt can't add headings or links.
-const md = (text: string) => text.replace(/[\\`*_[\]<>#|]/g, '\\$&');
+export const escapeMarkdown = (text: string) =>
+  text
+    .split('\n')
+    .map((line) =>
+      line
+        .trimStart()
+        // Inline markup, HTML, entities, strikethrough and @mentions (which notify on GitHub).
+        .replace(/[\\`*_[\]<>#|&~@]/g, '\\$&')
+        // Line-start list, rule and setext markers.
+        .replace(/^([-+=])/, '\\$1')
+        .replace(/^(\d+)([.)])/, '$1\\$2'),
+    )
+    .join('\n');
 
 const section = (title: string, lines: string[]) =>
   lines.length ? ['## ' + title, '', ...lines, ''] : [];
 
 // A Markdown brand guide from a saved profile, built in the browser.
 export const brandGuideMarkdown = (profile: BrandProfile) => {
-  const quoted = (text: string) => text.split('\n').map((line) => (line ? '> ' + md(line) : '>'));
+  const quoted = (text: string) =>
+    text.split('\n').map((line) => (line ? '> ' + escapeMarkdown(line) : '>'));
   return [
-    '# ' + md(profile.name) + ' brand guide',
+    '# ' + escapeMarkdown(profile.name) + ' brand guide',
     '',
-    brandKindLabel[profile.kind] + ' brand' + (profile.tagline ? ': ' + md(profile.tagline) : '.'),
+    brandKindLabel[profile.kind] +
+      ' brand' +
+      (profile.tagline ? ': ' + escapeMarkdown(profile.tagline) : '.'),
     '',
     ...section(
       'Colors',
       profile.colors.map((color) => {
         const check = contrastCheck(color.hex);
-        return '- **' + md(color.name) + '** `' + color.hex + '`: ' + contrastText(check);
+        return (
+          '- **' + escapeMarkdown(color.name) + '** `' + color.hex + '`: ' + contrastText(check)
+        );
       }),
     ),
     ...section(
       'Fonts',
       profile.fonts.map(
-        (font) => '- **' + brandFontRoleLabel[font.role] + ':** ' + md(font.family),
+        (font) => '- **' + brandFontRoleLabel[font.role] + ':** ' + escapeMarkdown(font.family),
       ),
     ),
     ...section(
       'Logos',
-      profile.logos.map((logo) => '- **' + md(logo.label) + ':** <' + logo.url + '>'),
+      profile.logos.map((logo) => '- **' + escapeMarkdown(logo.label) + ':** <' + logo.url + '>'),
     ),
     ...section('Brand voice', profile.voice ? quoted(profile.voice) : []),
     ...section('Writing style', profile.writingStyle ? quoted(profile.writingStyle) : []),
     ...section(
       'Image prompts',
-      profile.imagePrompts.map((prompt, index) => index + 1 + '. ' + md(prompt)),
+      profile.imagePrompts.map((prompt, index) => index + 1 + '. ' + escapeMarkdown(prompt)),
     ),
   ]
     .join('\n')

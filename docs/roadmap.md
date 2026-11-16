@@ -190,7 +190,7 @@ Learning:
 - [x] **COMPLETE**: Writing style (KAN-73, KAN-74: `/brand`)
 - [x] **COMPLETE**: Image prompts (KAN-73, KAN-74: `/brand` (stored to reuse elsewhere; TaskForge generates no images))
 - [ ] **PLANNED**: Generated assets
-- [ ] **PLANNED**: LinkedIn/GitHub presentation support
+- [x] **COMPLETE**: LinkedIn/GitHub presentation support (KAN-75): rule-based profile kit on `/brand` with a LinkedIn headline, About section and GitHub profile README to copy
 
 ## Phase 8: TaskForge Builds TaskForge ([details](phases/phase-8-self-development.md))
 

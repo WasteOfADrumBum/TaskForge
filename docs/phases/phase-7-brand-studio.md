@@ -44,6 +44,7 @@ $0. Store assets within free-tier limits. Image generation is opt-in only and mu
 - Brand profiles API (KAN-73): one TaskForge and one personal profile per user, each with a name, tagline, colors, fonts, logo links, brand voice, writing style and image prompts. Text only, with no uploads, image generation or AI.
 
 - Brand Studio page (KAN-74): `/brand`, in the sidebar. Pick the TaskForge or personal profile and edit and save every field, with repeatable rows for colors, fonts, logos and image prompts; unsaved edits stay when switching profiles. Each valid color shows a swatch and a rule-based WCAG contrast check against white and black text, in words. Site-path logos are previewed; https logos are links. "Download saved brand guide" saves the last saved profile as Markdown, built in the browser. A blank or repeated row is caught before saving, named by its row number, and focused.
+- Profile kit (KAN-75): on `/brand`, copy-ready drafts of a LinkedIn headline (220-character limit), a LinkedIn About section (2600) and a GitHub profile README, built from the saved personal brand, resume, skills at working level or above and active career goals. Rule-based and client-only: a draft that lacks what it needs says what to add, and nothing is posted.
 
 ## Notes/decisions
 
