@@ -64,9 +64,7 @@ describe('Reviews page', () => {
       '  Good focus.  ',
     );
     await userEvent.click(screen.getByRole('button', { name: 'Save daily review' }));
-    await waitFor(() =>
-      expect(screen.getByRole('status', { name: '' })).toHaveTextContent(/^Saved at /),
-    );
+    expect(await screen.findByText(/^Saved at /)).toBeInTheDocument();
     const [put] = requestsTo(fetchMock, 'PUT', '/api/reviews/daily/' + today());
     expect(JSON.parse(String(put[1]?.body))).toEqual({
       reflection: '  Good focus.  ',
@@ -164,7 +162,52 @@ describe('Reviews page', () => {
     const reflection = await screen.findByRole('textbox', { name: /what went well today/i });
     await userEvent.type(reflection, 'Keep me');
     await userEvent.click(screen.getByRole('button', { name: 'Save daily review' }));
-    expect(await screen.findByText('Try again soon')).toBeInTheDocument();
+    expect(await screen.findByRole('alert')).toHaveTextContent('Try again soon');
     expect(reflection).toHaveValue('Keep me');
+  });
+
+  it('drops a focus task deleted elsewhere when the save is rejected, and keeps the rest', async () => {
+    signIn();
+    const { fetchMock, tasks } = stubTaskApi([
+      makeTask({ _id: 'o1', title: 'Write notes' }),
+      makeTask({ _id: 'o2', title: 'Call bank' }),
+    ]);
+    const passThrough = fetchMock.getMockImplementation()!;
+    let rejectOnce = true;
+    fetchMock.mockImplementation(async (url: string, options: RequestInit = {}) => {
+      if ((options.method ?? 'GET') === 'PUT' && rejectOnce) {
+        rejectOnce = false;
+        // Deleted in another tab after this page loaded its tasks.
+        tasks.splice(
+          tasks.findIndex((task) => task._id === 'o2'),
+          1,
+        );
+        return { status: 400, ok: false, json: async () => ({ message: 'Task not found' }) };
+      }
+      return passThrough(url, options);
+    });
+    renderApp('/reviews');
+    await userEvent.click(await screen.findByRole('checkbox', { name: /write notes/i }));
+    await userEvent.click(screen.getByRole('checkbox', { name: /call bank/i }));
+    await userEvent.click(screen.getByRole('button', { name: 'Save daily review' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(/was deleted elsewhere/);
+    expect(screen.getByText('1 of 3 chosen')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Save daily review' }));
+    expect(await screen.findByText(/^Saved at /)).toBeInTheDocument();
+    const puts = requestsTo(fetchMock, 'PUT', '/api/reviews/daily/' + today());
+    expect(JSON.parse(String(puts.at(-1)![1]?.body)).focusTasks).toEqual(['o1']);
+  });
+
+  it('waits for tasks instead of showing empty lists while they load', async () => {
+    signIn();
+    const { fetchMock } = stubTaskApi([makeTask({ _id: 'o1', title: 'Write notes' })]);
+    const passThrough = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation(async (url: string, options: RequestInit = {}) =>
+      /\/api\/tasks$/.test(url) ? new Promise(() => {}) : passThrough(url, options),
+    );
+    renderApp('/reviews');
+    expect(await screen.findAllByText('Waiting for your tasks to load...')).toHaveLength(3);
+    expect(screen.queryByText(/Nothing completed yet/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/No open tasks/)).not.toBeInTheDocument();
   });
 });

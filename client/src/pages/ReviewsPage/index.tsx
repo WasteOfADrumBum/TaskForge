@@ -15,6 +15,7 @@ import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 're
 import { LuSave } from 'react-icons/lu';
 import { Link as RouterLink } from 'react-router-dom';
 import { getReviews, saveReview } from '../../api/reviews';
+import { getTasks } from '../../api/tasks';
 import { isCurrentSession } from '../../api/authenticatedFetch';
 import { useDelayedRequest } from '../../hooks/useDelayedRequest';
 import { useToday } from '../../hooks/useToday';
@@ -96,10 +97,10 @@ const Step = ({
     borderRadius="lg"
     p={{ base: 4, md: 5 }}
   >
-    <Heading as="h2" id={id} size="md" mb={3}>
-      <Text as="span" color="fg.muted" fontSize="sm" fontWeight="medium" display="block">
-        Step {number} of 4
-      </Text>
+    <Text color="fg.muted" fontSize="sm" fontWeight="medium">
+      Step {number} of 4
+    </Text>
+    <Heading as="h3" id={id} size="md" mb={3}>
       {title}
     </Heading>
     {children}
@@ -119,7 +120,11 @@ function ReviewForm({
 }) {
   const tasks = useAppSelector((state) => state.tasks.items);
   const tasksLoaded = useAppSelector((state) => state.tasks.loaded);
+  const tasksError = useAppSelector((state) => state.tasks.error);
+  const tasksReady = tasksLoaded && !tasksError;
   const [focus, setFocus] = useState<string[]>([]);
+  // Focus saved earlier stays listed even when it falls outside the usual candidate cap.
+  const [savedFocus, setSavedFocus] = useState<string[]>([]);
   const [reflection, setReflection] = useState('');
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -129,7 +134,10 @@ function ReviewForm({
   const read = useDelayedRequest();
   const write = useDelayedRequest();
   const { begin } = read;
-  const data = useMemo(() => getReviewData(tasks, kind, now, focus), [tasks, kind, now, focus]);
+  const data = useMemo(
+    () => getReviewData(tasks, kind, now, savedFocus),
+    [tasks, kind, now, savedFocus],
+  );
   const { period } = data;
   const max = REVIEW_FOCUS_MAX[kind];
   const text = copy[kind];
@@ -144,6 +152,7 @@ function ReviewForm({
         if (!request.isCurrent() || !isCurrentSession(token, sessionVersion)) return;
         if (latest && latest.period === period) {
           setFocus(latest.focusTasks);
+          setSavedFocus(latest.focusTasks);
           setReflection(latest.reflection);
           setSavedAt(latest.updatedAt ?? null);
         }
@@ -185,18 +194,30 @@ function ReviewForm({
     void saveReview(token, kind, period, { reflection, focusTasks: liveFocus }, request.signal)
       .then((review) => {
         if (!request.isCurrent() || !isCurrentSession(token, sessionVersion)) return;
-        setFocus(review.focusTasks);
-        setReflection(review.reflection);
+        // Keep what is on screen: edits made while saving must not be overwritten.
+        setSavedFocus(review.focusTasks);
         setSavedAt(review.updatedAt ?? new Date().toISOString());
       })
-      .catch((failure: unknown) => {
+      .catch(async (failure: unknown) => {
         if (
           !request.isCurrent() ||
           !isCurrentSession(token, sessionVersion) ||
           failure instanceof SessionExpiredError
         )
           return;
-        setSaveError(failure instanceof Error ? failure.message : 'Unable to save review');
+        const message = failure instanceof Error ? failure.message : 'Unable to save review';
+        if (message !== 'Task not found') return setSaveError(message);
+        // A focus task was deleted elsewhere after this page loaded. Drop it and ask again.
+        try {
+          const current = new Set((await getTasks(token, request.signal)).map(getTaskId));
+          if (!request.isCurrent() || !isCurrentSession(token, sessionVersion)) return;
+          setFocus((chosen) => chosen.filter((id) => current.has(id)));
+          setSaveError(
+            'A focus task was deleted elsewhere, so it was removed. Check your focus and save again.',
+          );
+        } catch {
+          if (request.isCurrent()) setSaveError(message);
+        }
       })
       .finally(request.finish);
   };
@@ -208,6 +229,10 @@ function ReviewForm({
   else if (loadError) status = 'Your review could not be loaded.';
   else if (saveError) status = 'Your review was not saved.';
   else if (savedAt) status = 'Saved at ' + timeFormat.format(new Date(savedAt)) + '.';
+
+  const tasksPending = tasksError
+    ? 'Your tasks could not be loaded, so this step is empty for now.'
+    : 'Waiting for your tasks to load...';
 
   const periodLabel =
     kind === 'daily' ? formatCalendarDate(period) : 'Week of ' + formatCalendarDate(period);
@@ -236,10 +261,14 @@ function ReviewForm({
       {loaded && (
         <>
           <Step id={ids('look-back')} number={1} title="Look back">
-            <Text fontWeight="medium" mb={2}>
-              {text.done}: {data.completed.length}
-            </Text>
-            {data.completed.length ? (
+            {tasksReady && (
+              <Text fontWeight="medium" mb={2}>
+                {text.done}: {data.completed.length}
+              </Text>
+            )}
+            {!tasksReady ? (
+              <Text color="fg.muted">{tasksPending}</Text>
+            ) : data.completed.length ? (
               <TaskList tasks={data.completed} label={text.done} />
             ) : (
               <Text color="fg.muted">{text.none}</Text>
@@ -247,10 +276,14 @@ function ReviewForm({
           </Step>
 
           <Step id={ids('attention')} number={2} title="Needs attention">
-            <Text fontWeight="medium" mb={2}>
-              {text.attention}: {data.attention.length}
-            </Text>
-            {data.attention.length ? (
+            {tasksReady && (
+              <Text fontWeight="medium" mb={2}>
+                {text.attention}: {data.attention.length}
+              </Text>
+            )}
+            {!tasksReady ? (
+              <Text color="fg.muted">{tasksPending}</Text>
+            ) : data.attention.length ? (
               <TaskList tasks={data.attention} label={text.attention} />
             ) : (
               <Text color="fg.muted">Nothing is overdue or coming due. Nice.</Text>
@@ -261,7 +294,9 @@ function ReviewForm({
           </Step>
 
           <Step id={ids('focus')} number={3} title="Choose your focus">
-            {data.candidates.length ? (
+            {!tasksReady ? (
+              <Text color="fg.muted">{tasksPending}</Text>
+            ) : data.candidates.length ? (
               <Fieldset.Root>
                 <Fieldset.Legend fontSize="sm" fontWeight="medium">
                   {text.focus}
@@ -323,7 +358,14 @@ function ReviewForm({
           </Step>
 
           {saveError && (
-            <Box borderWidth="1px" borderColor="border.error" bg="bg.error" borderRadius="md" p={3}>
+            <Box
+              role="alert"
+              borderWidth="1px"
+              borderColor="border.error"
+              bg="bg.error"
+              borderRadius="md"
+              p={3}
+            >
               <Text color="fg.error">{saveError}</Text>
             </Box>
           )}
