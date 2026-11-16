@@ -138,7 +138,10 @@ describe('career routes', () => {
       { title: 'Dev', requiredSkills: Array.from({ length: 31 }, (_, i) => 'skill-' + i) },
       'Too many skills',
     ],
-    [{ title: 'Dev', notes: 'n'.repeat(2001) }, 'Notes is too long'],
+    [{ title: 'Dev', notes: 'n'.repeat(2001) }, 'Notes are too long'],
+    [{ title: 'Dev', company: 'c'.repeat(121) }, 'Company name is too long'],
+    // Spaces are percent-encoded, so this link grows past the limit only once normalized.
+    [{ title: 'Dev', url: 'https://example.com/' + ' x'.repeat(660) }, 'Invalid job link'],
   ])('rejects the job %j', async (body, message) => {
     const response = await request(app).post('/api/jobs').set(authorization).send(body);
     expect(response.status).toBe(400);

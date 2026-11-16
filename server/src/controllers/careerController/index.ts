@@ -47,10 +47,9 @@ const readSkill = (body: Record<string, unknown>, create: boolean): Fields<Parti
   return { value };
 };
 
-const text = (value: unknown, max: number, label: string): Fields<string> => {
+const text = (value: unknown, max: number, label: string, tooLong: string): Fields<string> => {
   if (typeof value !== 'string') return { error: 'Invalid ' + label };
-  if (value.trim().length > max)
-    return { error: label[0].toUpperCase() + label.slice(1) + ' is too long' };
+  if (value.trim().length > max) return { error: tooLong };
   return { value: value.trim() };
 };
 
@@ -63,7 +62,10 @@ const readUrl = (value: unknown): Fields<string> => {
     if (url.protocol !== 'https:' || url.username || url.password) {
       return { error: 'Job link must be an https address' };
     }
-    return { value: url.toString() };
+    const normalized = url.toString();
+    // Normalizing can lengthen a link (percent-encoding), so check the stored form too.
+    if (normalized.length > JOB_URL_MAX) return { error: 'Invalid job link' };
+    return { value: normalized };
   } catch {
     return { error: 'Invalid job link' };
   }
@@ -72,18 +74,18 @@ const readUrl = (value: unknown): Fields<string> => {
 const readJob = (body: Record<string, unknown>, create: boolean): Fields<Partial<JobInput>> => {
   const value: Partial<JobInput> = {};
   if (create || body.title !== undefined) {
-    const title = text(body.title, JOB_TITLE_MAX, 'job title');
+    const title = text(body.title, JOB_TITLE_MAX, 'job title', 'Job title is too long');
     if ('error' in title) return title;
     if (!title.value) return { error: 'Job title is required' };
     value.title = title.value;
   }
   if (body.company !== undefined) {
-    const company = text(body.company, JOB_COMPANY_MAX, 'company');
+    const company = text(body.company, JOB_COMPANY_MAX, 'company', 'Company name is too long');
     if ('error' in company) return company;
     value.company = company.value;
   }
   if (body.notes !== undefined) {
-    const notes = text(body.notes, JOB_NOTES_MAX, 'notes');
+    const notes = text(body.notes, JOB_NOTES_MAX, 'notes', 'Notes are too long');
     if ('error' in notes) return notes;
     value.notes = notes.value;
   }
