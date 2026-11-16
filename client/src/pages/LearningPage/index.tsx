@@ -153,6 +153,8 @@ const LearningPage = () => {
   const [actionError, setActionError] = useState<string | null>(null);
   const [gapBusy, setGapBusy] = useState<string[]>([]);
   const [ideaBusy, setIdeaBusy] = useState<string[]>([]);
+  // Skills with an add in flight, checked synchronously so two presses in one tick add once.
+  const adding = useRef(new Set<string>());
 
   const [title, setTitle] = useState('');
   const [skill, setSkill] = useState('');
@@ -228,20 +230,25 @@ const LearningPage = () => {
     settle(message, 'Deleted from your roadmap: ' + item.title + '.');
   };
   const addFromGap = async (gapSkill: string) => {
-    if (gapBusy.includes(gapSkill)) return;
+    const key = 'gap:' + gapSkill;
+    if (adding.current.has(key)) return;
+    adding.current.add(key);
     begin();
     setGapBusy((current) => [...current, gapSkill]);
     const itemTitle = gapItemTitle(gapSkill);
     const message = await items.add((token) =>
       createLearningItem(token, { title: itemTitle, skill: gapSkill, kind: 'course' }),
     );
+    adding.current.delete(key);
     setGapBusy((current) => current.filter((entry) => entry !== gapSkill));
     // The button is replaced by "On your roadmap", so the status line takes focus.
     settle(message, 'Added to your roadmap: ' + itemTitle + '.');
   };
 
   const addIdea = async (idea: PortfolioIdea) => {
-    if (ideaBusy.includes(idea.skill)) return;
+    const key = 'project:' + idea.skill;
+    if (adding.current.has(key)) return;
+    adding.current.add(key);
     begin();
     setIdeaBusy((current) => [...current, idea.skill]);
     const message = await items.add((token) =>
@@ -252,6 +259,7 @@ const LearningPage = () => {
         notes: idea.notes,
       }),
     );
+    adding.current.delete(key);
     setIdeaBusy((current) => current.filter((entry) => entry !== idea.skill));
     // The button is replaced by "On your roadmap", so the status line takes focus.
     settle(message, 'Added to your roadmap: ' + idea.title + '.');
@@ -471,11 +479,13 @@ const LearningPage = () => {
           Portfolio project ideas
         </Heading>
         <Text fontSize="sm" color="fg.muted" mb={2}>
-          Each idea pairs a skill your open saved jobs need with a skill you already have that those
-          jobs list. Rule-based.
+          Each idea pairs a skill your open saved jobs need with a skill you already have at working
+          level or above that those jobs list. Rule-based.
         </Text>
         {careerError && !(skills.pending || jobs.pending) ? (
-          <Text color="fg.muted">Project ideas need your skills and saved jobs.</Text>
+          <Text color="fg.muted">
+            Project ideas need your skills and saved jobs. Use the retry above.
+          </Text>
         ) : roadmapBlocked ? (
           <Text color="fg.muted">{ROADMAP_FIRST}</Text>
         ) : !careerLoaded || !items.loaded ? (

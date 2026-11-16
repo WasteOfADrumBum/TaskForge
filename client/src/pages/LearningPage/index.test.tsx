@@ -221,6 +221,21 @@ describe('Learning page', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('offers an idea again once its project is done and adds it once on a double press', async () => {
+    signIn();
+    const { learning } = stub(
+      [item({ _id: 'l1', title: 'Old', skill: 'go', kind: 'project', status: 'done' })],
+      [],
+      [job('Backend', ['go'])],
+    );
+    renderApp('/learning');
+    const projects = await waitFor(() => region(/portfolio project ideas/i));
+    const add = await projects.findByRole('button', { name: 'Add project: Portfolio project: go' });
+    await userEvent.dblClick(add);
+    expect(await screen.findByText('Added to your roadmap: Portfolio project: go.')).toHaveFocus();
+    expect(learning.filter((entry) => entry.title === 'Portfolio project: go')).toHaveLength(1);
+  });
+
   it('explains when there are no project ideas', async () => {
     signIn();
     stub([], [skill('react')], [job('Frontend', ['react'])]);

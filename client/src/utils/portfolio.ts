@@ -25,7 +25,8 @@ export const portfolioIdeaTitle = (skill: string, pairWith: string | null) =>
 const jobName = (job: SavedJob) => (job.company ? job.title + ' at ' + job.company : job.title);
 
 // Up to `limit` ideas, one for each of the skills open saved jobs need most. Each pairs the
-// missing skill with the skill you have that those jobs list most often, so the project shows
+// missing skill with the skill you have (at working level or above) that those jobs list most
+// often, so the project shows
 // something you already do alongside what you are learning. Ties go to the higher level, then
 // the name.
 export const getPortfolioIdeas = (
@@ -34,7 +35,12 @@ export const getPortfolioIdeas = (
   limit = PORTFOLIO_IDEA_LIMIT,
 ): PortfolioIdea[] => {
   const { gaps } = getOpenJobGaps(skills, jobs, limit);
-  const levels = new Map(skills.map((skill) => [skill.name, SKILL_LEVELS.indexOf(skill.level)]));
+  // A skill you are still learning is not one to show off, so only working level and up pair.
+  const levels = new Map(
+    skills
+      .filter((skill) => skill.level !== 'learning')
+      .map((skill) => [skill.name, SKILL_LEVELS.indexOf(skill.level)]),
+  );
   const openJobs = jobs.filter((job) => OPEN_JOB_STATUSES.includes(job.status));
   return gaps.map((gap) => {
     const wanting = openJobs.filter((job) => job.requiredSkills.includes(gap.skill));

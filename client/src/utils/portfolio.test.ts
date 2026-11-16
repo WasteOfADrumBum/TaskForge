@@ -52,6 +52,16 @@ describe('portfolio ideas', () => {
     expect(alone.notes).toBe('Build a small project that uses rust. Wanted by: Systems.');
   });
 
+  it('skips held skills still at the learning level and counts a repeated skill once', () => {
+    const [idea] = getPortfolioIdeas(
+      [skill('vue', 'learning'), skill('css')],
+      [job('Web', ['rust', 'rust', 'vue', 'css']), job('App', ['rust', 'vue'])],
+    );
+    expect(idea).toMatchObject({ skill: 'rust', jobs: 2, pairWith: 'css' });
+    const [lone] = getPortfolioIdeas([skill('vue', 'learning')], [job('App', ['rust', 'vue'])]);
+    expect(lone.pairWith).toBeNull();
+  });
+
   it('names three jobs, counts the rest and keeps to the limit', () => {
     const jobs = ['A', 'B', 'C', 'D', 'E'].map((title) => job(title, ['go', 'a' + title]));
     const ideas = getPortfolioIdeas([], jobs, 2);

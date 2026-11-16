@@ -30,7 +30,7 @@ It supports the goal of reaching senior engineer or tech lead by turning "skills
 
 - Resume (KAN-70): one plain-text resume per user (headline, summary and the rest) on the Career page, with a rule-based skill check that lists your skills it mentions, your skills it does not, and the skills open saved jobs need that it does not mention, matched by whole word.
 
-- Portfolio project ideas (KAN-71): the Learning page suggests up to three projects, one for each skill open saved jobs need most. Each pairs the missing skill with the skill you have that those jobs list most often (ties go to the higher level, then the name), names up to three of the jobs, and adds itself to the roadmap as a project with one press, or says a project for that skill is already there. Rule-based, client-only.
+- Portfolio project ideas (KAN-71): the Learning page suggests up to three projects, one for each skill open saved jobs need most. Each pairs the missing skill with the skill you have at working level or above that those jobs list most often (ties go to the higher level, then the name), names up to three of the jobs, and adds itself to the roadmap as a project with one press, or says a project for that skill is already there. Rule-based, client-only.
 
 ## Planned capabilities
 
