@@ -36,6 +36,24 @@ const localDay = (value?: string | null) => {
 
 const byName = (a: Skill, b: Skill) => a.name.localeCompare(b.name);
 
+// The skills open saved jobs (saved, applied or interviewing) list that you do not have, most
+// needed first, then by name; each job counts once per skill.
+export const getOpenJobGaps = (skills: Skill[], jobs: SavedJob[], limit: number) => {
+  const held = new Set(skills.map((skill) => skill.name));
+  const openJobs = jobs.filter((job) => OPEN_JOB_STATUSES.includes(job.status));
+  const counts = new Map<string, number>();
+  for (const job of openJobs) {
+    for (const skill of new Set(job.requiredSkills)) {
+      if (!held.has(skill)) counts.set(skill, (counts.get(skill) ?? 0) + 1);
+    }
+  }
+  const gaps: SkillGap[] = [...counts]
+    .map(([skill, count]) => ({ skill, jobs: count }))
+    .sort((a, b) => b.jobs - a.jobs || a.skill.localeCompare(b.skill))
+    .slice(0, limit);
+  return { gaps, hasOpenJobs: openJobs.length > 0 };
+};
+
 export const getSkillGrowth = (
   skills: Skill[],
   jobs: SavedJob[],
@@ -74,18 +92,7 @@ export const getSkillGrowth = (
     )
     .sort((a, b) => Date.parse(b.completedAt!) - Date.parse(a.completedAt!));
 
-  const held = new Set(skills.map((skill) => skill.name));
-  const openJobs = jobs.filter((job) => OPEN_JOB_STATUSES.includes(job.status));
-  const counts = new Map<string, number>();
-  for (const job of openJobs) {
-    for (const skill of new Set(job.requiredSkills)) {
-      if (!held.has(skill)) counts.set(skill, (counts.get(skill) ?? 0) + 1);
-    }
-  }
-  const topGaps = [...counts]
-    .map(([skill, count]) => ({ skill, jobs: count }))
-    .sort((a, b) => b.jobs - a.jobs || a.skill.localeCompare(b.skill))
-    .slice(0, TOP_GAP_LIMIT);
+  const { gaps: topGaps, hasOpenJobs } = getOpenJobGaps(skills, jobs, TOP_GAP_LIMIT);
 
-  return { added, updated, learned, topGaps, hasOpenJobs: openJobs.length > 0 };
+  return { added, updated, learned, topGaps, hasOpenJobs };
 };

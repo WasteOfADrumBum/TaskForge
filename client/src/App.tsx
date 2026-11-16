@@ -24,12 +24,13 @@ const ProgressPage = lazy(() => import('./pages/ProgressPage'));
 const ReviewsPage = lazy(() => import('./pages/ReviewsPage'));
 const GoalsPage = lazy(() => import('./pages/GoalsPage'));
 const CareerPage = lazy(() => import('./pages/CareerPage'));
+const LearningPage = lazy(() => import('./pages/LearningPage'));
 
 // Public: `/` (landing), `/login`, `/register`.
 // Authenticated, inside the app shell: `/home` (Command Center), `/work` (tasks),
 // `/work/projects`, `/work/projects/:id`, `/workforce` (Agent Registry), `/workforce/:id`,
 // `/workforce/runs`, `/workforce/runs/:id`, `/knowledge`, `/knowledge/ask` (Ask TaskForge),
-// `/knowledge/:id`, `/progress` (Phase 5 progress analytics), `/reviews` (daily and weekly reviews), `/goals`, `/career` (skills, saved jobs and skill gaps), `/settings`.
+// `/knowledge/:id`, `/progress` (Phase 5 progress analytics), `/reviews` (daily and weekly reviews), `/goals`, `/career` (skills, saved jobs and skill gaps), `/learning` (learning roadmap), `/settings`.
 export const AppRoutes = () => (
   <Suspense fallback={<div>Loading...</div>}>
     <Routes>
@@ -53,6 +54,7 @@ export const AppRoutes = () => (
           <Route path="/reviews" element={<ReviewsPage />} />
           <Route path="/goals" element={<GoalsPage />} />
           <Route path="/career" element={<CareerPage />} />
+          <Route path="/learning" element={<LearningPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Route>

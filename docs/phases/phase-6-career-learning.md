@@ -22,7 +22,9 @@ It supports the goal of reaching senior engineer or tech lead by turning "skills
 
 - Career page (KAN-64): the Career page (`/career`) manages skills and saved jobs. It shows each job's skill gap, meaning the required skills you have and those you are missing, matched by exact name and labelled rule-based. One press turns a missing skill into a To Do task, "Learn <skill> for <job>".
 
-- Learning roadmap API (KAN-67): learning items (course, article, book, video, project, practice or other), each optionally tied to a skill, with an https link, a status (planned, in progress, done), a target date and notes. The server records when an item is done. The page follows.
+- Learning roadmap API (KAN-67): learning items (course, article, book, video, project, practice or other), each optionally tied to a skill, with an https link, a status (planned, in progress, done), a target date and notes. The server records when an item is done.
+
+- Learning page (KAN-68): the Learning page (`/learning`) adds roadmap items, lists them by status (in progress, planned, done) with their kind, skill, target date (an unfinished item past its date says so in text) and link, moves them between statuses and deletes them after a confirming press. Its "From your skill gaps" section lists the skills open saved jobs need most and adds one to the roadmap with one press, or says it is already on the roadmap. Rule-based.
 
 ## Planned capabilities
 
