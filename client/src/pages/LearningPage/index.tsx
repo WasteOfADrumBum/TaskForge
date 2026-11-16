@@ -32,6 +32,7 @@ import {
   LEARNING_NOTES_MAX,
   LEARNING_STATUSES,
   LEARNING_TITLE_MAX,
+  LEARNING_URL_MAX,
   learningKindLabel,
   learningStatusLabel,
   type LearningItem,
@@ -56,6 +57,9 @@ const panel = {
 } as const;
 
 const TITLE_ERROR = 'Give the item a title.';
+const SKILL_ERROR = 'Use letters, numbers, spaces or hyphens for the skill, up to 40.';
+const LINK_ERROR = 'Use a full https link, for example https://example.com/course.';
+const ROADMAP_FIRST = 'Your roadmap must load before you can add to it.';
 
 // The status moves offered for each status, as [label, next status].
 const moves: Record<LearningStatus, Array<[string, LearningStatus]>> = {
@@ -180,12 +184,8 @@ const LearningPage = () => {
     event.preventDefault();
     if (!title.trim()) return setFormError(TITLE_ERROR);
     const slug = skill.trim() ? toSkillSlug(skill) : '';
-    if (slug === null) {
-      return setFormError('Use letters, numbers, spaces or hyphens for the skill, up to 40.');
-    }
-    if (url.trim() && !safeHttpsUrl(url.trim())) {
-      return setFormError('Use a full https link, for example https://example.com/course.');
-    }
+    if (slug === null) return setFormError(SKILL_ERROR);
+    if (url.trim() && !safeHttpsUrl(url.trim())) return setFormError(LINK_ERROR);
     setFormError(null);
     begin();
     const sent = { title: title.trim(), skill, kind, url: url.trim(), targetDate, notes };
@@ -237,7 +237,9 @@ const LearningPage = () => {
   let status = announcement;
   if (items.pending)
     status = items.waiting ? 'Still loading your roadmap...' : 'Loading your roadmap...';
-  else if (items.error) status = 'Your roadmap could not be loaded.';
+  // A failed reload keeps the list on screen, so only a list that never loaded is reported here.
+  else if (items.error && !items.loaded) status = 'Your roadmap could not be loaded.';
+  const roadmapBlocked = !items.loaded && !!items.error && !items.pending;
 
   return (
     <VStack align="stretch" gap={{ base: 6, md: 8 }}>
@@ -279,7 +281,7 @@ const LearningPage = () => {
             />
           </Field.Root>
           <HStack gap={4} align="start" flexWrap="wrap">
-            <Field.Root flex="1" minW="12rem">
+            <Field.Root flex="1" minW="12rem" invalid={formError === SKILL_ERROR}>
               <Field.Label>Skill (optional)</Field.Label>
               <Input
                 value={skill}
@@ -305,9 +307,14 @@ const LearningPage = () => {
               </NativeSelect.Root>
             </Field.Root>
           </HStack>
-          <Field.Root>
+          <Field.Root invalid={formError === LINK_ERROR}>
             <Field.Label>Link (optional, https)</Field.Label>
-            <Input type="url" value={url} onChange={(event) => setUrl(event.target.value)} />
+            <Input
+              type="url"
+              value={url}
+              onChange={(event) => setUrl(event.target.value)}
+              maxLength={LEARNING_URL_MAX}
+            />
           </Field.Root>
           <Field.Root>
             <Field.Label>Target date (optional)</Field.Label>
@@ -332,6 +339,11 @@ const LearningPage = () => {
               {formError}
             </Text>
           )}
+          {roadmapBlocked && (
+            <Text id="learning-add-blocked" fontSize="sm" color="fg.muted">
+              {ROADMAP_FIRST}
+            </Text>
+          )}
           <HStack>
             <Button
               type="submit"
@@ -339,6 +351,7 @@ const LearningPage = () => {
               loading={items.isBusy('new')}
               // Adding before the list loads could be overwritten by that first load.
               disabled={!items.loaded}
+              aria-describedby={roadmapBlocked ? 'learning-add-blocked' : undefined}
             >
               <LuPlus aria-hidden="true" focusable="false" />
               Add to roadmap
@@ -370,10 +383,19 @@ const LearningPage = () => {
               Retry loading skill gaps
             </Button>
           </VStack>
+        ) : roadmapBlocked ? (
+          <Text color="fg.muted">{ROADMAP_FIRST}</Text>
         ) : !careerLoaded || !items.loaded ? (
           <Text color="fg.muted">Loading your skill gaps...</Text>
         ) : gaps.gaps.length ? (
-          <Box as="ul" role="list" listStyleType="none" m={0} p={0} aria-labelledby="learning-gaps">
+          <Box
+            as="ul"
+            role="list"
+            listStyleType="none"
+            m={0}
+            p={0}
+            aria-label="Skills your open saved jobs need"
+          >
             {gaps.gaps.map((gap) => {
               const planned = hasOpenLearning(items.items, gap.skill);
               return (

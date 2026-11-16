@@ -29,7 +29,7 @@ It supports the goal of reaching senior engineer or tech lead by turning "skills
 ## Planned capabilities
 
 - Career: resume, skills inventory, job opportunities, saved jobs, applications, skill-gap analysis, career goals
-- Learning: skills to develop, learning roadmap, courses/articles, portfolio-project recommendations
+- Learning: portfolio-project recommendations
 - Turn a skill gap into a learning task or project in TaskForge
 
 ## Dependencies

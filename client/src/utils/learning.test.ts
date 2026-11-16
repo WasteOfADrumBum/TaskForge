@@ -35,9 +35,14 @@ describe('learning helpers', () => {
   it('orders done items newest finished first', () => {
     const items = [
       item({ title: 'Old', status: 'done', completedAt: '2026-10-01T10:00:00.000Z' }),
+      item({ title: 'Legacy', status: 'done', completedAt: null }),
       item({ title: 'New', status: 'done', completedAt: '2026-11-17T10:00:00.000Z' }),
     ];
-    expect(learningInStatus(items, 'done').map((entry) => entry.title)).toEqual(['New', 'Old']);
+    expect(learningInStatus(items, 'done').map((entry) => entry.title)).toEqual([
+      'New',
+      'Old',
+      'Legacy',
+    ]);
   });
 
   it('says in words when an unfinished item is past its target', () => {

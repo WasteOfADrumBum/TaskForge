@@ -10,9 +10,15 @@ export const getLearningId = (item: LearningItem) => item._id ?? item.id ?? '';
 export const learningInStatus = (items: LearningItem[], status: LearningStatus) => {
   const list = items.filter((item) => item.status === status);
   if (status === 'done') {
-    return list.sort(
-      (a, b) => Date.parse(b.completedAt ?? '') - Date.parse(a.completedAt ?? '') || 0,
-    );
+    // An item missing its completion time sorts last rather than breaking the order.
+    const finished = (item: LearningItem) => {
+      const time = Date.parse(item.completedAt ?? '');
+      return Number.isFinite(time) ? time : -Infinity;
+    };
+    return list.sort((a, b) => {
+      const diff = finished(b) - finished(a);
+      return Number.isNaN(diff) ? 0 : diff;
+    });
   }
   return list.sort((a, b) => {
     const dateA = a.targetDate ?? '9999';

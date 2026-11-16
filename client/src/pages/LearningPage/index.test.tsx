@@ -62,11 +62,13 @@ describe('Learning page', () => {
     await userEvent.type(form.getByRole('textbox', { name: /skill/i }), 'C++');
     await userEvent.click(add);
     expect(form.getByRole('alert')).toHaveTextContent(/for the skill/);
+    expect(form.getByRole('textbox', { name: /skill/i })).toHaveAttribute('aria-invalid', 'true');
     await userEvent.clear(form.getByRole('textbox', { name: /skill/i }));
     await userEvent.type(form.getByRole('textbox', { name: /skill/i }), 'Graph QL');
     await userEvent.type(form.getByRole('textbox', { name: /link/i }), 'http://example.com');
     await userEvent.click(add);
     expect(form.getByRole('alert')).toHaveTextContent(/full https link/);
+    expect(form.getByRole('textbox', { name: /link/i })).toHaveAttribute('aria-invalid', 'true');
     await userEvent.clear(form.getByRole('textbox', { name: /link/i }));
     await userEvent.type(
       form.getByRole('textbox', { name: /link/i }),
@@ -156,7 +158,7 @@ describe('Learning page', () => {
     );
     renderApp('/learning');
     const gaps = await waitFor(() => region(/from your skill gaps/i));
-    const list = await gaps.findByRole('list', { name: /from your skill gaps/i });
+    const list = await gaps.findByRole('list', { name: 'Skills your open saved jobs need' });
     expect(
       within(list)
         .getAllByRole('listitem')
@@ -189,6 +191,9 @@ describe('Learning page', () => {
     renderApp('/learning');
     expect(await screen.findByText('Your roadmap could not be loaded.')).toBeInTheDocument();
     const gaps = region(/from your skill gaps/i);
+    expect(
+      screen.getByRole('button', { name: 'Add to roadmap', description: /must load/ }),
+    ).toBeDisabled();
     expect(await gaps.findByRole('alert')).toHaveTextContent('Unavailable right now');
     fail = false;
     await userEvent.click(screen.getByRole('button', { name: 'Retry loading roadmap' }));
