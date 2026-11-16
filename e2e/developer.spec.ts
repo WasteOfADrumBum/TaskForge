@@ -115,7 +115,9 @@ test('Developer plan is explicit text-only simulation and exact human approval l
       .fill('Developer text reviewed');
     // Wait for the review request itself, not only the page text, before reading the record.
     const reviewRequest = page.waitForResponse(
-      (r) => r.url() === apiURL + '/api/runs/' + queued._id + '/review',
+      (r) =>
+        r.url() === apiURL + '/api/runs/' + queued._id + '/review' &&
+        r.request().method() === 'POST',
     );
     await page.getByRole('button', { name: 'Approve draft', exact: true }).click();
     expect((await reviewRequest).status()).toBe(200);

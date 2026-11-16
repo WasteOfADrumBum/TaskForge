@@ -88,9 +88,15 @@ for (const decision of ['approved', 'rejected'] as const) {
         await expect(panel.getByText(run.result.text, { exact: true })).toBeVisible();
         const note = 'Browser decision note ' + randomUUID();
         await panel.getByLabel('Review note (optional)').fill(note);
+        const reviewRequest = page.waitForResponse(
+          (r) =>
+            r.url() === apiURL + '/api/runs/' + run._id + '/review' &&
+            r.request().method() === 'POST',
+        );
         await panel
           .getByRole('button', { name: decision === 'approved' ? 'Approve draft' : 'Reject draft' })
           .click();
+        expect((await reviewRequest).status()).toBe(200);
         await expect(
           panel.getByText('Draft ' + decision + '. No tasks were changed.'),
         ).toBeVisible();

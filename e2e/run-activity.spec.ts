@@ -139,12 +139,19 @@ for (const decision of ['approved', 'rejected'] as const) {
         ).toBeVisible();
         const note = 'Activity human decision ' + randomUUID();
         await page.getByLabel('Review note (optional)', { exact: true }).fill(note);
+        // Wait for the review request itself before reading the record.
+        const reviewRequest = page.waitForResponse(
+          (r) =>
+            r.url() === apiURL + '/api/runs/' + queued._id + '/review' &&
+            r.request().method() === 'POST',
+        );
         await page
           .getByRole('button', {
             name: decision === 'approved' ? 'Approve draft' : 'Reject draft',
             exact: true,
           })
           .click();
+        expect((await reviewRequest).status()).toBe(200);
         await expect(page.getByRole('button', { name: 'Approve draft', exact: true })).toHaveCount(
           0,
         );
