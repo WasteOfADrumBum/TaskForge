@@ -11,6 +11,7 @@ import { Review } from '../src/models/reviewModel';
 import { Goal } from '../src/models/goalModel';
 import { LearningItem } from '../src/models/learningModel';
 import { Resume } from '../src/models/resumeModel';
+import { Brand } from '../src/models/brandModel';
 import { SavedJob } from '../src/models/jobModel';
 import { Skill } from '../src/models/skillModel';
 
@@ -524,6 +525,58 @@ it('keeps one private resume per owner', async () => {
     ).toBe(400);
   } finally {
     await Resume.deleteMany({ owner: { $in: [aliceId, bobId] } });
+  }
+});
+
+it('keeps one private brand profile per owner and kind', async () => {
+  try {
+    expect((await request(app).get('/api/brands').set(auth(aliceToken))).body).toEqual({
+      brands: [],
+    });
+    const first = await request(app)
+      .put('/api/brands/taskforge')
+      .set(auth(aliceToken))
+      .send({
+        name: 'TaskForge',
+        colors: [{ name: 'Teal', hex: '#0f766e' }],
+        logos: [{ label: 'Mark', url: '/taskforge-logo.svg' }],
+        owner: bobId,
+      });
+    expect(first.status).toBe(200);
+    expect(first.body.brand).toMatchObject({
+      owner: aliceId,
+      kind: 'taskforge',
+      name: 'TaskForge',
+      colors: [{ name: 'Teal', hex: '#0F766E' }],
+    });
+    const [again, personal] = await Promise.all([
+      request(app).put('/api/brands/taskforge').set(auth(aliceToken)).send({ name: 'TF' }),
+      request(app).put('/api/brands/personal').set(auth(aliceToken)).send({ name: 'Me' }),
+    ]);
+    expect(again.body.brand).toMatchObject({ _id: first.body.brand._id, name: 'TF', colors: [] });
+    expect(personal.body.brand.kind).toBe('personal');
+    expect(await Brand.countDocuments({ owner: aliceId })).toBe(2);
+    const listed = (await request(app).get('/api/brands').set(auth(aliceToken))).body.brands;
+    expect(listed.map((brand: { kind: string }) => brand.kind)).toEqual(['personal', 'taskforge']);
+    expect((await request(app).get('/api/brands').set(auth(bobToken))).body).toEqual({
+      brands: [],
+    });
+    // Two first saves of the same kind race; the unique index keeps one, the other updates it.
+    const racing = await Promise.all(
+      ['Bob A', 'Bob B'].map((name) =>
+        request(app).put('/api/brands/taskforge').set(auth(bobToken)).send({ name }),
+      ),
+    );
+    expect(racing.map((response) => response.status)).toEqual([200, 200]);
+    expect(await Brand.countDocuments({ owner: bobId, kind: 'taskforge' })).toBe(1);
+    const bad = await request(app)
+      .put('/api/brands/personal')
+      .set(auth(bobToken))
+      .send({ name: 'Bob', logos: [{ label: 'L', url: 'http://example.com/l.png' }] });
+    expect(bad.status).toBe(400);
+    expect(await Brand.countDocuments({ owner: bobId, kind: 'personal' })).toBe(0);
+  } finally {
+    await Brand.deleteMany({ owner: { $in: [aliceId, bobId] } });
   }
 });
 

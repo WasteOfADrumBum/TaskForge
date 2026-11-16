@@ -179,16 +179,16 @@ Learning:
 
 ## Phase 7: Brand Studio ([details](phases/phase-7-brand-studio.md))
 
-**Status: PLANNED**
+**Status: IN PROGRESS**
 
-- [ ] **PLANNED**: TaskForge brand
-- [ ] **PLANNED**: Personal brand
-- [ ] **PLANNED**: Colors
-- [ ] **PLANNED**: Fonts
-- [ ] **PLANNED**: Logos
-- [ ] **PLANNED**: Brand voice
-- [ ] **PLANNED**: Writing style
-- [ ] **PLANNED**: Image prompts
+- [ ] **IN PROGRESS**: TaskForge brand (stored by the brand profiles API, KAN-73; page planned)
+- [ ] **IN PROGRESS**: Personal brand (stored by the brand profiles API, KAN-73; page planned)
+- [ ] **IN PROGRESS**: Colors (stored by the brand profiles API, KAN-73; page planned)
+- [ ] **IN PROGRESS**: Fonts (stored by the brand profiles API, KAN-73; page planned)
+- [ ] **IN PROGRESS**: Logos (stored by the brand profiles API, KAN-73; page planned)
+- [ ] **IN PROGRESS**: Brand voice (stored by the brand profiles API, KAN-73; page planned)
+- [ ] **IN PROGRESS**: Writing style (stored by the brand profiles API, KAN-73; page planned)
+- [ ] **IN PROGRESS**: Image prompts (stored by the brand profiles API, KAN-73; page planned)
 - [ ] **PLANNED**: Generated assets
 - [ ] **PLANNED**: LinkedIn/GitHub presentation support
 
