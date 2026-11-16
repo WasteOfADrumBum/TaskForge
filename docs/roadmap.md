@@ -162,11 +162,11 @@ Release readiness and the approved bounded Phase 2 milestone are complete. Josh 
 Career:
 
 - [ ] **PLANNED**: Resume
-- [ ] **IN PROGRESS**: Skills inventory (API in KAN-63; screens next)
+- [x] **COMPLETE**: Skills inventory (KAN-63, KAN-64)
 - [ ] **PLANNED**: Job opportunities
-- [ ] **IN PROGRESS**: Saved jobs (API in KAN-63; screens next)
-- [ ] **PLANNED**: Applications
-- [ ] **PLANNED**: Skill-gap analysis
+- [x] **COMPLETE**: Saved jobs (KAN-63, KAN-64), with application status
+- [ ] **IN PROGRESS**: Applications (saved jobs track an application status, KAN-64)
+- [x] **COMPLETE**: Skill-gap analysis (KAN-64): rule-based, by exact skill name
 - [ ] **PLANNED**: Career goals
 
 Learning:
@@ -175,7 +175,7 @@ Learning:
 - [ ] **PLANNED**: Learning roadmap
 - [ ] **PLANNED**: Courses/articles
 - [ ] **PLANNED**: Portfolio-project recommendations
-- [ ] **PLANNED**: Connect job-market gaps to learning tasks/projects
+- [ ] **IN PROGRESS**: Connect job-market gaps to learning tasks/projects (a missing skill on a saved job becomes a learning task, KAN-64; projects planned)
 
 ## Phase 7: Brand Studio ([details](phases/phase-7-brand-studio.md))
 

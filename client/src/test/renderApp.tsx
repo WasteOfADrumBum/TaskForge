@@ -8,6 +8,7 @@ import { system } from '../assets/theme/theme';
 import { store } from '../redux/store';
 import { setToken } from '../redux/slices/authSlice';
 import type { Agent } from '../types/agent';
+import type { SavedJob, Skill } from '../types/career';
 import type { Goal } from '../types/goal';
 import type { Project } from '../types/project';
 import type { Review } from '../types/review';
@@ -80,12 +81,16 @@ export const stubTaskApi = (
   initialAgents: Agent[] = [],
   initialReviews: Review[] = [],
   initialGoals: Goal[] = [],
+  initialSkills: Skill[] = [],
+  initialJobs: SavedJob[] = [],
 ) => {
   const tasks = [...initial];
   const projects = [...initialProjects];
   const agents = [...initialAgents];
   const reviews = [...initialReviews];
   const goals = [...initialGoals];
+  const skills = [...initialSkills];
+  const jobs = [...initialJobs];
   let nextId = 1;
   const fetchMock = vi.fn(async (url: string, options: RequestInit = {}) => {
     const method = options.method ?? 'GET';
@@ -99,6 +104,42 @@ export const stubTaskApi = (
       return json(200, { message: 'Logged in successfully', token: validToken() });
     }
     if (url.includes('/api/runs/approvals') && method === 'GET') return json(200, { runs: [] });
+    const careerMatch = url.match(/\/api\/(skills|jobs)(?:\/([^/]+))?$/);
+    if (careerMatch) {
+      const [, kind, rawId] = careerMatch;
+      const list = (kind === 'skills' ? skills : jobs) as Array<Skill | SavedJob>;
+      const key = kind === 'skills' ? 'skill' : 'job';
+      const recordId = rawId && decodeURIComponent(rawId);
+      const now = new Date().toISOString();
+      if (method === 'GET' && !recordId) return json(200, { [kind]: list });
+      if (method === 'POST') {
+        if (kind === 'skills' && skills.some((skill) => skill.name === body.name))
+          return json(409, { message: 'That skill is already in your list' });
+        const record =
+          kind === 'skills'
+            ? { _id: 'skill-' + nextId++, name: body.name, level: body.level ?? 'working' }
+            : {
+                _id: 'job-' + nextId++,
+                title: body.title,
+                company: body.company ?? '',
+                url: body.url ?? '',
+                requiredSkills: body.requiredSkills ?? [],
+                status: 'saved',
+                notes: body.notes ?? '',
+              };
+        list.unshift({ ...record, createdAt: now, updatedAt: now } as unknown as Skill & SavedJob);
+        return json(201, { [key]: list[0] });
+      }
+      const index = list.findIndex((record) => record._id === recordId);
+      if (index === -1)
+        return json(404, { message: (kind === 'skills' ? 'Skill' : 'Job') + ' not found' });
+      if (method === 'PATCH') {
+        list[index] = { ...list[index], ...body, updatedAt: now };
+        return json(200, { [key]: list[index] });
+      }
+      list.splice(index, 1);
+      return json(204);
+    }
     const goalMatch = url.match(/\/api\/goals(?:\/([^/]+))?$/);
     if (goalMatch) {
       const goalId = goalMatch[1] && decodeURIComponent(goalMatch[1]);
@@ -247,7 +288,7 @@ export const stubTaskApi = (
     return json(204);
   });
   vi.stubGlobal('fetch', fetchMock);
-  return { fetchMock, tasks, projects, agents, reviews, goals };
+  return { fetchMock, tasks, projects, agents, reviews, goals, skills, jobs };
 };
 
 // Calls made to one endpoint and method, for example requestsTo(fetchMock, 'GET', '/api/tasks').

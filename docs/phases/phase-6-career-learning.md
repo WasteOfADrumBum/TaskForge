@@ -20,6 +20,8 @@ It supports the goal of reaching senior engineer or tech lead by turning "skills
 
 - Skills inventory and saved jobs API (KAN-63): skills with a level, one per name, and jobs saved by hand with required skills and an application status. Skill names are slugs so a job's requirements can be matched against your skills.
 
+- Career page (KAN-64): the Career page (`/career`) manages skills and saved jobs. It shows each job's skill gap, meaning the required skills you have and those you are missing, matched by exact name and labelled rule-based. One press turns a missing skill into a To Do task, "Learn <skill> for <job>".
+
 ## Planned capabilities
 
 - Career: resume, skills inventory, job opportunities, saved jobs, applications, skill-gap analysis, career goals

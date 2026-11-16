@@ -2,14 +2,14 @@ import { randomUUID } from 'node:crypto';
 import { expect, test, type Page } from '@playwright/test';
 
 const apiURL = 'http://127.0.0.1:5051';
-const password = 'Phase 5 QA passphrase 2026!';
+const password = 'Growth QA passphrase 2026!';
 
 test.beforeEach(async ({ baseURL }) => {
-  expect(baseURL, 'Phase 5 QA requires the guarded local client').toBe('http://127.0.0.1:5174');
+  expect(baseURL, 'Growth QA requires the guarded local client').toBe('http://127.0.0.1:5174');
 });
 
 const registerAndLogin = async (page: Page) => {
-  const email = 'phase5-' + randomUUID() + '@example.test';
+  const email = 'growth-' + randomUUID() + '@example.test';
   await page.goto('/register');
   await page.getByLabel(/^Email/).fill(email);
   await page.getByLabel(/^Password/).fill(password);
@@ -24,9 +24,9 @@ const registerAndLogin = async (page: Page) => {
   return token;
 };
 
-// One account for both Phase 5 flows: the guarded API caps registrations per run, so each new
+// One account for the Phase 5 and 6 flows: the guarded API caps registrations per run, so each new
 // spec should reuse an account where it can.
-test('shows progress, completes a daily review, and checks in on a goal on mobile by keyboard', async ({
+test('growth flows on mobile by keyboard: progress, daily review, goals and career', async ({
   page,
   playwright,
 }) => {
@@ -134,6 +134,39 @@ test('shows progress, completes a daily review, and checks in on a goal on mobil
         achievedAt: expect.any(String),
       }),
     ]);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+    ).toBe(true);
+
+    // Career: a skill, a saved job, and a learning task from its skill gap.
+    await page.goto('/career');
+    await expect(page.getByRole('heading', { level: 1, name: 'Career' })).toBeVisible();
+    const skillsSection = page.getByRole('region', { name: /^skills/i });
+    const skillField = skillsSection.getByRole('textbox', { name: /skill/i });
+    await skillField.focus();
+    await page.keyboard.type('React');
+    await page.keyboard.press('Enter');
+    await expect(skillsSection.getByText('react', { exact: true })).toBeVisible();
+    const jobsSection = page.getByRole('region', { name: /saved jobs/i });
+    const jobTitle = 'Frontend Engineer ' + randomUUID().slice(0, 8);
+    await jobsSection.getByRole('textbox', { name: /job title/i }).fill(jobTitle);
+    await jobsSection.getByRole('textbox', { name: /required skills/i }).fill('react, graphql');
+    const saveJob = jobsSection.getByRole('button', { name: 'Save job', exact: true });
+    await saveJob.focus();
+    await page.keyboard.press('Enter');
+    const learn = jobsSection.getByRole('button', {
+      name: 'Add learning task: graphql for ' + jobTitle,
+    });
+    // The button waits for the task list, which the app shell loads.
+    await expect(learn).toBeEnabled();
+    await learn.focus();
+    await page.keyboard.press('Enter');
+    await expect(jobsSection.getByText('Learning task added')).toBeVisible();
+    const learningTitle = 'Learn graphql for ' + jobTitle;
+    const allTasks = (await (await api.get('/api/tasks')).json()).tasks;
+    expect(allTasks).toEqual(
+      expect.arrayContaining([expect.objectContaining({ title: learningTitle, status: 'todo' })]),
+    );
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true);
