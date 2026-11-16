@@ -157,6 +157,8 @@ test('growth flows on mobile by keyboard: progress, daily review, goals and care
     const learn = jobsSection.getByRole('button', {
       name: 'Add learning task: graphql for ' + jobTitle,
     });
+    // The button waits for the task list, which the app shell loads.
+    await expect(learn).toBeEnabled();
     await learn.focus();
     await page.keyboard.press('Enter');
     await expect(jobsSection.getByText('Learning task added')).toBeVisible();

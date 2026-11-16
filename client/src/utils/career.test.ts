@@ -3,6 +3,7 @@ import type { SavedJob, Skill } from '../types/career';
 import type { Task } from '../types/task';
 import {
   getSkillGap,
+  safeHttpsUrl,
   hasLearningTask,
   learningTaskTitle,
   parseSkillList,
@@ -54,5 +55,15 @@ describe('career utilities', () => {
     ];
     expect(hasLearningTask(tasks, 'graphql', job())).toBe(true);
     expect(hasLearningTask(tasks, 'typescript', job())).toBe(false);
+  });
+});
+
+describe('safeHttpsUrl', () => {
+  it('allows https links and refuses anything else', () => {
+    expect(safeHttpsUrl('https://jobs.example.com/1')).toBe('https://jobs.example.com/1');
+    expect(safeHttpsUrl('javascript:alert(1)')).toBeNull();
+    expect(safeHttpsUrl('http://jobs.example.com')).toBeNull();
+    expect(safeHttpsUrl('https://user:pass@example.com')).toBeNull();
+    expect(safeHttpsUrl('')).toBeNull();
   });
 });

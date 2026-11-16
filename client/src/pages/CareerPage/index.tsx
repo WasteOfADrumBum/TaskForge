@@ -1,6 +1,7 @@
 import {
   Badge,
   Box,
+  chakra,
   Button,
   Field,
   Heading,
@@ -46,6 +47,7 @@ import {
   type SkillLevel,
 } from '../../types/career';
 import {
+  safeHttpsUrl,
   getSkillGap,
   hasLearningTask,
   learningTaskTitle,
@@ -102,6 +104,10 @@ const CareerPage = () => {
   const addSkill = async (event: FormEvent) => {
     event.preventDefault();
     const name = toSkillSlug(skillName);
+    if (!skillName.trim()) {
+      setSkillError('Enter a skill name.');
+      return;
+    }
     if (!name) {
       setSkillError('Use letters, numbers, spaces or hyphens, up to 40 characters.');
       return;
@@ -123,6 +129,9 @@ const CareerPage = () => {
   const addJob = async (event: FormEvent) => {
     event.preventDefault();
     if (!jobTitle.trim()) return setJobError('Give the job a title.');
+    if (url.trim() && !safeHttpsUrl(url.trim())) {
+      return setJobError('Use a full https link, for example https://example.com/job.');
+    }
     const parsed = parseSkillList(skillList);
     if ('invalid' in parsed) {
       return setJobError(
@@ -220,7 +229,7 @@ const CareerPage = () => {
             {skills.items.length}
           </Badge>
         </Heading>
-        <Box as="form" onSubmit={addSkill} aria-label="Add a skill" mb={4}>
+        <chakra.form onSubmit={addSkill} aria-label="Add a skill" mb={4} noValidate>
           <HStack align="end" gap={3} flexWrap="wrap">
             <Field.Root required invalid={Boolean(skillError)} flex="1" minW="12rem">
               <Field.Label>
@@ -265,7 +274,7 @@ const CareerPage = () => {
               {skillError}
             </Text>
           )}
-        </Box>
+        </chakra.form>
         {skills.error && !skills.pending ? (
           <VStack align="start" gap={2}>
             <Text color="fg.error">{skills.error}</Text>
@@ -294,7 +303,7 @@ const CareerPage = () => {
                     {skill.name}
                   </Text>
                   <HStack gap={2}>
-                    <NativeSelect.Root size="xs" w="auto" disabled={skills.isBusy(id)}>
+                    <NativeSelect.Root size="xs" w="auto">
                       <NativeSelect.Field
                         aria-label={'Level for ' + skill.name}
                         value={skill.level}
@@ -342,7 +351,7 @@ const CareerPage = () => {
             {jobs.items.length}
           </Badge>
         </Heading>
-        <Box as="form" onSubmit={addJob} aria-label="Save a job" mb={4}>
+        <chakra.form onSubmit={addJob} aria-label="Save a job" mb={4} noValidate>
           <VStack align="stretch" gap={3}>
             <Field.Root required invalid={jobError === 'Give the job a title.'}>
               <Field.Label>
@@ -402,7 +411,7 @@ const CareerPage = () => {
               </Button>
             </HStack>
           </VStack>
-        </Box>
+        </chakra.form>
 
         {jobs.error && !jobs.pending ? (
           <VStack align="start" gap={2}>
@@ -429,9 +438,9 @@ const CareerPage = () => {
                       {job.company}
                     </Text>
                   )}
-                  {job.url && (
+                  {safeHttpsUrl(job.url) && (
                     <Link
-                      href={job.url}
+                      href={safeHttpsUrl(job.url)!}
                       target="_blank"
                       rel="noopener noreferrer"
                       fontSize="sm"
@@ -448,7 +457,7 @@ const CareerPage = () => {
                     </Text>
                   )}
                   <HStack gap={2} mt={2} flexWrap="wrap">
-                    <NativeSelect.Root size="xs" w="auto" disabled={jobs.isBusy(id)}>
+                    <NativeSelect.Root size="xs" w="auto">
                       <NativeSelect.Field
                         aria-label={'Status for ' + job.title}
                         value={job.status}

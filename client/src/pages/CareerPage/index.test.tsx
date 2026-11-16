@@ -198,3 +198,46 @@ describe('Career page', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Could not add task');
   });
 });
+
+it('never renders a non-https job link and checks the link before saving', async () => {
+  signIn();
+  const { fetchMock } = stubTaskApi(
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [
+      {
+        _id: 'job-x',
+        title: 'Old record',
+        company: '',
+        url: 'javascript:alert(1)',
+        requiredSkills: [],
+        status: 'saved',
+        notes: '',
+      },
+    ],
+  );
+  renderApp('/career');
+  expect(await screen.findByRole('heading', { level: 3, name: 'Old record' })).toBeInTheDocument();
+  expect(screen.queryByRole('link', { name: /job posting/i })).not.toBeInTheDocument();
+  const section = within(screen.getByRole('region', { name: /saved jobs/i }));
+  await userEvent.type(section.getByRole('textbox', { name: /job title/i }), 'Dev');
+  await userEvent.type(section.getByRole('textbox', { name: /link/i }), 'jobs.example.com');
+  await userEvent.click(section.getByRole('button', { name: 'Save job' }));
+  expect(section.getByRole('alert')).toHaveTextContent('Use a full https link');
+  expect(requestsTo(fetchMock, 'POST', '/api/jobs')).toHaveLength(0);
+});
+
+it('keeps focus on a level select after changing it', async () => {
+  signIn();
+  stubTaskApi([], [], [], [], [], [{ _id: 's1', name: 'react', level: 'working' }]);
+  renderApp('/career');
+  const select = await screen.findByRole('combobox', { name: 'Level for react' });
+  await userEvent.selectOptions(select, 'expert');
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('react is now Expert.'));
+  expect(select).toBeEnabled();
+  expect(select).toHaveFocus();
+});

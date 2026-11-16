@@ -40,3 +40,14 @@ export const hasLearningTask = (tasks: Task[], skill: string, job: SavedJob) => 
   const title = learningTaskTitle(skill, job);
   return tasks.some((task) => task.title === title);
 };
+
+// The link to render for a saved job, or null. The server only stores https links; this keeps
+// any other value (for example an old or hand-edited record) out of an href.
+export const safeHttpsUrl = (value: string): string | null => {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && !url.username && !url.password ? url.toString() : null;
+  } catch {
+    return null;
+  }
+};

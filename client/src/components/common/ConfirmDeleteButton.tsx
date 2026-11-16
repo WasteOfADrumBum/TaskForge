@@ -32,8 +32,12 @@ const ConfirmDeleteButton = ({
         ref={confirmRef}
         size="xs"
         colorPalette="red"
-        disabled={busy}
-        onClick={onConfirm}
+        // aria-disabled rather than disabled, so focus stays here while the delete runs and
+        // after a failure.
+        aria-disabled={busy || undefined}
+        onClick={() => {
+          if (!busy) onConfirm();
+        }}
         aria-label={'Confirm ' + label.toLowerCase() + ': ' + name}
       >
         Confirm {label.toLowerCase()}
@@ -47,8 +51,10 @@ const ConfirmDeleteButton = ({
       ref={startRef}
       size="xs"
       variant="ghost"
-      disabled={busy}
-      onClick={() => toggle(true)}
+      aria-disabled={busy || undefined}
+      onClick={() => {
+        if (!busy) toggle(true);
+      }}
       aria-label={label + ': ' + name}
     >
       {label}
