@@ -126,7 +126,7 @@ flowchart LR
 **Skills and saved jobs (Phase 6):**
 
 - **Skills:** `Skill` has `name`, `level` (`learning`, `working`, `strong` or `expert`), `owner` and timestamps. Names are slugs, the same rule as agent skills, so `Node JS` and `node_js` both become `node-js`. A unique `{ owner, name }` index is created lazily on first write with the same fail-closed guard as runs (`503` if it can't be confirmed), and a duplicate name gets `409`.
-- **Saved jobs:** `SavedJob` has `title` (required, up to 120 characters), `company`, `url` (optional, `https` only and without credentials; TaskForge never fetches it), `requiredSkills` (up to 30 slugs, de-duplicated), `status` (`saved`, `applied`, `interviewing`, `offer`, `rejected` or `closed`), `notes`, `owner` and timestamps.
+- **Saved jobs:** `SavedJob` has `title` (required, up to 120 characters), `company`, `url` (optional, `https` only and without credentials; TaskForge never fetches it), `requiredSkills` (up to 30 slugs, de-duplicated), `status` (`saved`, `applied`, `interviewing`, `offer`, `rejected` or `closed`), `notes`, `statusChangedAt`, `owner` and timestamps. `statusChangedAt` is set by the server only (KAN-72): stamped on create and whenever an update actually changes the status, in a status-filtered write that retries once on a concurrent change. Saving the same status or other fields leaves it alone, client values are ignored, and jobs saved before KAN-72 have `null`.
 - **Ownership:** this follows the same rules as goals. Another user's record gets the same `404` as a missing one, and malformed ids get `404` without a query.
 - **Skill gaps:** a job's required skills are compared with the user's skills by slug in the client. Nothing is scraped or inferred.
 

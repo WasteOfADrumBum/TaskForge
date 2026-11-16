@@ -32,6 +32,9 @@ const jobSchema = new Schema(
     },
     status: { type: String, enum: JOB_STATUSES, default: 'saved' },
     notes: { type: String, default: '', trim: true, maxlength: JOB_NOTES_MAX },
+    // Set by the server only: when the job was saved, then whenever its status actually changes.
+    // Jobs saved before KAN-72 have none.
+    statusChangedAt: { type: Date, default: null },
     owner: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   },
   { timestamps: true },

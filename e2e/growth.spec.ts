@@ -26,7 +26,7 @@ const registerAndLogin = async (page: Page) => {
 
 // One account for the Phase 5 and 6 flows: the guarded API caps registrations per run, so each new
 // spec should reuse an account where it can.
-test('growth flows on mobile by keyboard: progress, reviews, goals, career, skill growth, learning and project ideas', async ({
+test('growth flows on mobile by keyboard: progress, reviews, goals, career, applications, skill growth, learning and project ideas', async ({
   page,
   playwright,
 }) => {
@@ -201,6 +201,24 @@ test('growth flows on mobile by keyboard: progress, reviews, goals, career, skil
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true);
+
+    // Applications: marking the job applied lists it, dated today, with no follow-up yet.
+    const statusSelect = jobsSection.getByRole('combobox', { name: 'Status for ' + jobTitle });
+    await statusSelect.focus();
+    await statusSelect.selectOption('applied');
+    await expect(page.getByText(jobTitle + ' is now Applied.')).toBeVisible();
+    const applications = page.getByRole('region', { name: 'Applications', exact: true });
+    await expect(applications.getByRole('list', { name: 'Applications by status' })).toContainText(
+      'Applied: 1',
+    );
+    const activeApplications = applications.getByRole('list', { name: 'Active applications' });
+    await expect(activeApplications).toContainText(jobTitle);
+    await expect(activeApplications).toContainText(/Applied\. Since .+ \(today\)/);
+    await expect(applications.getByRole('button', { name: /follow-up/i })).toHaveCount(0);
+    const jobsNow = (await (await api.get('/api/jobs')).json()).jobs;
+    const appliedJob = jobsNow.find((item: { title: string }) => item.title === jobTitle);
+    expect(appliedJob).toMatchObject({ status: 'applied' });
+    expect(Number.isFinite(Date.parse(appliedJob.statusChangedAt))).toBe(true);
 
     // Skill growth in the weekly review: the new skill, the finished learning task and the gap.
     const learningTask = allTasks.find((item: { title: string }) => item.title === learningTitle);

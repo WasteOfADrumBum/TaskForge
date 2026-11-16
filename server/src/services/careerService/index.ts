@@ -72,10 +72,30 @@ export const findJobsByOwner = async (ownerId: string) =>
   SavedJob.find({ owner: ownerId }).sort({ updatedAt: -1 });
 
 export const createJob = async (ownerId: string, input: JobInput) =>
-  SavedJob.create({ ...input, owner: ownerId });
+  SavedJob.create({ ...input, owner: ownerId, statusChangedAt: new Date() });
 
-export const updateJobById = async (ownerId: string, jobId: string, updates: Partial<JobInput>) =>
-  SavedJob.findOneAndUpdate({ _id: jobId, owner: ownerId }, updates, options);
+// statusChangedAt moves only when the status really changes. Each write filters on the status it
+// expects, and the pair retries once if a concurrent change lands between them; null means the
+// job is missing or not the owner's.
+export const updateJobById = async (ownerId: string, jobId: string, updates: Partial<JobInput>) => {
+  const owned = { _id: jobId, owner: ownerId };
+  if (updates.status === undefined) return SavedJob.findOneAndUpdate(owned, updates, options);
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const changed = await SavedJob.findOneAndUpdate(
+      { ...owned, status: { $ne: updates.status } },
+      { ...updates, statusChangedAt: new Date() },
+      options,
+    );
+    if (changed) return changed;
+    const same = await SavedJob.findOneAndUpdate(
+      { ...owned, status: updates.status },
+      updates,
+      options,
+    );
+    if (same) return same;
+  }
+  return null;
+};
 
 export const deleteJobById = async (ownerId: string, jobId: string) =>
   SavedJob.findOneAndDelete({ _id: jobId, owner: ownerId });
