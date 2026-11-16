@@ -2,6 +2,7 @@ import { Box, Flex, HStack, IconButton, Text, VStack } from '@chakra-ui/react';
 import {
   LuBot,
   LuBookOpen,
+  LuBriefcase,
   LuChartColumn,
   LuGoal,
   LuLayoutDashboard,
@@ -21,6 +22,7 @@ export const navItems = [
   { to: '/progress', label: 'Progress', icon: LuChartColumn },
   { to: '/reviews', label: 'Reviews', icon: LuNotebookPen },
   { to: '/goals', label: 'Goals', icon: LuGoal },
+  { to: '/career', label: 'Career', icon: LuBriefcase },
   { to: '/workforce', label: 'Workforce', icon: LuBot },
   { to: '/knowledge', label: 'Knowledge', icon: LuBookOpen },
   { to: '/settings', label: 'Settings', icon: LuSettings },

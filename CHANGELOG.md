@@ -4,6 +4,8 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+- KAN-64: Career page (`/career`) with a skills inventory, saved jobs with status, a rule-based skill gap per job, and one-press learning tasks for missing skills.
+
 - KAN-63: owner-scoped skills inventory (`/api/skills`, one per slug name, with a level) and saved jobs (`/api/jobs`, https link, required skills, application status); no UI yet.
 
 - KAN-62: Goals page (`/goals`) to add goals, mark them achieved, dropped or active again, and delete them after a confirming press, plus a goal check-in step in the weekly review.
