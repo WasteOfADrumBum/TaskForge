@@ -152,7 +152,7 @@ Release readiness and the approved bounded Phase 2 milestone are complete. Josh 
 - [x] **COMPLETE**: Weekly review (KAN-60): the same guided steps for Monday to Sunday, saved per week
 - [x] **COMPLETE**: Progress analytics (KAN-58): `/progress` shows completions per day or week, tasks created, on-time rate and completions by project from recorded completion times (KAN-57); rule-based
 - [ ] **PLANNED**: Agent recommendations
-- [ ] **PLANNED**: Goal review
+- [x] **COMPLETE**: Goal review (KAN-61, KAN-62): goals at `/goals` and a goal check-in step in the weekly review
 - [ ] **PLANNED**: Skill-growth review
 
 ## Phase 6: Career + Learning ([details](phases/phase-6-career-learning.md))
