@@ -1,9 +1,10 @@
-import { Goal, type GoalStatus } from '../../models/goalModel';
+import { Goal, type GoalArea, type GoalStatus } from '../../models/goalModel';
 
 export interface GoalInput {
   title: string;
   description?: string;
   status?: GoalStatus;
+  area?: GoalArea;
   targetDate?: string | null;
 }
 

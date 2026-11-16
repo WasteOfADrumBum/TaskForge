@@ -6,6 +6,7 @@ import {
   Heading,
   HStack,
   Input,
+  NativeSelect,
   Text,
   Textarea,
   VStack,
@@ -15,12 +16,15 @@ import { LuPlus } from 'react-icons/lu';
 import { useGoals } from '../../hooks/useGoals';
 import { useToday } from '../../hooks/useToday';
 import {
+  GOAL_AREAS,
   GOAL_DESCRIPTION_MAX,
   GOAL_STATUSES,
   GOAL_TITLE_MAX,
   getGoalId,
+  goalAreaLabel,
   goalStatusLabel,
   type Goal,
+  type GoalArea,
   type GoalStatus,
 } from '../../types/goal';
 import { goalTargetText } from '../../utils/goals';
@@ -58,6 +62,7 @@ const GoalRow = ({
     setConfirming(next);
   };
   const target = goalTargetText(goal, now);
+  const area = goal.area && goal.area !== 'general' ? goalAreaLabel[goal.area] + ' goal' : null;
   return (
     <Box as="li" py={3} borderTopWidth="1px" borderColor="border.muted">
       <Text fontWeight="medium" overflowWrap="anywhere">
@@ -68,9 +73,9 @@ const GoalRow = ({
           {goal.description}
         </Text>
       )}
-      {target && (
+      {(area || target) && (
         <Text fontSize="sm" color="fg.muted">
-          {target}
+          {[area, target].filter(Boolean).join(' · ')}
         </Text>
       )}
       <HStack gap={2} mt={2} flexWrap="wrap">
@@ -153,6 +158,7 @@ const GoalsPage = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [targetDate, setTargetDate] = useState('');
+  const [area, setArea] = useState<GoalArea>('general');
   const [formError, setFormError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState('');
@@ -166,6 +172,7 @@ const GoalsPage = () => {
     const message = await add({
       title: submitted.title,
       description: submitted.description,
+      area,
       targetDate: submitted.targetDate || null,
     });
     if (message) return setFormError(message);
@@ -254,6 +261,22 @@ const GoalsPage = () => {
               rows={2}
               maxLength={GOAL_DESCRIPTION_MAX}
             />
+          </Field.Root>
+          <Field.Root>
+            <Field.Label>Area</Field.Label>
+            <NativeSelect.Root maxW="12rem">
+              <NativeSelect.Field
+                value={area}
+                onChange={(event) => setArea(event.target.value as GoalArea)}
+              >
+                {GOAL_AREAS.map((option) => (
+                  <option key={option} value={option}>
+                    {goalAreaLabel[option]}
+                  </option>
+                ))}
+              </NativeSelect.Field>
+              <NativeSelect.Indicator />
+            </NativeSelect.Root>
           </Field.Root>
           <Field.Root>
             <Field.Label>Target date (optional)</Field.Label>

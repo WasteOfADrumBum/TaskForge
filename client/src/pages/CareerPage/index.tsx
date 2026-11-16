@@ -27,6 +27,7 @@ import {
 } from '../../api/career';
 import { isCurrentSession } from '../../api/authenticatedFetch';
 import { createTask } from '../../api/tasks';
+import CareerGoals from '../../components/career/CareerGoals';
 import ConfirmDeleteButton from '../../components/common/ConfirmDeleteButton';
 import { useOwnedList } from '../../hooks/useOwnedList';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks/typedHooks';
@@ -221,6 +222,8 @@ const CareerPage = () => {
           </Text>
         )}
       </Box>
+
+      <CareerGoals />
 
       <Box as="section" aria-labelledby="skills-heading" {...panel}>
         <Heading as="h2" id="skills-heading" size="md" mb={4}>

@@ -190,6 +190,7 @@ export const stubTaskApi = (
           title: String(body.title ?? '').trim(),
           description: String(body.description ?? '').trim(),
           status: body.status ?? 'active',
+          area: body.area ?? 'general',
           targetDate: body.targetDate ? body.targetDate.slice(0, 10) + 'T00:00:00.000Z' : null,
           achievedAt: body.status === 'achieved' ? now : null,
           createdAt: now,

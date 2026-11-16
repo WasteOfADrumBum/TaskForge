@@ -39,14 +39,17 @@ describe('Goals page', () => {
     await userEvent.type(screen.getByRole('textbox', { name: /title/i }), '  Ship TaskForge v1  ');
     await userEvent.type(screen.getByRole('textbox', { name: /why it matters/i }), 'Portfolio');
     await userEvent.type(screen.getByLabelText(/target date/i), '2026-12-31');
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Area' }), 'Career');
     await userEvent.click(screen.getByRole('button', { name: 'Add goal' }));
 
     expect(await section(/active goals/i).findByText('Ship TaskForge v1')).toBeInTheDocument();
+    expect(section(/active goals/i).getByText(/^Career goal · /)).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('Added goal: Ship TaskForge v1.');
     const [post] = requestsTo(fetchMock, 'POST', '/api/goals');
     expect(JSON.parse(String(post[1]?.body))).toEqual({
       title: 'Ship TaskForge v1',
       description: 'Portfolio',
+      area: 'career',
       targetDate: '2026-12-31',
     });
     expect(goals).toHaveLength(1);

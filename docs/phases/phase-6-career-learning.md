@@ -26,9 +26,11 @@ It supports the goal of reaching senior engineer or tech lead by turning "skills
 
 - Learning page (KAN-68): the Learning page (`/learning`) adds roadmap items, lists them by status (in progress, planned, done) with their kind, skill, target date (an unfinished item past its date says so in text) and link, moves them between statuses and deletes them after a confirming press. Its "From your skill gaps" section lists the skills open saved jobs need most and adds one to the roadmap with one press, or says it is already on the roadmap. Rule-based.
 
+- Career goals (KAN-69): goals get an area (general, career or learning) on the Goals page, and the Career page lists active career goals with their targets and a link to Goals. They reuse the Phase 5 goals model.
+
 ## Planned capabilities
 
-- Career: resume, skills inventory, job opportunities, saved jobs, applications, skill-gap analysis, career goals
+- Career: resume, job opportunities, applications
 - Learning: portfolio-project recommendations
 - Turn a skill gap into a learning task or project in TaskForge
 
