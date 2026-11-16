@@ -164,9 +164,10 @@ function AskContent({ token, sessionVersion }: { token: string; sessionVersion: 
       borderWidth="1px"
       borderColor={mode === value ? 'accent.teal' : 'border'}
       borderRadius="md"
+      borderStyle={disabled ? 'dashed' : 'solid'}
       p={3}
-      opacity={disabled ? 0.7 : 1}
     >
+      {/* No dimming: the help text says why the mode is unavailable, so it keeps full contrast. */}
       <chakra.label
         display="flex"
         gap={3}
