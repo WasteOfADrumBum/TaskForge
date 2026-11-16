@@ -43,4 +43,11 @@ describe('Goal model', () => {
   ])('rejects %j on %s', (data, field) => {
     expect(errorsFor(data)).toContain(field);
   });
+
+  it.each([
+    [{ title: 'x'.repeat(GOAL_TITLE_MAX) }],
+    [{ description: 'x'.repeat(GOAL_DESCRIPTION_MAX) }],
+  ])('accepts %j at exactly the length limit', (data) => {
+    expect(errorsFor(data)).toEqual([]);
+  });
 });

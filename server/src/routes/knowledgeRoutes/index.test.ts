@@ -39,8 +39,9 @@ const key = 'knowledge-key-0001';
 const auth = { Authorization: 'Bearer ' + jwt.sign({ id: userId }, 'test-jwt-secret') };
 const body = { title: 'Release notes', content: 'Synthetic notes.', kind: 'note', project: null };
 
+// Reset implementations too, so a value set by one test never leaks into the next.
 beforeEach(() => {
-  jest.clearAllMocks();
+  jest.resetAllMocks();
   // The real denyKnowledge records the denial, then throws the error for the response.
   jest
     .mocked(denyKnowledge)
@@ -155,15 +156,23 @@ describe('knowledge routes', () => {
     });
 
     it.each([
-      ['an unknown query parameter', '/api/knowledge?sort=title'],
-      ['a malformed project', '/api/knowledge?project=nope'],
-      ['an unknown search parameter', '/api/knowledge/search?q=notes&page=2'],
-      ['an empty search', '/api/knowledge/search?q=%20'],
-      ['no search text', '/api/knowledge/search'],
-      ['a search over the byte limit', `/api/knowledge/search?q=${'a'.repeat(121)}`],
-    ])('rejects %s with 400', async (_case, path) => {
+      ['an unknown query parameter', '/api/knowledge?sort=title', 'read'],
+      ['a malformed project', '/api/knowledge?project=nope', 'read'],
+      ['an unknown search parameter', '/api/knowledge/search?q=notes&page=2', 'search'],
+      ['an empty search', '/api/knowledge/search?q=%20', 'search'],
+      ['no search text', '/api/knowledge/search', 'search'],
+      ['a search over the byte limit', `/api/knowledge/search?q=${'a'.repeat(121)}`, 'search'],
+    ])('rejects %s with 400 and records the denial', async (_case, path, action) => {
       const res = await request(app).get(path).set(auth);
       expect(res.status).toBe(400);
+      expect(denyKnowledge).toHaveBeenCalledWith(
+        userId,
+        null,
+        action,
+        'invalid-input',
+        400,
+        expect.any(String),
+      );
       expect(listKnowledge).not.toHaveBeenCalled();
       expect(searchKnowledge).not.toHaveBeenCalled();
     });

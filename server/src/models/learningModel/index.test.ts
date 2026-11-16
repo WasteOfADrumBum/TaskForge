@@ -52,4 +52,11 @@ describe('LearningItem model', () => {
   ])('rejects %j on %s', (data, field) => {
     expect(errorsFor(data)).toContain(field);
   });
+
+  it.each([
+    [{ title: 'x'.repeat(LEARNING_TITLE_MAX) }],
+    [{ notes: 'x'.repeat(LEARNING_NOTES_MAX) }],
+  ])('accepts %j at exactly the length limit', (data) => {
+    expect(errorsFor(data)).toEqual([]);
+  });
 });

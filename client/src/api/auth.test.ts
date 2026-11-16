@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { login, logout, register } from './auth';
-import { ApiNetworkError } from './request';
+import { ApiNetworkError, UNCERTAIN_CHANGE_MESSAGE } from './request';
 
 const fetchMock = vi.fn();
 
@@ -78,6 +78,7 @@ describe('auth API', () => {
   it.each([
     ['login', login, 'Unable to log in'],
     ['register', register, 'Unable to register'],
+    ['logout', () => logout(), 'Unable to log out'],
   ])('falls back to a plain %s message when the error body has none', async (_n, action, text) => {
     fetchMock.mockResolvedValue(
       new Response(JSON.stringify({}), {
@@ -97,10 +98,13 @@ describe('auth API', () => {
     ).rejects.toThrow('Unable to log in');
   });
 
+  // Registration is a change (login and logout pass mutation: false), so an unreadable reply
+  // means the account may or may not exist, and the person is told exactly that.
   it('reports an unreadable registration reply as a network problem, not a made-up message', async () => {
     fetchMock.mockResolvedValue(new Response('<html>Bad gateway</html>', { status: 502 }));
     const failure = register({ email: 'test@example.com', password: 'Password123!long' });
     await expect(failure).rejects.toBeInstanceOf(ApiNetworkError);
+    await expect(failure).rejects.toThrow(UNCERTAIN_CHANGE_MESSAGE);
   });
 
   it('surfaces a failed logout', async () => {

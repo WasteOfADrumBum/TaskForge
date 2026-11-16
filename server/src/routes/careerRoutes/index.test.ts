@@ -35,8 +35,9 @@ const userId = '507f1f77bcf86cd799439011';
 const id = '507f1f77bcf86cd799439051';
 const authorization = { Authorization: 'Bearer ' + jwt.sign({ id: userId }, 'test-jwt-secret') };
 
+// Reset implementations too, so a rejection or null set by one test never leaks into the next.
 beforeEach(() => {
-  jest.clearAllMocks();
+  jest.resetAllMocks();
 });
 
 describe('career routes', () => {
@@ -188,45 +189,60 @@ describe('career routes', () => {
   });
 
   // KAN-77: the success and failure paths the cases above don't reach.
-  it('updates and deletes a skill and a job that exist', async () => {
+  it('updates a skill for its owner', async () => {
     jest.mocked(updateSkillById).mockResolvedValue({ name: 'react' } as never);
-    jest.mocked(deleteSkillById).mockResolvedValue({ name: 'react' } as never);
-    jest.mocked(updateJobById).mockResolvedValue({ title: 'Engineer' } as never);
-    const skill = await request(app)
+    const res = await request(app)
       .patch('/api/skills/' + id)
       .set(authorization)
       .send({ level: 'expert' });
-    expect(skill.status).toBe(200);
-    expect(skill.body).toEqual({ skill: { name: 'react' } });
-    expect(
-      (
-        await request(app)
-          .delete('/api/skills/' + id)
-          .set(authorization)
-      ).status,
-    ).toBe(204);
-    const job = await request(app)
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ skill: { name: 'react' } });
+    expect(updateSkillById).toHaveBeenCalledWith(userId, id, { level: 'expert' });
+  });
+
+  it('deletes a skill for its owner', async () => {
+    jest.mocked(deleteSkillById).mockResolvedValue({ name: 'react' } as never);
+    const res = await request(app)
+      .delete('/api/skills/' + id)
+      .set(authorization);
+    expect(res.status).toBe(204);
+    expect(deleteSkillById).toHaveBeenCalledWith(userId, id);
+  });
+
+  it('updates a job for its owner', async () => {
+    jest.mocked(updateJobById).mockResolvedValue({ title: 'Engineer' } as never);
+    const res = await request(app)
       .patch('/api/jobs/' + id)
       .set(authorization)
       .send({ status: 'applied' });
-    expect(job.body).toEqual({ job: { title: 'Engineer' } });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ job: { title: 'Engineer' } });
+    expect(updateJobById).toHaveBeenCalledWith(userId, id, { status: 'applied' });
+  });
+
+  it('deletes a job for its owner', async () => {
+    jest.mocked(deleteJobById).mockResolvedValue({ title: 'Engineer' } as never);
+    const res = await request(app)
+      .delete('/api/jobs/' + id)
+      .set(authorization);
+    expect(res.status).toBe(204);
+    expect(deleteJobById).toHaveBeenCalledWith(userId, id);
+  });
+
+  it('answers 404 when the owner has no such job or skill', async () => {
     jest.mocked(updateJobById).mockResolvedValue(null);
-    expect(
-      (
-        await request(app)
-          .patch('/api/jobs/' + id)
-          .set(authorization)
-          .send({ status: 'applied' })
-      ).status,
-    ).toBe(404);
     jest.mocked(deleteSkillById).mockResolvedValue(null);
-    expect(
-      (
-        await request(app)
-          .delete('/api/skills/' + id)
-          .set(authorization)
-      ).status,
-    ).toBe(404);
+    const update = await request(app)
+      .patch('/api/jobs/' + id)
+      .set(authorization)
+      .send({ status: 'applied' });
+    expect(update.status).toBe(404);
+    const remove = await request(app)
+      .delete('/api/skills/' + id)
+      .set(authorization);
+    expect(remove.status).toBe(404);
+    expect(updateJobById).toHaveBeenCalledWith(userId, id, { status: 'applied' });
+    expect(deleteSkillById).toHaveBeenCalledWith(userId, id);
   });
 
   it('rejects invalid update bodies before calling the service', async () => {
@@ -251,42 +267,50 @@ describe('career routes', () => {
   });
 
   it.each([
-    ['an unconfirmed index', () => new CareerUnavailableError(), 503],
-    ['an unexpected error', () => new Error('socket hang up'), 500],
-  ])('maps %s on every route to %i without leaking details', async (_case, error, status) => {
-    for (const fn of [
-      findSkillsByOwner,
-      findJobsByOwner,
-      createJob,
-      updateSkillById,
-      deleteSkillById,
-      updateJobById,
-      deleteJobById,
-    ]) {
-      jest.mocked(fn).mockRejectedValue(error());
-    }
-    const calls = [
-      request(app).get('/api/skills').set(authorization),
-      request(app).get('/api/jobs').set(authorization),
-      request(app).post('/api/jobs').set(authorization).send({ title: 'Engineer' }),
-      request(app)
-        .patch('/api/skills/' + id)
-        .set(authorization)
-        .send({ level: 'expert' }),
-      request(app)
-        .delete('/api/skills/' + id)
-        .set(authorization),
-      request(app)
-        .patch('/api/jobs/' + id)
-        .set(authorization)
-        .send({ status: 'applied' }),
-      request(app)
-        .delete('/api/jobs/' + id)
-        .set(authorization),
-    ];
-    for (const res of await Promise.all(calls)) {
-      expect(res.status).toBe(status);
-      expect(JSON.stringify(res.body)).not.toContain('socket');
-    }
-  });
+    [
+      'an unconfirmed index',
+      () => new CareerUnavailableError(),
+      503,
+      'Skills are temporarily unavailable',
+    ],
+    ['an unexpected error', () => new Error('socket hang up'), 500, 'Server error'],
+  ])(
+    'maps %s on every route to %i without leaking details',
+    async (_case, error, status, message) => {
+      for (const fn of [
+        findSkillsByOwner,
+        findJobsByOwner,
+        createJob,
+        updateSkillById,
+        deleteSkillById,
+        updateJobById,
+        deleteJobById,
+      ]) {
+        jest.mocked(fn).mockRejectedValue(error());
+      }
+      const calls = [
+        request(app).get('/api/skills').set(authorization),
+        request(app).get('/api/jobs').set(authorization),
+        request(app).post('/api/jobs').set(authorization).send({ title: 'Engineer' }),
+        request(app)
+          .patch('/api/skills/' + id)
+          .set(authorization)
+          .send({ level: 'expert' }),
+        request(app)
+          .delete('/api/skills/' + id)
+          .set(authorization),
+        request(app)
+          .patch('/api/jobs/' + id)
+          .set(authorization)
+          .send({ status: 'applied' }),
+        request(app)
+          .delete('/api/jobs/' + id)
+          .set(authorization),
+      ];
+      for (const res of await Promise.all(calls)) {
+        expect(res.status).toBe(status);
+        expect(res.body).toEqual({ message });
+      }
+    },
+  );
 });
