@@ -171,11 +171,8 @@ const ProgressPage = () => {
                     <Table.ColumnHeader textAlign="end" w="6rem">
                       Completed
                     </Table.ColumnHeader>
-                    <Table.ColumnHeader w="45%">
-                      <Box as="span" srOnly>
-                        Chart
-                      </Box>
-                    </Table.ColumnHeader>
+                    {/* Decorative bars: the whole column is hidden, so the count column carries the value. */}
+                    <Table.ColumnHeader w="45%" aria-hidden="true" />
                   </Table.Row>
                 </Table.Header>
                 <Table.Body>
@@ -238,10 +235,15 @@ const ProgressPage = () => {
                     >
                       <Text overflowWrap="anywhere">{item.name}</Text>
                       <Text color="fg.muted" whiteSpace="nowrap">
-                        {plural(item.completed, 'completed', 'completed')}
+                        {item.completed} completed
                       </Text>
                     </HStack>
                   ))}
+                  {summary.projectGroups > summary.byProject.length && (
+                    <Text as="li" color="fg.muted" fontSize="sm" pt={2}>
+                      Showing the top {summary.byProject.length} of {summary.projectGroups}.
+                    </Text>
+                  )}
                 </Box>
               ) : (
                 <EmptyState

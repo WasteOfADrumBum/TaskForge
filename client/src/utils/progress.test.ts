@@ -171,5 +171,6 @@ describe('getProgressSummary', () => {
       { projectId: 'p3', name: 'Project p3', completed: 1 },
       { projectId: 'p4', name: 'Project p4', completed: 1 },
     ]);
+    expect(summary.projectGroups).toBe(7);
   });
 });

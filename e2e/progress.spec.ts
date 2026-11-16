@@ -46,9 +46,12 @@ test('shows real completions on the Progress page on mobile and switches range b
 
     await page.goto('/progress');
     await expect(page.getByRole('heading', { level: 1, name: 'Progress' })).toBeVisible();
-    await expect(page.getByRole('main').getByRole('status')).toHaveText(
-      'Showing the last 7 days: 1 task completed.',
-    );
+    await expect(
+      page
+        .getByRole('main')
+        .getByRole('status')
+        .filter({ hasText: /^Showing the last/ }),
+    ).toHaveText('Showing the last 7 days: 1 task completed.');
     const table = page.getByRole('table', { name: /tasks completed each day/i });
     await expect(table.getByRole('row')).toHaveCount(8);
 
@@ -56,9 +59,12 @@ test('shows real completions on the Progress page on mobile and switches range b
     await month.focus();
     await page.keyboard.press('Enter');
     await expect(month).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.getByRole('main').getByRole('status')).toHaveText(
-      'Showing the last 28 days: 1 task completed.',
-    );
+    await expect(
+      page
+        .getByRole('main')
+        .getByRole('status')
+        .filter({ hasText: /^Showing the last/ }),
+    ).toHaveText('Showing the last 28 days: 1 task completed.');
     await expect(
       page.getByRole('table', { name: /tasks completed each week/i }).getByRole('row'),
     ).toHaveCount(5);

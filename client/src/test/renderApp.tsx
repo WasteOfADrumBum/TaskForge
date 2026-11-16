@@ -166,7 +166,8 @@ export const stubTaskApi = (
     if (index === -1) return json(404, { message: 'Task not found' });
     if (method === 'PATCH') {
       const previous = tasks[index];
-      const { completedAt: _ignored, ...changes } = body;
+      const changes = { ...body };
+      delete changes.completedAt;
       // Mirrors the server: stamped on entering done, kept while done, cleared on reopen.
       let completedAt = previous.completedAt ?? null;
       if (changes.status === 'done' && previous.status !== 'done')

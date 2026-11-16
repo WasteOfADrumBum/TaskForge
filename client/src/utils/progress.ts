@@ -34,6 +34,8 @@ export interface ProgressSummary {
   // Done tasks with no recorded completion time (finished before TaskForge recorded one).
   unknownCompletion: number;
   byProject: ProjectProgress[];
+  // How many groups had completions, before the list was cut to TOP_PROJECT_LIMIT.
+  projectGroups: number;
 }
 
 // Local calendar date `offset` days from `now`. Built from local year/month/day so daylight
@@ -84,6 +86,7 @@ export const getProgressSummary = (
     onTime: 0,
     unknownCompletion: 0,
     byProject: [],
+    projectGroups: 0,
   };
 
   for (const task of tasks) {
@@ -108,6 +111,7 @@ export const getProgressSummary = (
     perProject.set(projectId, (perProject.get(projectId) ?? 0) + 1);
   }
 
+  summary.projectGroups = perProject.size;
   summary.byProject = [...perProject]
     .map(([projectId, completed]) => ({
       projectId,
