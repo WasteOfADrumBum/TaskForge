@@ -18,6 +18,7 @@ describe('mentionsSkill', () => {
     expect(mentionsSkill('Built APIs in Node.js and React.', 'node-js')).toBe(true);
     expect(mentionsSkill('NodeJS services', 'node-js')).toBe(true);
     expect(mentionsSkill('node_js', 'node-js')).toBe(true);
+    expect(mentionsSkill('Set up CI/CD pipelines', 'ci-cd')).toBe(true);
     expect(mentionsSkill('REACT', 'react')).toBe(true);
     expect(mentionsSkill('Used Preact', 'react')).toBe(false);
     expect(mentionsSkill('reactive streams', 'react')).toBe(false);

@@ -360,8 +360,10 @@ describe('Resume section', () => {
       'AWS Lambda',
     );
     expect(section.getByRole('list', { name: 'Your skills it mentions: 3' })).toBeInTheDocument();
+    expect(section.getByText('Unsaved changes.')).toBeInTheDocument();
     await userEvent.click(section.getByRole('button', { name: 'Save resume' }));
     await waitFor(() => expect(getResume()?.body).toBe('AWS Lambda'));
+    expect(await section.findByText(/^Saved at /)).toBeInTheDocument();
     expect(JSON.parse(String(requestsTo(fetchMock, 'PUT', '/api/resume')[0][1]?.body))).toEqual({
       headline: 'Developer',
       summary: 'Builds with React and Node.js.',
@@ -383,7 +385,7 @@ describe('Resume section', () => {
     expect(await section.findByRole('textbox', { name: 'Headline' })).toHaveValue('');
     await userEvent.click(section.getByRole('button', { name: 'Save resume' }));
     expect(await section.findByRole('alert')).toHaveTextContent('Resume unavailable');
-    expect(section.getByText('Your resume was not saved.')).toBeInTheDocument();
+    expect(section.getByRole('status')).toHaveTextContent('');
   });
 
   it('retries a failed load', async () => {
@@ -401,6 +403,7 @@ describe('Resume section', () => {
     expect(await section.findByRole('alert')).toHaveTextContent('Resume is down');
     fail = false;
     await userEvent.click(section.getByRole('button', { name: 'Retry loading resume' }));
+    expect(section.getByRole('status')).toHaveFocus();
     expect(await section.findByRole('textbox', { name: 'Headline' })).toBeInTheDocument();
   });
 });

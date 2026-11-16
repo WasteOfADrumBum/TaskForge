@@ -73,6 +73,19 @@ describe('resume routes', () => {
     expect(saveResume).not.toHaveBeenCalled();
   });
 
+  it('refuses a missing or non-object body instead of saving an empty resume', async () => {
+    const array = await request(app).put('/api/resume').set(authorization).send(['x']);
+    expect(array.status).toBe(400);
+    expect(array.body).toEqual({ message: 'Invalid resume' });
+    const text = await request(app)
+      .put('/api/resume')
+      .set(authorization)
+      .set('Content-Type', 'text/plain')
+      .send('headline');
+    expect(text.status).toBe(400);
+    expect(saveResume).not.toHaveBeenCalled();
+  });
+
   it('reports an unconfirmed index as 503 and other failures as 500', async () => {
     jest.mocked(saveResume).mockRejectedValueOnce(new ResumeUnavailableError());
     const unavailable = await request(app).put('/api/resume').set(authorization).send({});

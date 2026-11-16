@@ -8,9 +8,10 @@ export const RESUME_JOB_SKILL_LIMIT = 10;
 const escape = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 // Whether the text mentions a skill slug as a whole word. A hyphen in the slug can match a
-// space, dot, underscore or hyphen, or nothing, so "node-js" matches "Node.js" and "NodeJS".
+// space, dot, underscore, slash or hyphen, or nothing, so "node-js" matches "Node.js" and
+// "NodeJS", and "ci-cd" matches "CI/CD".
 export const mentionsSkill = (text: string, slug: string) => {
-  const pattern = slug.split('-').map(escape).join('[\\s._-]?');
+  const pattern = slug.split('-').map(escape).join('[\\s._/-]?');
   return new RegExp('(^|[^a-z0-9])' + pattern + '($|[^a-z0-9])', 'i').test(text);
 };
 

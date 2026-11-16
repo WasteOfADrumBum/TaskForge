@@ -38,7 +38,11 @@ export const getResume = async (req: Request, res: Response) => {
 };
 
 export const putResume = async (req: Request, res: Response) => {
-  const fields = readResume((req.body ?? {}) as Record<string, unknown>);
+  // A missing or non-object body (no JSON content type, an array) must not wipe the resume.
+  if (typeof req.body !== 'object' || req.body === null || Array.isArray(req.body)) {
+    return res.status(400).json({ message: 'Invalid resume' });
+  }
+  const fields = readResume(req.body as Record<string, unknown>);
   if ('error' in fields) return res.status(400).json({ message: fields.error });
   try {
     return res.json({ resume: await saveResume(getUserId(req), fields.value) });

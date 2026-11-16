@@ -26,8 +26,14 @@ beforeEach(() => {
 });
 
 describe('resumeService', () => {
-  it('creates the unique owner index through the run index guard', () => {
+  it('creates the unique owner index through the run index guard', async () => {
     expect(createRunIndexGuard).toHaveBeenCalledTimes(1);
+    const createIndex = jest.mocked(createRunIndexGuard).mock.calls[0][0];
+    await createIndex();
+    expect(mocked.collection.createIndex).toHaveBeenCalledWith(
+      { owner: 1 },
+      { unique: true, maxTimeMS: 5000 },
+    );
   });
 
   it('upserts the owner’s single resume', async () => {

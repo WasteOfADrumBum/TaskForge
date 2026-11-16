@@ -9,7 +9,7 @@ import {
   Textarea,
   VStack,
 } from '@chakra-ui/react';
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { LuSave } from 'react-icons/lu';
 import { isCurrentSession } from '../../api/authenticatedFetch';
 import { getResume, saveResume } from '../../api/resume';
@@ -61,6 +61,9 @@ const ResumeSection = ({
   const [summary, setSummary] = useState('');
   const [body, setBody] = useState('');
   const [savedAt, setSavedAt] = useState<string | null>(null);
+  // The text last loaded or saved, so the status line never calls newer edits saved.
+  const [saved, setSaved] = useState({ headline: '', summary: '', body: '' });
+  const statusRef = useRef<HTMLParagraphElement>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -79,6 +82,11 @@ const ResumeSection = ({
         setSummary(resume?.summary ?? '');
         setBody(resume?.body ?? '');
         setSavedAt(resume?.updatedAt ?? null);
+        setSaved({
+          headline: resume?.headline ?? '',
+          summary: resume?.summary ?? '',
+          body: resume?.body ?? '',
+        });
         setLoadError(null);
         setLoadedFor(token + ':' + sessionVersion);
       })
@@ -104,10 +112,12 @@ const ResumeSection = ({
     const request = write.begin();
     if (!request) return;
     setSaveError(null);
-    void saveResume(token, { headline, summary, body }, request.signal)
+    const sent = { headline, summary, body };
+    void saveResume(token, sent, request.signal)
       .then((resume) => {
         if (!request.isCurrent() || !isCurrentSession(token, sessionVersion)) return;
         // Keep what is on screen: edits made while saving must not be overwritten.
+        setSaved({ headline: resume.headline, summary: resume.summary, body: resume.body });
         setSavedAt(resume.updatedAt ?? new Date().toISOString());
       })
       .catch((failure: unknown) => {
@@ -122,12 +132,16 @@ const ResumeSection = ({
       .finally(request.finish);
   };
 
+  // The server trims the headline and summary, so compare trimmed text.
+  const dirty =
+    headline.trim() !== saved.headline || summary.trim() !== saved.summary || body !== saved.body;
+  // Errors are announced by their alerts, so the status line stays quiet then.
   let status = '';
   if (read.pending)
     status = read.waiting ? 'Still loading your resume...' : 'Loading your resume...';
   else if (write.pending) status = write.waiting ? 'Still saving...' : 'Saving your resume...';
-  else if (loadError) status = 'Your resume could not be loaded.';
-  else if (saveError) status = 'Your resume was not saved.';
+  else if (loadError || saveError) status = '';
+  else if (loaded && dirty) status = 'Unsaved changes.';
   else if (loaded && savedAt) status = 'Saved at ' + timeFormat.format(new Date(savedAt)) + '.';
 
   return (
@@ -145,7 +159,16 @@ const ResumeSection = ({
       <Text fontSize="sm" color="fg.muted">
         Plain text, kept private to your account.
       </Text>
-      <Text role="status" aria-live="polite" fontSize="sm" color="fg.muted" mt={1}>
+      <Text
+        ref={statusRef}
+        tabIndex={-1}
+        role="status"
+        aria-live="polite"
+        fontSize="sm"
+        color="fg.muted"
+        mt={1}
+        _focusVisible={{ outline: '2px solid', outlineColor: 'accent.teal' }}
+      >
         {status}
       </Text>
       {loadError && !read.pending ? (
@@ -153,7 +176,15 @@ const ResumeSection = ({
           <Text role="alert" color="fg.error">
             {loadError}
           </Text>
-          <Button size="sm" variant="outline" onClick={() => setReloadKey((key) => key + 1)}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              setReloadKey((key) => key + 1);
+              // The button leaves the page while loading, so focus moves to the status line.
+              statusRef.current?.focus();
+            }}
+          >
             Retry loading resume
           </Button>
         </VStack>
@@ -171,6 +202,7 @@ const ResumeSection = ({
                   }}
                   maxLength={RESUME_HEADLINE_MAX}
                 />
+                <Field.HelperText>{left(RESUME_HEADLINE_MAX, headline)}</Field.HelperText>
               </Field.Root>
               <Field.Root>
                 <Field.Label>Summary</Field.Label>
