@@ -4,6 +4,8 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+- KAN-75: Brand Studio gains a profile kit: copy-ready LinkedIn headline, About section and GitHub profile README drafts built from your saved personal brand, resume, skills and career goals; rule-based, with nothing posted for you.
+
 - KAN-74: Brand Studio page (`/brand`, in the sidebar) to edit the TaskForge and personal brands: name, tagline, colors with a rule-based WCAG contrast check, fonts, logos, brand voice, writing style and image prompts, plus a Markdown brand guide download.
 
 - KAN-73: owner-scoped brand profiles API (`GET /api/brands`, `PUT /api/brands/:kind` for `taskforge` and `personal`): name, tagline, colors, fonts, logo links, brand voice, writing style and image prompts; text only, with no page yet.

@@ -52,6 +52,7 @@ import {
   normalizeHex,
   safeLogoHref,
 } from '../../utils/brand';
+import ProfileKit from '../../components/brand/ProfileKit';
 import { SessionExpiredError } from '../../utils/session';
 
 const panel = {
@@ -820,6 +821,8 @@ const BrandPage = () => {
               </Box>
             </VStack>
           </chakra.form>
+
+          <ProfileKit brand={data?.saved.personal} brandsLoaded={loaded} />
         </>
       ) : null}
     </VStack>
