@@ -186,4 +186,107 @@ describe('career routes', () => {
     expect(updateJobById).not.toHaveBeenCalled();
     expect(deleteJobById).not.toHaveBeenCalled();
   });
+
+  // KAN-77: the success and failure paths the cases above don't reach.
+  it('updates and deletes a skill and a job that exist', async () => {
+    jest.mocked(updateSkillById).mockResolvedValue({ name: 'react' } as never);
+    jest.mocked(deleteSkillById).mockResolvedValue({ name: 'react' } as never);
+    jest.mocked(updateJobById).mockResolvedValue({ title: 'Engineer' } as never);
+    const skill = await request(app)
+      .patch('/api/skills/' + id)
+      .set(authorization)
+      .send({ level: 'expert' });
+    expect(skill.status).toBe(200);
+    expect(skill.body).toEqual({ skill: { name: 'react' } });
+    expect(
+      (
+        await request(app)
+          .delete('/api/skills/' + id)
+          .set(authorization)
+      ).status,
+    ).toBe(204);
+    const job = await request(app)
+      .patch('/api/jobs/' + id)
+      .set(authorization)
+      .send({ status: 'applied' });
+    expect(job.body).toEqual({ job: { title: 'Engineer' } });
+    jest.mocked(updateJobById).mockResolvedValue(null);
+    expect(
+      (
+        await request(app)
+          .patch('/api/jobs/' + id)
+          .set(authorization)
+          .send({ status: 'applied' })
+      ).status,
+    ).toBe(404);
+    jest.mocked(deleteSkillById).mockResolvedValue(null);
+    expect(
+      (
+        await request(app)
+          .delete('/api/skills/' + id)
+          .set(authorization)
+      ).status,
+    ).toBe(404);
+  });
+
+  it('rejects invalid update bodies before calling the service', async () => {
+    expect(
+      (
+        await request(app)
+          .patch('/api/skills/' + id)
+          .set(authorization)
+          .send({ level: 'wizard' })
+      ).status,
+    ).toBe(400);
+    expect(
+      (
+        await request(app)
+          .patch('/api/jobs/' + id)
+          .set(authorization)
+          .send({ status: 'hired?' })
+      ).status,
+    ).toBe(400);
+    expect(updateSkillById).not.toHaveBeenCalled();
+    expect(updateJobById).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['an unconfirmed index', () => new CareerUnavailableError(), 503],
+    ['an unexpected error', () => new Error('socket hang up'), 500],
+  ])('maps %s on every route to %i without leaking details', async (_case, error, status) => {
+    for (const fn of [
+      findSkillsByOwner,
+      findJobsByOwner,
+      createJob,
+      updateSkillById,
+      deleteSkillById,
+      updateJobById,
+      deleteJobById,
+    ]) {
+      jest.mocked(fn).mockRejectedValue(error());
+    }
+    const calls = [
+      request(app).get('/api/skills').set(authorization),
+      request(app).get('/api/jobs').set(authorization),
+      request(app).post('/api/jobs').set(authorization).send({ title: 'Engineer' }),
+      request(app)
+        .patch('/api/skills/' + id)
+        .set(authorization)
+        .send({ level: 'expert' }),
+      request(app)
+        .delete('/api/skills/' + id)
+        .set(authorization),
+      request(app)
+        .patch('/api/jobs/' + id)
+        .set(authorization)
+        .send({ status: 'applied' }),
+      request(app)
+        .delete('/api/jobs/' + id)
+        .set(authorization),
+    ];
+    for (const res of await Promise.all(calls)) {
+      expect(res.status).toBe(status);
+      expect(JSON.stringify(res.body)).not.toContain('socket');
+    }
+  });
 });
