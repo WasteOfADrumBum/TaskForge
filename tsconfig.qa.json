@@ -6,7 +6,8 @@
     "server/src/types/**/*.d.ts",
     "server/jest.integration.config.ts",
     "e2e/**/*.ts",
-    "playwright.config.ts"
+    "playwright.config.ts",
+    "playwright.a11y.config.ts"
   ],
   "exclude": ["node_modules", "server/dist"]
 }

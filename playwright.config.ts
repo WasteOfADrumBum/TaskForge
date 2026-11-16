@@ -1,6 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './e2e',
+  // Runs on its own server with playwright.a11y.config.ts (npm run test:e2e:a11y).
+  testIgnore: 'a11y.spec.ts',
   fullyParallel: false,
   workers: 1,
   retries: 0,

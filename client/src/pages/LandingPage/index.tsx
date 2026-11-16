@@ -27,7 +27,7 @@ const features = [
 
 const LandingPage = () => (
   <Box minH="100vh" bg="bg.subtle" display="flex" flexDirection="column">
-    <Box borderBottomWidth="1px" bg="bg.panel">
+    <Box as="header" borderBottomWidth="1px" bg="bg.panel">
       <HStack maxW="7xl" mx="auto" px={{ base: 4, md: 6 }} py={3} justify="space-between">
         <Brand compact />
         <HStack>
@@ -40,7 +40,7 @@ const LandingPage = () => (
         </HStack>
       </HStack>
     </Box>
-    <Box flex="1">
+    <Box as="main" flex="1">
       <Box maxW="7xl" mx="auto" px={{ base: 4, md: 6 }} py={{ base: 14, md: 20 }}>
         <VStack textAlign="center" gap={6} maxW="4xl" mx="auto">
           <Brand hero />

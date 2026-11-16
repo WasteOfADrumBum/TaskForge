@@ -58,3 +58,6 @@ jobs:
 
       - name: Critical browser smoke
         run: npm run test:e2e
+
+      - name: Accessibility sweep (axe, every page)
+        run: npm run test:e2e:a11y

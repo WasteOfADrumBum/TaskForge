@@ -29,8 +29,16 @@ const settle = async (page: Page) => {
 
 const violations = async (page: Page) => {
   const { violations: found } = await new AxeBuilder({ page }).withTags(TAGS).analyze();
+  // Generated class names say little, so each node also names its markup and axe's reason.
   return found.map(
-    (v) => `${v.id} (${v.impact}): ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`,
+    (v) =>
+      `${v.id} (${v.impact}): ` +
+      v.nodes
+        .map(
+          (n) =>
+            `${n.html.replace(/\s+/g, ' ').slice(0, 120)} -> ${n.any[0]?.message ?? n.failureSummary ?? ''}`,
+        )
+        .join(' | '),
   );
 };
 
