@@ -146,11 +146,11 @@ Release readiness and the approved bounded Phase 2 milestone are complete. Josh 
 
 ## Phase 5: Reviews ([details](phases/phase-5-reviews.md))
 
-**Status: PLANNED**
+**Status: IN PROGRESS**
 
 - [ ] **PLANNED**: Daily review
 - [ ] **PLANNED**: Weekly review
-- [ ] **PLANNED**: Progress analytics
+- [ ] **IN PROGRESS**: Progress analytics (tasks now record when they were completed, KAN-57)
 - [ ] **PLANNED**: Agent recommendations
 - [ ] **PLANNED**: Goal review
 - [ ] **PLANNED**: Skill-growth review

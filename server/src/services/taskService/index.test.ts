@@ -64,6 +64,7 @@ describe('taskService assignment reconciliation', () => {
       assigneeType: 'agent',
       assigneeAgent: agentId,
       owner: ownerId,
+      completedAt: null,
     });
     expect(mockedAgent.exists).toHaveBeenCalledWith({ _id: agentId, owner: ownerId });
     expect(mockedTask.findOneAndUpdate).toHaveBeenCalledWith(
@@ -83,8 +84,8 @@ describe('taskService assignment reconciliation', () => {
     ).resolves.toEqual({ ...unassigned, title: 'Renamed', status: 'done' });
     expect(mockedTask.findOneAndUpdate).toHaveBeenNthCalledWith(
       1,
-      { _id: taskId, owner: ownerId },
-      { title: 'Renamed', status: 'done' },
+      { _id: taskId, owner: ownerId, status: { $ne: 'done' } },
+      { title: 'Renamed', status: 'done', completedAt: expect.any(Date) },
       { new: true, runValidators: true },
     );
   });
@@ -153,5 +154,116 @@ describe('taskService assignment reconciliation', () => {
     mockedAgent.exists.mockResolvedValue(null);
     mockedTask.findOneAndUpdate.mockRejectedValue(new Error('cleanup failed'));
     await expect(createTask(ownerId, { title: 'Build' })).rejects.toThrow('cleanup failed');
+  });
+});
+
+describe('taskService completion time', () => {
+  const options = { new: true, runValidators: true };
+  const now = new Date('2026-11-15T23:00:00.000Z');
+
+  beforeEach(() => {
+    jest.useFakeTimers({ now, doNotFake: ['nextTick', 'setImmediate'] });
+  });
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('stamps a task created as done and leaves other new tasks without one', async () => {
+    mockedTask.create.mockResolvedValue(unassigned as never);
+    await createTask(ownerId, { title: 'Ship', status: 'done' });
+    expect(mockedTask.create).toHaveBeenLastCalledWith({
+      title: 'Ship',
+      status: 'done',
+      owner: ownerId,
+      completedAt: now,
+    });
+    await createTask(ownerId, { title: 'Plan', status: 'in-progress' });
+    expect(mockedTask.create).toHaveBeenLastCalledWith({
+      title: 'Plan',
+      status: 'in-progress',
+      owner: ownerId,
+      completedAt: null,
+    });
+  });
+
+  it('stamps a task when it moves into done, in one status-filtered write', async () => {
+    const done = { ...unassigned, status: 'done', completedAt: now };
+    mockedTask.findOneAndUpdate.mockResolvedValue(done as never);
+    await expect(updateTaskById(ownerId, taskId, { status: 'done' })).resolves.toEqual(done);
+    expect(mockedTask.findOneAndUpdate).toHaveBeenCalledTimes(1);
+    expect(mockedTask.findOneAndUpdate).toHaveBeenCalledWith(
+      { _id: taskId, owner: ownerId, status: { $ne: 'done' } },
+      { status: 'done', completedAt: now },
+      options,
+    );
+  });
+
+  it('keeps the original time when a task that is already done is saved as done', async () => {
+    const earlier = { ...unassigned, status: 'done', completedAt: '2026-11-01T10:00:00.000Z' };
+    mockedTask.findOneAndUpdate.mockResolvedValueOnce(null).mockResolvedValueOnce(earlier as never);
+    await expect(
+      updateTaskById(ownerId, taskId, { title: 'Renamed', status: 'done' }),
+    ).resolves.toEqual(earlier);
+    expect(mockedTask.findOneAndUpdate).toHaveBeenNthCalledWith(
+      2,
+      { _id: taskId, owner: ownerId, status: 'done' },
+      { title: 'Renamed', status: 'done' },
+      options,
+    );
+  });
+
+  it('returns null when the task is not the owner’s', async () => {
+    mockedTask.findOneAndUpdate.mockResolvedValue(null);
+    mockedTask.exists.mockResolvedValue(null);
+    await expect(updateTaskById(ownerId, taskId, { status: 'done' })).resolves.toBeNull();
+    expect(mockedTask.findOneAndUpdate).toHaveBeenCalledTimes(2);
+    expect(mockedTask.exists).toHaveBeenCalledWith({ _id: taskId, owner: ownerId });
+  });
+
+  it('stamps the time when a concurrent reopen lands between the two writes', async () => {
+    const done = { ...unassigned, status: 'done', completedAt: now };
+    mockedTask.findOneAndUpdate
+      .mockResolvedValueOnce(null) // was done, so the stamp misses
+      .mockResolvedValueOnce(null) // reopened meanwhile, so the keep misses
+      .mockResolvedValueOnce(done as never); // retry stamps the reopened task
+    mockedTask.exists.mockResolvedValue({ _id: taskId } as never);
+    await expect(updateTaskById(ownerId, taskId, { status: 'done' })).resolves.toEqual(done);
+    expect(mockedTask.findOneAndUpdate).toHaveBeenNthCalledWith(
+      3,
+      { _id: taskId, owner: ownerId, status: { $ne: 'done' } },
+      { status: 'done', completedAt: now },
+      options,
+    );
+  });
+
+  it('returns the current task if status keeps changing on both attempts', async () => {
+    mockedTask.findOneAndUpdate.mockResolvedValue(null);
+    mockedTask.exists.mockResolvedValue({ _id: taskId } as never);
+    mockedTask.findOne.mockResolvedValue(unassigned as never);
+    await expect(updateTaskById(ownerId, taskId, { status: 'done' })).resolves.toEqual(unassigned);
+    expect(mockedTask.findOneAndUpdate).toHaveBeenCalledTimes(4);
+  });
+
+  it.each(['todo', 'in-progress'] as const)(
+    'clears the time when a task moves to %s',
+    async (status) => {
+      mockedTask.findOneAndUpdate.mockResolvedValue({ ...unassigned, status } as never);
+      await updateTaskById(ownerId, taskId, { status });
+      expect(mockedTask.findOneAndUpdate).toHaveBeenCalledWith(
+        { _id: taskId, owner: ownerId },
+        { status, completedAt: null },
+        options,
+      );
+    },
+  );
+
+  it('leaves the time alone when status is not part of the update', async () => {
+    mockedTask.findOneAndUpdate.mockResolvedValue(unassigned as never);
+    await updateTaskById(ownerId, taskId, { title: 'Renamed' });
+    expect(mockedTask.findOneAndUpdate).toHaveBeenCalledWith(
+      { _id: taskId, owner: ownerId },
+      { title: 'Renamed' },
+      options,
+    );
   });
 });

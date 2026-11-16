@@ -36,7 +36,11 @@ const reconcileAgentAssignment = async (
 };
 
 export const createTask = async (ownerId: string, taskData: TaskInput) => {
-  const task = await Task.create({ ...taskData, owner: ownerId });
+  const task = await Task.create({
+    ...taskData,
+    owner: ownerId,
+    completedAt: taskData.status === 'done' ? new Date() : null,
+  });
   return reconcileAgentAssignment(ownerId, task);
 };
 
@@ -44,11 +48,39 @@ export const findTasksByOwner = async (ownerId: string) => {
   return Task.find({ owner: ownerId }).sort({ createdAt: -1 });
 };
 
+const updateOptions = { new: true, runValidators: true };
+
+// completedAt follows status: it is stamped when a task moves into done, kept when a task that
+// is already done is saved as done again, and cleared when it leaves done. Each write filters on
+// the status it expects, so a concurrent reopen between the two writes cannot leave a done task
+// without a time; if both writes miss because status changed underneath, try once more.
+const writeUpdate = async (ownerId: string, taskId: string, updates: TaskUpdate) => {
+  const owned = { _id: taskId, owner: ownerId };
+  if (updates.status === undefined) return Task.findOneAndUpdate(owned, updates, updateOptions);
+  if (updates.status !== 'done') {
+    return Task.findOneAndUpdate(owned, { ...updates, completedAt: null }, updateOptions);
+  }
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const newlyDone = await Task.findOneAndUpdate(
+      { ...owned, status: { $ne: 'done' } },
+      { ...updates, completedAt: new Date() },
+      updateOptions,
+    );
+    if (newlyDone) return newlyDone;
+    // Already done: keep the original completion time.
+    const stillDone = await Task.findOneAndUpdate(
+      { ...owned, status: 'done' },
+      updates,
+      updateOptions,
+    );
+    if (stillDone) return stillDone;
+    if (!(await Task.exists(owned))) return null;
+  }
+  return Task.findOne(owned);
+};
+
 export const updateTaskById = async (ownerId: string, taskId: string, updates: TaskUpdate) => {
-  const task = await Task.findOneAndUpdate({ _id: taskId, owner: ownerId }, updates, {
-    new: true,
-    runValidators: true,
-  });
+  const task = await writeUpdate(ownerId, taskId, updates);
   return reconcileAgentAssignment(ownerId, task);
 };
 

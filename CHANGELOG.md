@@ -4,6 +4,8 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+- KAN-57: tasks record when they were completed (`completedAt`, set by the server only and cleared on reopen) so Phase 5 analytics reflect real history; existing data is not backfilled.
+
 - KAN-56: rule-based "At risk" flag for active projects with overdue work, listed first on the Command Center and shown on project cards.
 
 - KAN-55: Agent activity on the Command Center: drafts awaiting your review, runs queued or running, failures in the last 7 days and the five latest runs with links, read-only from the existing runs API.

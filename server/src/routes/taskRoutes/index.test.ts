@@ -137,6 +137,22 @@ describe('task routes', () => {
     expect(response.body.task).toEqual(task);
   });
 
+  it('never passes a client-supplied completion time to the service', async () => {
+    mockedCreateTask.mockResolvedValue({ id: taskId } as never);
+    mockedUpdateTaskById.mockResolvedValue({ id: taskId } as never);
+    const completedAt = '2020-01-01T00:00:00.000Z';
+    await request(app)
+      .post('/api/tasks')
+      .set(authorization)
+      .send({ title: 'Ship', status: 'done', completedAt });
+    expect(mockedCreateTask.mock.calls[0][1]).not.toHaveProperty('completedAt');
+    await request(app)
+      .patch('/api/tasks/' + taskId)
+      .set(authorization)
+      .send({ status: 'done', completedAt });
+    expect(mockedUpdateTaskById).toHaveBeenCalledWith(userId, taskId, { status: 'done' });
+  });
+
   it('returns 404 when updating an unavailable task', async () => {
     mockedUpdateTaskById.mockResolvedValue(null);
     const response = await request(app)

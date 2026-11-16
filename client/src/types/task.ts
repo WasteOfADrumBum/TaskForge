@@ -21,6 +21,9 @@ export interface Task {
   // Absent or null on both means Unassigned. assigneeAgent is set only for an agent assignee.
   assigneeType?: TaskAssigneeType | null;
   assigneeAgent?: string | null;
+  // When the task last became done; null or absent while it is not done, and for tasks
+  // completed before TaskForge recorded completion times. Set by the server only.
+  completedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }
