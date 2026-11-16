@@ -84,8 +84,13 @@ describe('applications', () => {
     expect(followUpTaskTitle(withCompany)).toBe('Follow up on Dev at Acme');
     expect(followUpTaskTitle(job('Dev', 'applied'))).toBe('Follow up on Dev');
     expect(followUpTaskTitle(job('x'.repeat(130), 'applied'))).toHaveLength(120);
-    const tasks = [{ title: 'Follow up on Dev at Acme' }] as Task[];
+    // A cut that lands on a space is trimmed, as the server trims the stored title.
+    expect(followUpTaskTitle(job('x'.repeat(106) + ' yz', 'applied'))).toBe(
+      'Follow up on ' + 'x'.repeat(106),
+    );
+    const tasks = [{ title: 'Follow up on Dev at Acme', status: 'todo' }] as Task[];
     expect(hasFollowUpTask(tasks, withCompany)).toBe(true);
     expect(hasFollowUpTask(tasks, job('Dev', 'applied'))).toBe(false);
+    expect(hasFollowUpTask([{ ...tasks[0], status: 'done' }], withCompany)).toBe(false);
   });
 });

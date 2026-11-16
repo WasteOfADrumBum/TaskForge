@@ -443,7 +443,7 @@ describe('Applications', () => {
     expect(rows[2]).toHaveTextContent(/^LegacyApplied$/);
 
     const add = within(rows[0]).getByRole('button', { name: 'Add follow-up task: Waiting' });
-    await waitFor(() => expect(add).toBeEnabled());
+    await waitFor(() => expect(add).not.toHaveAttribute('aria-disabled'));
     await userEvent.dblClick(add);
     expect(await section.findByText('Follow-up task added')).toBeInTheDocument();
     expect(pageStatus()).toHaveFocus();

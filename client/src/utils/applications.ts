@@ -69,11 +69,17 @@ export const applicationSinceText = (application: Application) => {
   return 'Since ' + date + ' (' + ago + ')';
 };
 
+// Cut by code points and trimmed, because the server trims task titles and the stored title
+// has to match this one for hasFollowUpTask to find it.
 export const followUpTaskTitle = (job: SavedJob) =>
-  ('Follow up on ' + job.title + (job.company ? ' at ' + job.company : '')).slice(0, 120);
+  Array.from('Follow up on ' + job.title + (job.company ? ' at ' + job.company : ''))
+    .slice(0, 120)
+    .join('')
+    .trimEnd();
 
-// Whether that follow-up task is already in the task list (any status).
+// Whether an unfinished follow-up task for that job is in the task list. Once it is done, the
+// application can be followed up again.
 export const hasFollowUpTask = (tasks: Task[], job: SavedJob) => {
   const title = followUpTaskTitle(job);
-  return tasks.some((task) => task.title === title);
+  return tasks.some((task) => task.status !== 'done' && task.title.trim() === title);
 };

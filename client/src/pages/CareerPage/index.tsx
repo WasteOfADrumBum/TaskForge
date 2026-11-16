@@ -196,7 +196,7 @@ const CareerPage = () => {
   };
 
   const addFollowUpTask = async (job: SavedJob) => {
-    if (!token || !isCurrentSession(token, sessionVersion)) return;
+    if (!token || !isCurrentSession(token, sessionVersion) || !tasksLoaded) return;
     const key = 'follow-up:' + getRecordId(job);
     if (followingUp.current.has(key)) return;
     followingUp.current.add(key);

@@ -207,7 +207,7 @@ test('growth flows on mobile by keyboard: progress, reviews, goals, career, appl
     await statusSelect.focus();
     await statusSelect.selectOption('applied');
     await expect(page.getByText(jobTitle + ' is now Applied.')).toBeVisible();
-    const applications = page.getByRole('region', { name: 'Applications' });
+    const applications = page.getByRole('region', { name: 'Applications', exact: true });
     await expect(applications.getByRole('list', { name: 'Applications by status' })).toContainText(
       'Applied: 1',
     );

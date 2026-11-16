@@ -47,7 +47,8 @@ const ApplicationsSection = ({
       </Heading>
       <Text fontSize="sm" color="fg.muted" mb={3}>
         Saved jobs you have applied to, are interviewing for, or have an offer from. An application
-        with no change for {FOLLOW_UP_DAYS} days is due a follow-up. Change a status in Saved jobs.
+        still at Applied after {FOLLOW_UP_DAYS} days is due a follow-up. Change a status in Saved
+        jobs.
       </Text>
       {jobsFailed ? (
         <Text color="fg.muted">
@@ -122,8 +123,8 @@ const ApplicationsSection = ({
                           <Button
                             size="xs"
                             variant="outline"
-                            disabled={!tasksLoaded}
-                            aria-disabled={isBusy(job) || undefined}
+                            // Stays focusable while tasks load; the press waits for them.
+                            aria-disabled={!tasksLoaded || isBusy(job) || undefined}
                             onClick={() => onFollowUp(job)}
                             aria-label={'Add follow-up task: ' + job.title}
                           >
