@@ -251,6 +251,11 @@ describe('Brand Studio', () => {
 });
 
 describe('Profile kit', () => {
+  const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+  afterEach(() => {
+    if (originalClipboard) Object.defineProperty(navigator, 'clipboard', originalClipboard);
+    else delete (navigator as { clipboard?: unknown }).clipboard;
+  });
   const personal = profile({ _id: 'brand-2', kind: 'personal', name: 'Joshua', tagline: 'Dev' });
   const withData = (brands: BrandProfile[]) =>
     stubTaskApi(
@@ -303,11 +308,12 @@ describe('Profile kit', () => {
   it('selects the text when the clipboard is unavailable, and says what is missing', async () => {
     signIn();
     withData([]);
-    const writeText = vi.fn().mockRejectedValue(new Error('denied'));
-    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    // No clipboard at all, as outside a secure context.
+    Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true });
     renderApp('/brand');
     const kit = within(await screen.findByRole('region', { name: 'Profile kit' }));
     expect(await kit.findByText('Save a personal brand with your name above.')).toBeInTheDocument();
+    expect(kit.queryByRole('heading', { level: 3 })).not.toBeInTheDocument();
     const about = kit.getByRole('textbox', { name: 'LinkedIn About section' });
     await userEvent.click(kit.getByRole('button', { name: 'Copy LinkedIn About section' }));
     expect(
@@ -316,5 +322,44 @@ describe('Profile kit', () => {
       ),
     ).toBeInTheDocument();
     expect(about).toHaveFocus();
+  });
+
+  it('shows a failed load with a retry that loads the drafts', async () => {
+    signIn();
+    const { fetchMock } = withData([personal]);
+    const original = fetchMock.getMockImplementation()!;
+    let failResume = true;
+    fetchMock.mockImplementation(async (url: string, options: RequestInit = {}) => {
+      if (url.endsWith('/api/resume') && failResume) {
+        failResume = false;
+        return new Response(JSON.stringify({ message: 'Server error.' }), { status: 500 });
+      }
+      return original(url, options);
+    });
+    renderApp('/brand');
+    const kit = within(await screen.findByRole('region', { name: 'Profile kit' }));
+    expect(await kit.findByRole('alert')).toHaveTextContent(
+      'Server error. The profile kit needs your resume, skills and goals.',
+    );
+    await userEvent.click(kit.getByRole('button', { name: 'Retry loading profile data' }));
+    expect(await kit.findByRole('textbox', { name: 'LinkedIn headline' })).toHaveValue(
+      'Full-stack developer | react',
+    );
+  });
+
+  it('announces a repeated copy again', async () => {
+    signIn();
+    withData([personal]);
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    renderApp('/brand');
+    const kit = within(await screen.findByRole('region', { name: 'Profile kit' }));
+    const copy = await kit.findByRole('button', { name: 'Copy GitHub profile README' });
+    await userEvent.click(copy);
+    expect(await kit.findByText('Copied the GitHub profile README.')).toBeInTheDocument();
+    await userEvent.click(copy);
+    // Cleared, then set again, so a screen reader hears it twice.
+    expect(await kit.findByText('Copied the GitHub profile README.')).toBeInTheDocument();
+    expect(writeText).toHaveBeenCalledTimes(2);
   });
 });

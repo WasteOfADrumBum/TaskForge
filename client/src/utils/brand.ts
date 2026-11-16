@@ -80,7 +80,19 @@ export const safeLogoHref = (value: string): string | null => {
 };
 
 // Escapes Markdown in text the user typed, so a name or prompt can't add headings or links.
-export const escapeMarkdown = (text: string) => text.replace(/[\\`*_[\]<>#|]/g, '\\$&');
+export const escapeMarkdown = (text: string) =>
+  text
+    .split('\n')
+    .map((line) =>
+      line
+        .trimStart()
+        // Inline markup, HTML, entities, strikethrough and @mentions (which notify on GitHub).
+        .replace(/[\\`*_[\]<>#|&~@]/g, '\\$&')
+        // Line-start list, rule and setext markers.
+        .replace(/^([-+=])/, '\\$1')
+        .replace(/^(\d+)([.)])/, '$1\\$2'),
+    )
+    .join('\n');
 
 const section = (title: string, lines: string[]) =>
   lines.length ? ['## ' + title, '', ...lines, ''] : [];

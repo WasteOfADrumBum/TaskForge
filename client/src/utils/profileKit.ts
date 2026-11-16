@@ -19,12 +19,15 @@ export interface ProfileKitInput {
   goals: Goal[];
 }
 
-export type Draft = { text: string } | { missing: string };
+// shortened is true when text had to be cut to fit a platform limit.
+export type Draft = { text: string; shortened?: boolean } | { missing: string };
 
 // Skills at working level or above, strongest first, then by name.
+const WORKING = SKILL_LEVELS.indexOf('working');
 export const topSkills = (skills: Skill[], limit = TOP_SKILLS) =>
   skills
-    .filter((skill) => skill.level !== 'learning')
+    .filter((skill) => SKILL_LEVELS.indexOf(skill.level) >= WORKING)
+    .filter((skill, index, all) => all.findIndex((other) => other.name === skill.name) === index)
     .sort(
       (a, b) =>
         SKILL_LEVELS.indexOf(b.level) - SKILL_LEVELS.indexOf(a.level) ||
@@ -38,12 +41,14 @@ const careerGoals = (goals: Goal[]) =>
     .filter((goal) => goal.status === 'active' && goal.area === 'career')
     .map((goal) => goal.title);
 
-// Cuts at a word boundary so the result fits, without a trailing separator.
+// Cuts at a word boundary (or by code point for one long word) so the result fits, without a
+// trailing separator.
 const fit = (text: string, max: number) => {
   if (text.length <= max) return text;
   const cut = text.slice(0, max + 1);
   const space = cut.lastIndexOf(' ');
-  return (space > 0 ? cut.slice(0, space) : text.slice(0, max)).replace(/[\s|·,;:-]+$/, '');
+  const kept = space > 0 ? cut.slice(0, space) : Array.from(text).slice(0, max).join('');
+  return kept.replace(/[\s|·,;:-]+$/, '');
 };
 
 export const linkedinHeadline = ({ brand, resume, skills }: ProfileKitInput): Draft => {
@@ -54,12 +59,14 @@ export const linkedinHeadline = ({ brand, resume, skills }: ProfileKitInput): Dr
         'Add a resume headline on the Career page, or a tagline to your personal brand above.',
     };
   }
+  // As many top skills as fit, then the base alone, then the base cut at a word boundary.
   const top = topSkills(skills, HEADLINE_SKILLS);
-  const withSkills = top.length ? base + ' | ' + top.join(' · ') : base;
-  return {
-    text:
-      withSkills.length <= LINKEDIN_HEADLINE_MAX ? withSkills : fit(base, LINKEDIN_HEADLINE_MAX),
-  };
+  for (let count = top.length; count > 0; count -= 1) {
+    const text = base + ' | ' + top.slice(0, count).join(' · ');
+    if (text.length <= LINKEDIN_HEADLINE_MAX) return { text };
+  }
+  if (base.length <= LINKEDIN_HEADLINE_MAX) return { text: base };
+  return { text: fit(base, LINKEDIN_HEADLINE_MAX), shortened: true };
 };
 
 export const linkedinAbout = ({ resume, skills, goals }: ProfileKitInput): Draft => {
@@ -74,10 +81,13 @@ export const linkedinAbout = ({ resume, skills, goals }: ProfileKitInput): Draft
   ].filter(Boolean);
   // Whole paragraphs are dropped from the end first, so no sentence is cut mid-way unless the
   // summary alone is too long.
+  const full = paragraphs.length;
   while (paragraphs.length > 1 && paragraphs.join('\n\n').length > LINKEDIN_ABOUT_MAX) {
     paragraphs.pop();
   }
-  return { text: fit(paragraphs.join('\n\n'), LINKEDIN_ABOUT_MAX) };
+  const joined = paragraphs.join('\n\n');
+  const text = fit(joined, LINKEDIN_ABOUT_MAX);
+  return { text, shortened: paragraphs.length < full || text !== joined };
 };
 
 export const githubReadme = ({ brand, resume, skills, goals }: ProfileKitInput): Draft => {

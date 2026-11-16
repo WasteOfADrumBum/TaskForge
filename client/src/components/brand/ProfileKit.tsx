@@ -37,8 +37,16 @@ const ProfileKit = ({ brand, brandsLoaded }: { brand?: BrandProfile; brandsLoade
   const skills = useOwnedList<Skill>(getSkills, 'Unable to load skills');
   const goals = useGoals();
   const [resume, setResume] = useState<{ key: string; value: Resume | null } | null>(null);
-  const [resumeError, setResumeError] = useState<string | null>(null);
+  // Kept with the session it happened in, so a new sign-in never shows the last user's error.
+  const [resumeFailure, setResumeError] = useState<{ key: string; message: string } | null>(null);
+  const resumeError = resumeFailure?.key === sessionKey ? resumeFailure.message : null;
   const [status, setStatus] = useState('');
+  const [resumeReload, setResumeReload] = useState(0);
+  // Cleared first, so repeating the same message is announced again.
+  const announce = (message: string) => {
+    setStatus('');
+    requestAnimationFrame(() => setStatus(message));
+  };
 
   useEffect(() => {
     if (!token || !isCurrentSession(token, sessionVersion)) return;
@@ -56,10 +64,13 @@ const ProfileKit = ({ brand, brandsLoaded }: { brand?: BrandProfile; brandsLoade
           failure instanceof SessionExpiredError
         )
           return;
-        setResumeError(failure instanceof Error ? failure.message : 'Unable to load your resume');
+        setResumeError({
+          key: token + ':' + sessionVersion,
+          message: failure instanceof Error ? failure.message : 'Unable to load your resume',
+        });
       });
     return () => controller.abort();
-  }, [token, sessionVersion]);
+  }, [token, sessionVersion, resumeReload]);
 
   const resumeLoaded = resume?.key === sessionKey;
   const loaded = brandsLoaded && resumeLoaded && skills.loaded && goals.loaded;
@@ -68,13 +79,15 @@ const ProfileKit = ({ brand, brandsLoaded }: { brand?: BrandProfile; brandsLoade
   const copy = async (event: MouseEvent<HTMLButtonElement>, spec: DraftSpec, text: string) => {
     const area = event.currentTarget.closest('li')?.querySelector('textarea');
     try {
+      // navigator.clipboard is missing outside secure contexts; that lands in the catch too.
       await navigator.clipboard.writeText(text);
-      setStatus('Copied the ' + spec.label + '.');
+      announce('Copied the ' + spec.label + '.');
     } catch {
       // Without clipboard access, select the text so a keyboard copy takes it.
       area?.focus();
       area?.select();
-      setStatus(
+      area?.setSelectionRange(0, text.length);
+      announce(
         'Could not copy automatically. The ' +
           spec.label +
           ' is selected; press Control+C or Command+C to copy it.',
@@ -85,12 +98,28 @@ const ProfileKit = ({ brand, brandsLoaded }: { brand?: BrandProfile; brandsLoade
   let body;
   if (failure && !loaded) {
     body = (
-      <Text role="alert" color="fg.error">
-        {failure}. The profile kit needs your resume, skills and goals.
-      </Text>
+      <VStack align="start" gap={2}>
+        <Text role="alert" color="fg.error">
+          {failure.replace(/\.$/, '')}. The profile kit needs your resume, skills and goals.
+        </Text>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => {
+            if (resumeError) {
+              setResumeError(null);
+              setResumeReload((key) => key + 1);
+            }
+            if (skills.error) skills.reload();
+            if (goals.error) goals.reload();
+          }}
+        >
+          Retry loading profile data
+        </Button>
+      </VStack>
     );
   } else if (!loaded) {
-    body = <Text color="fg.muted">Loading your profile data...</Text>;
+    body = null;
   } else {
     const input = { brand, resume: resume.value, skills: skills.items, goals: goals.goals };
     const specs: DraftSpec[] = [
@@ -127,6 +156,9 @@ const ProfileKit = ({ brand, brandsLoaded }: { brand?: BrandProfile; brandsLoade
                   {spec.max && (
                     <Field.HelperText>
                       {spec.draft.text.length} of {spec.max} characters
+                      {spec.draft.shortened
+                        ? '. Shortened to fit; edit the source text for a complete version.'
+                        : ''}
                     </Field.HelperText>
                   )}
                 </Field.Root>
@@ -145,14 +177,12 @@ const ProfileKit = ({ brand, brandsLoaded }: { brand?: BrandProfile; brandsLoade
                 </Box>
               </VStack>
             ) : (
-              <>
-                <Heading as="h3" size="sm">
-                  {spec.label}
-                </Heading>
-                <Text fontSize="sm" color="fg.muted">
-                  {spec.draft.missing}
-                </Text>
-              </>
+              <Text fontSize="sm">
+                <Text as="span" fontWeight="semibold">
+                  {spec.label}:
+                </Text>{' '}
+                {spec.draft.missing}
+              </Text>
             )}
           </Box>
         ))}
@@ -177,7 +207,7 @@ const ProfileKit = ({ brand, brandsLoaded }: { brand?: BrandProfile; brandsLoade
         goals. Rule-based: nothing is made up, and nothing is posted for you.
       </Text>
       <Text role="status" aria-live="polite" fontSize="sm" color="fg.muted" mt={1} minH={5}>
-        {status}
+        {status || (!loaded && !failure ? 'Loading your profile data...' : '')}
       </Text>
       {body}
     </Box>

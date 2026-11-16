@@ -59,6 +59,10 @@ describe('profile kit', () => {
     expect(linkedinHeadline({ brand, resume, skills, goals })).toEqual({
       text: 'Full-stack developer | node-js · accessibility · react',
     });
+    expect(linkedinAbout({ resume, skills: [], goals: [] })).toEqual({
+      text: 'I build accessible apps.',
+      shortened: false,
+    });
     expect(linkedinHeadline({ brand, resume: null, skills: [], goals })).toEqual({
       text: 'Developer who designs',
     });
@@ -68,11 +72,42 @@ describe('profile kit', () => {
     });
   });
 
-  it('keeps the headline under the LinkedIn limit at a word boundary', () => {
-    const long = { ...resume, headline: 'word '.repeat(60).trim() };
-    const draft = linkedinHeadline({ resume: long, skills, goals });
-    expect('text' in draft && draft.text.length).toBeLessThanOrEqual(LINKEDIN_HEADLINE_MAX);
-    expect('text' in draft && draft.text.endsWith('word')).toBe(true);
+  it('keeps the headline under the LinkedIn limit, fewer skills first', () => {
+    const text = (draft: ReturnType<typeof linkedinHeadline>) => {
+      if (!('text' in draft)) throw new Error('expected a draft');
+      return draft;
+    };
+    const long = text(
+      linkedinHeadline({
+        resume: { ...resume, headline: 'word '.repeat(60).trim() },
+        skills,
+        goals,
+      }),
+    );
+    expect(long.text.length).toBeLessThanOrEqual(LINKEDIN_HEADLINE_MAX);
+    expect(long.text.endsWith('word')).toBe(true);
+    expect(long.shortened).toBe(true);
+    // A base with room for one skill but not three keeps the strongest one.
+    const base = 'x'.repeat(200);
+    expect(
+      text(linkedinHeadline({ resume: { ...resume, headline: base }, skills, goals })),
+    ).toEqual({
+      text: base + ' | node-js',
+    });
+    const oneWord = text(
+      linkedinHeadline({ resume: { ...resume, headline: 'y'.repeat(300) }, skills: [], goals }),
+    );
+    expect(oneWord.text).toHaveLength(LINKEDIN_HEADLINE_MAX);
+  });
+
+  it('breaks ties by name and counts a repeated skill once', () => {
+    expect(
+      topSkills([
+        { name: 'b', level: 'strong' },
+        { name: 'a', level: 'strong' },
+        { name: 'a', level: 'strong' },
+      ]),
+    ).toEqual(['a', 'b']);
   });
 
   it('builds the About section from the summary, skills and career goals', () => {
@@ -80,13 +115,23 @@ describe('profile kit', () => {
       text:
         'I build accessible apps.\n\nWhat I work with: node-js, accessibility, react, css.' +
         "\n\nWhat I'm working toward: Senior role by June.",
+      shortened: false,
     });
     expect(linkedinAbout({ resume: null, skills, goals })).toEqual({
       missing: 'Add a resume summary on the Career page.',
     });
     const long = { ...resume, summary: 'a '.repeat(1400).trim() };
     const draft = linkedinAbout({ resume: long, skills, goals });
-    expect('text' in draft && draft.text.length).toBeLessThanOrEqual(LINKEDIN_ABOUT_MAX);
+    if (!('text' in draft)) throw new Error('expected a draft');
+    expect(draft.text.length).toBeLessThanOrEqual(LINKEDIN_ABOUT_MAX);
+    expect(draft.shortened).toBe(true);
+    // Goals go first when the summary and skills fit but the whole does not.
+    const nearly = { ...resume, summary: 'b'.repeat(2500) };
+    const dropped = linkedinAbout({ resume: nearly, skills, goals });
+    expect(dropped).toEqual({
+      text: 'b'.repeat(2500) + '\n\nWhat I work with: node-js, accessibility, react, css.',
+      shortened: true,
+    });
   });
 
   it('builds an escaped GitHub profile README', () => {
@@ -118,6 +163,15 @@ describe('profile kit', () => {
       goals: [],
     });
     expect(tricky).toEqual({ text: "# Hi, I'm \\<b\\>\\[x\\](y)\n" });
+    const lines = githubReadme({
+      brand: { ...brand, tagline: '' },
+      resume: { ...resume, summary: '- item\n1. one\n    code\n@octocat & ~~x~~' },
+      skills: [],
+      goals: [],
+    });
+    expect(lines).toEqual({
+      text: "# Hi, I'm Joshua\n\nFull-stack developer\n\n\\- item\n1\\. one\ncode\n\\@octocat \\& \\~\\~x\\~\\~\n",
+    });
     expect(githubReadme({ resume, skills, goals })).toEqual({
       missing: 'Save a personal brand with your name above.',
     });
