@@ -7,6 +7,7 @@ import { Task } from '../src/models/taskModel';
 import { User } from '../src/models/userModel';
 import { Project } from '../src/models/projectModel';
 import { Agent } from '../src/models/agentModel';
+import { Review } from '../src/models/reviewModel';
 
 // No credentials, remote hosts, options, or application database names are permitted.
 const uri = process.env.TEST_MONGO_URI;
@@ -290,4 +291,73 @@ it('records when a task is completed and keeps it in the database', async () => 
   expect((await Task.findById(id).lean())?.completedAt).toBeNull();
 
   expect((await request(app).delete(`/api/tasks/${id}`).set(auth(aliceToken))).status).toBe(204);
+});
+
+it('saves one owner-scoped review per period and rejects another user’s tasks', async () => {
+  const created = await request(app)
+    .post('/api/tasks')
+    .set(auth(aliceToken))
+    .send({ title: 'Review focus QA' });
+  expect(created.status).toBe(201);
+  const focusId = created.body.task._id;
+  const path = '/api/reviews/daily/2026-11-15';
+
+  const foreign = await request(app)
+    .put(path)
+    .set(auth(bobToken))
+    .send({ reflection: 'Not mine', focusTasks: [focusId] });
+  expect(foreign.status).toBe(400);
+  expect(await Review.countDocuments({ owner: bobId })).toBe(0);
+
+  // Two first saves at once still leave a single review.
+  const [first, second] = await Promise.all([
+    request(app)
+      .put(path)
+      .set(auth(aliceToken))
+      .send({ reflection: 'First', focusTasks: [focusId] }),
+    request(app)
+      .put(path)
+      .set(auth(aliceToken))
+      .send({ reflection: 'Second', focusTasks: [focusId] }),
+  ]);
+  expect([first.status, second.status]).toEqual([200, 200]);
+  expect(await Review.countDocuments({ owner: aliceId, kind: 'daily', period: '2026-11-15' })).toBe(
+    1,
+  );
+
+  const saved = await request(app)
+    .put(path)
+    .set(auth(aliceToken))
+    .send({ reflection: '  Final  ', focusTasks: [focusId, focusId] });
+  expect(saved.status).toBe(200);
+  expect(saved.body.review).toMatchObject({
+    owner: aliceId,
+    kind: 'daily',
+    period: '2026-11-15',
+    reflection: 'Final',
+    focusTasks: [focusId],
+  });
+  const weekly = await request(app)
+    .put('/api/reviews/weekly/2026-11-09')
+    .set(auth(aliceToken))
+    .send({ reflection: 'Week' });
+  expect(weekly.status).toBe(200);
+
+  const mine = await request(app).get('/api/reviews').set(auth(aliceToken));
+  expect(mine.body.reviews.map((review: { period: string }) => review.period)).toEqual([
+    '2026-11-15',
+    '2026-11-09',
+  ]);
+  const theirs = await request(app).get('/api/reviews').set(auth(bobToken));
+  expect(theirs.body.reviews).toEqual([]);
+  const indexes = await Review.collection.indexes();
+  expect(indexes).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ key: { owner: 1, kind: 1, period: -1 }, unique: true }),
+    ]),
+  );
+
+  expect((await request(app).delete(`/api/tasks/${focusId}`).set(auth(aliceToken))).status).toBe(
+    204,
+  );
 });

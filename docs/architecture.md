@@ -63,33 +63,41 @@ flowchart LR
     AgentS -- "unassign tasks on delete" --> TaskM
 ```
 
-| Endpoint                   | Auth | Purpose                                       |
-| -------------------------- | ---- | --------------------------------------------- |
-| `GET /`                    | No   | Plain-text "API is running" page              |
-| `GET /health`              | No   | Liveness check used by Render                 |
-| `POST /api/auth/register`  | No   | Create an account                             |
-| `POST /api/auth/login`     | No   | Verify credentials, return a JWT              |
-| `POST /api/auth/logout`    | No   | Stateless acknowledgement                     |
-| `GET /api/tasks`           | JWT  | List the signed-in user's tasks               |
-| `POST /api/tasks`          | JWT  | Create a task owned by the user               |
-| `PATCH /api/tasks/:id`     | JWT  | Update one of the user's tasks                |
-| `DELETE /api/tasks/:id`    | JWT  | Delete one of the user's tasks                |
-| `GET /api/projects`        | JWT  | List the signed-in user's projects            |
-| `POST /api/projects`       | JWT  | Create a project owned by the user            |
-| `GET /api/projects/:id`    | JWT  | Get one of the user's projects                |
-| `PATCH /api/projects/:id`  | JWT  | Update one of the user's projects             |
-| `DELETE /api/projects/:id` | JWT  | Delete a project; its tasks become unassigned |
-| `GET /api/agents`          | JWT  | List the signed-in user's agents              |
-| `POST /api/agents`         | JWT  | Create an agent definition owned by the user  |
-| `GET /api/agents/:id`      | JWT  | Get one of the user's agents                  |
-| `PATCH /api/agents/:id`    | JWT  | Update one of the user's agents               |
-| `DELETE /api/agents/:id`   | JWT  | Delete an agent; its tasks become unassigned  |
+| Endpoint                         | Auth | Purpose                                         |
+| -------------------------------- | ---- | ----------------------------------------------- |
+| `GET /`                          | No   | Plain-text "API is running" page                |
+| `GET /health`                    | No   | Liveness check used by Render                   |
+| `POST /api/auth/register`        | No   | Create an account                               |
+| `POST /api/auth/login`           | No   | Verify credentials, return a JWT                |
+| `POST /api/auth/logout`          | No   | Stateless acknowledgement                       |
+| `GET /api/tasks`                 | JWT  | List the signed-in user's tasks                 |
+| `POST /api/tasks`                | JWT  | Create a task owned by the user                 |
+| `PATCH /api/tasks/:id`           | JWT  | Update one of the user's tasks                  |
+| `DELETE /api/tasks/:id`          | JWT  | Delete one of the user's tasks                  |
+| `GET /api/projects`              | JWT  | List the signed-in user's projects              |
+| `POST /api/projects`             | JWT  | Create a project owned by the user              |
+| `GET /api/projects/:id`          | JWT  | Get one of the user's projects                  |
+| `PATCH /api/projects/:id`        | JWT  | Update one of the user's projects               |
+| `DELETE /api/projects/:id`       | JWT  | Delete a project; its tasks become unassigned   |
+| `GET /api/agents`                | JWT  | List the signed-in user's agents                |
+| `POST /api/agents`               | JWT  | Create an agent definition owned by the user    |
+| `GET /api/agents/:id`            | JWT  | Get one of the user's agents                    |
+| `PATCH /api/agents/:id`          | JWT  | Update one of the user's agents                 |
+| `DELETE /api/agents/:id`         | JWT  | Delete an agent; its tasks become unassigned    |
+| `GET /api/reviews`               | JWT  | List the user's recent daily and weekly reviews |
+| `PUT /api/reviews/:kind/:period` | JWT  | Save (create or replace) one review             |
 
 **Projects and tasks:**
 
 - **Model:** `Project` has `name` (required, up to 120 characters), `description` (up to 2000), `status` (`active`, `completed`, or `archived`), `owner`, and timestamps. `Task.project` is optional and defaults to `null`.
 - **Ownership:** every project query filters by `owner`. A task's `project` must be omitted (no change), `null` or `''` (unassign), or the id of a project the same user owns. A malformed id gets `400 Invalid project`. A missing project and another user's project both get `400 Project not found`, so the API never reveals whether another user's project exists. Malformed project ids in URLs get `404`.
 - **Deleting a project never deletes tasks.** The service first unassigns the owner's tasks from the project, then deletes the project. If the delete fails after that, the project still exists with no tasks pointing at it, and the request can be retried. After the delete, a second best-effort unassign catches a task the same user assigned to the project at that exact moment. Without a transaction this narrows that window rather than closing it, so the client also treats a reference to an unknown project as Unassigned. Editing such a task leaves its project untouched unless the user changes the Project field.
+
+**Reviews (Phase 5):**
+
+- **Model:** `Review` has `owner`, `kind` (`daily` or `weekly`), `period` (the user's local calendar date of the day reviewed, or the Monday of the week, as `YYYY-MM-DD`), `reflection` (up to 2000 characters), `focusTasks` (at most 3 daily or 5 weekly, all the owner's own tasks when saved) and timestamps. A focus task deleted later simply stops resolving.
+- **One per period:** a unique `{ owner, kind, period }` index, created lazily on first save with the same fail-closed guard as runs (`503` if it cannot be confirmed). `PUT` is an upsert, so saving again replaces the review; two racing first saves leave one document.
+- **Validation and ownership:** an invalid kind, a date that is not a real `YYYY-MM-DD` day, or a weekly period that is not a Monday gets `400`. Focus task ids are de-duplicated; malformed ids, too many, or any id that is not the owner's task get `400` without saving. `GET /api/reviews` accepts `kind` and `limit` (1 to 30, default 14) and returns the owner's reviews, newest period first.
 
 **Agents (Agent Registry, Phase 2 foundation):**
 

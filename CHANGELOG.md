@@ -4,6 +4,8 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+- KAN-59: owner-scoped daily and weekly reviews API (`PUT /api/reviews/:kind/:period`, `GET /api/reviews`) with one review per period, a reflection and up to 3 (daily) or 5 (weekly) of the owner's own focus tasks; no UI yet.
+
 - KAN-58: Progress page (`/progress`, in the sidebar) with completions per day or week, the previous-window comparison, tasks created, on-time rate, average per day and completions by project; rule-based, computed from recorded completion times.
 
 - KAN-57: tasks record when they were completed (`completedAt`, set by the server only and cleared on reopen) so Phase 5 analytics reflect real history; existing data is not backfilled.
