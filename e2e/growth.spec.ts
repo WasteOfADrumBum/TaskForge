@@ -26,7 +26,7 @@ const registerAndLogin = async (page: Page) => {
 
 // One account for the Phase 5 and 6 flows: the guarded API caps registrations per run, so each new
 // spec should reuse an account where it can.
-test('growth flows on mobile by keyboard: progress, daily review, goals and career', async ({
+test('growth flows on mobile by keyboard: progress, reviews, goals, career and skill growth', async ({
   page,
   playwright,
 }) => {
@@ -167,6 +167,33 @@ test('growth flows on mobile by keyboard: progress, daily review, goals and care
     expect(allTasks).toEqual(
       expect.arrayContaining([expect.objectContaining({ title: learningTitle, status: 'todo' })]),
     );
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+    ).toBe(true);
+
+    // Skill growth in the weekly review: the new skill, the finished learning task and the gap.
+    const learningTask = allTasks.find((item: { title: string }) => item.title === learningTitle);
+    const learnedDone = await api.patch('/api/tasks/' + learningTask._id, {
+      data: { status: 'done' },
+    });
+    expect(learnedDone.status()).toBe(200);
+    await page.goto('/reviews');
+    const weeklyAgain = page.getByRole('button', { name: 'Weekly review', exact: true });
+    await weeklyAgain.focus();
+    await page.keyboard.press('Enter');
+    const growthStep = page.getByRole('region', { name: 'Review your skill growth' });
+    await expect(growthStep.getByRole('list', { name: 'Skills added this week: 1' })).toContainText(
+      'react, working knowledge',
+    );
+    await expect(
+      growthStep.getByRole('list', { name: 'Learning tasks finished this week: 1' }),
+    ).toContainText(learningTitle);
+    await expect(
+      growthStep.getByRole('list', { name: 'Skills your open saved jobs need most' }),
+    ).toContainText('graphql: needed by 1 job');
+    const careerLink = growthStep.getByRole('link', { name: 'Update skills and jobs in Career' });
+    await careerLink.focus();
+    await expect(careerLink).toBeFocused();
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true);

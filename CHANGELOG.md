@@ -4,6 +4,8 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+- KAN-66: the weekly review gains a skill-growth step: skills added or levelled this week, learning tasks from skill gaps finished this week, and the skills open saved jobs need most; rule-based, from the Career data.
+
 - KAN-64: Career page (`/career`) with a skills inventory, saved jobs with status, a rule-based skill gap per job, and one-press learning tasks for missing skills.
 
 - KAN-63: owner-scoped skills inventory (`/api/skills`, one per slug name, with a level) and saved jobs (`/api/jobs`, https link, required skills, application status); no UI yet.
