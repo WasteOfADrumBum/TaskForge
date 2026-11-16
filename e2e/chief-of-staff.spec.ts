@@ -145,7 +145,12 @@ test('explicitly simulates a Chief of Staff proposal and records review without 
     await page
       .getByLabel('Review note (optional)', { exact: true })
       .fill('Reviewed advisory Chief proposal');
+    // Wait for the review request itself, not only the page text, before reading the record.
+    const reviewRequest = page.waitForResponse(
+      (r) => r.url() === apiURL + '/api/runs/' + queued._id + '/review',
+    );
     await page.getByRole('button', { name: 'Approve draft', exact: true }).click();
+    expect((await reviewRequest).status()).toBe(200);
     await expect(page.getByText('Reviewed advisory Chief proposal', { exact: true })).toBeVisible();
     const reviewed = (await (await api.get('/api/runs/' + queued._id)).json()).run;
     expect(reviewed).toMatchObject({

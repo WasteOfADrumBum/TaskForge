@@ -113,7 +113,12 @@ test('Developer plan is explicit text-only simulation and exact human approval l
     await page
       .getByLabel('Review note (optional)', { exact: true })
       .fill('Developer text reviewed');
+    // Wait for the review request itself, not only the page text, before reading the record.
+    const reviewRequest = page.waitForResponse(
+      (r) => r.url() === apiURL + '/api/runs/' + queued._id + '/review',
+    );
     await page.getByRole('button', { name: 'Approve draft', exact: true }).click();
+    expect((await reviewRequest).status()).toBe(200);
     await expect(page.getByText('Developer text reviewed', { exact: true })).toBeVisible();
     const approved = (await (await api.get('/api/runs/' + queued._id)).json()).run;
     expect(approved.review.resultDigest).toBe(draft.resultDigest);
