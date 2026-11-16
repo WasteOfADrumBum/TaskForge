@@ -4,6 +4,8 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+- KAN-73: owner-scoped brand profiles API (`GET /api/brands`, `PUT /api/brands/:kind` for `taskforge` and `personal`): name, tagline, colors, fonts, logo links, brand voice, writing style and image prompts; text only, with no page yet.
+
 - KAN-72: saved jobs record when their status last changed (`statusChangedAt`, server-set), and the Career page gains an Applications section: counts for applied, interviewing and offer, active applications longest unchanged first, and a follow-up task for one still applied after 14 days; rule-based.
 
 - KAN-71: the Learning page suggests up to three portfolio projects, each pairing a skill open saved jobs need most with a skill you already have (working level or above) that those jobs list, and adds one to the roadmap as a project with one press; rule-based, client-only.

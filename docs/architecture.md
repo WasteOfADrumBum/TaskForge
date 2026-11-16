@@ -104,6 +104,8 @@ flowchart LR
 | `DELETE /api/learning/:id`       | JWT  | Delete one of the user's learning items         |
 | `GET /api/resume`                | JWT  | Get the user's resume, or null                  |
 | `PUT /api/resume`                | JWT  | Create or replace the user's resume             |
+| `GET /api/brands`                | JWT  | List the user's brand profiles                  |
+| `PUT /api/brands/:kind`          | JWT  | Create or replace a brand profile               |
 
 **Projects and tasks:**
 
@@ -135,6 +137,12 @@ flowchart LR
 - **Model:** `Resume` has `headline` (up to 120 characters), `summary` (up to 2000), `body` (plain text, up to 20000), `owner` and timestamps. There is one per owner: a unique `{ owner }` index is created lazily on first save with the same fail-closed guard as runs (`503` if it can't be confirmed), and a racing first save retries as an update.
 - **Input:** `PUT` reads only the three text fields; a missing or `null` field saves as empty. `owner`, `_id` and timestamps in a body are ignored.
 - **Skill check:** the client compares the resume text with the user's skills and the skills open saved jobs need, by whole word, where a hyphen in a skill name can match a space, dot, underscore or nothing (`node-js` matches `Node.js`). Nothing is uploaded, parsed from files or inferred.
+
+**Brand profiles (Phase 7):**
+
+- **Model:** `Brand` has `kind` (`taskforge` or `personal`; one per owner and kind, enforced by a unique index created lazily behind the same fail-closed guard as resumes, `503` if it can't be confirmed, with a duplicate-key race retried as an update), `name` (required, up to 80 characters), `tagline` (160), `colors` (up to 12 of `{ name, hex }`, hex stored as `#RRGGBB` uppercase), `fonts` (up to 6 of `{ role, family }`, role `heading`, `body`, `mono` or `accent`), `logos` (up to 8 of `{ label, url }`), `voice` and `writingStyle` (2000 each), `imagePrompts` (up to 10, 500 each), `owner` and timestamps.
+- **Text only:** no uploads, no image generation and no AI. A logo `url` is an `https` link without credentials (the shared link check) or a path on this site such as `/taskforge-logo.svg` (never `//host`); TaskForge never fetches it.
+- **Writes:** `PUT /api/brands/:kind` replaces the whole profile; missing or `null` optional fields save as empty, an unknown kind gets `404`, and a non-object body gets `400` rather than wiping the profile.
 
 **Learning roadmap (Phase 6):**
 

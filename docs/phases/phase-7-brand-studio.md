@@ -1,6 +1,6 @@
 # Phase 7: Brand Studio
 
-**Status: PLANNED**
+**Status: IN PROGRESS**
 
 ## Objective
 
@@ -38,6 +38,10 @@ Shows design-system thinking and practical content tooling.
 ## Cost constraints
 
 $0. Store assets within free-tier limits. Image generation is opt-in only and must not create recurring cost.
+
+## Shipped
+
+- Brand profiles API (KAN-73): one TaskForge and one personal profile per user, each with a name, tagline, colors, fonts, logo links, brand voice, writing style and image prompts. Text only, with no uploads, image generation or AI.
 
 ## Notes/decisions
 
