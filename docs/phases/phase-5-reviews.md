@@ -18,12 +18,12 @@ Daily review, weekly review, progress analytics, agent recommendations, goal rev
 
 - Progress analytics (KAN-58): the Progress page (`/progress`) counts tasks completed in the last 7 days (one row per day) or 28 days (one row per week), compares with the previous window, and shows tasks created, the share finished on or before their due date, the average per day and completions by project. It is computed in the client from recorded completion times and labelled rule-based. The breakdown is a captioned table with the count as text; bars are decorative.
 
-- Reviews API (KAN-59): saved daily and weekly reviews, one per period, with a reflection and focus tasks for the next day or week. The guided review screens build on it.
+- Reviews API (KAN-59): saved daily and weekly reviews, one per period, with a reflection and focus tasks for the next day or week.
+
+- Guided daily and weekly reviews (KAN-60): the Reviews page (`/reviews`) walks through four steps: look back at tasks completed today (or Monday to Sunday), see what is overdue or coming due, choose up to 3 (or 5) focus tasks, and write a reflection. Saving stores today's (or this week's) review; reopening the page loads it. Rule-based and labelled as such.
 
 ## Planned capabilities
 
-- Daily review
-- Weekly review
 - Agent recommendations
 - Goal review
 - Skill-growth review

@@ -9,6 +9,7 @@ import { store } from '../redux/store';
 import { setToken } from '../redux/slices/authSlice';
 import type { Agent } from '../types/agent';
 import type { Project } from '../types/project';
+import type { Review } from '../types/review';
 import type { Task } from '../types/task';
 import { localCalendarDate } from '../utils/dates';
 
@@ -76,10 +77,12 @@ export const stubTaskApi = (
   initial: Task[] = [],
   initialProjects: Project[] = [],
   initialAgents: Agent[] = [],
+  initialReviews: Review[] = [],
 ) => {
   const tasks = [...initial];
   const projects = [...initialProjects];
   const agents = [...initialAgents];
+  const reviews = [...initialReviews];
   let nextId = 1;
   const fetchMock = vi.fn(async (url: string, options: RequestInit = {}) => {
     const method = options.method ?? 'GET';
@@ -93,6 +96,34 @@ export const stubTaskApi = (
       return json(200, { message: 'Logged in successfully', token: validToken() });
     }
     if (url.includes('/api/runs/approvals') && method === 'GET') return json(200, { runs: [] });
+    const reviewMatch = url.match(/\/api\/reviews(?:\/(daily|weekly)\/([^/?]+))?(?:\?(.*))?$/);
+    if (reviewMatch) {
+      const [, kind, period, query] = reviewMatch;
+      if (method === 'GET' && !kind) {
+        const params = new URLSearchParams(query);
+        const list = reviews
+          .filter((review) => !params.get('kind') || review.kind === params.get('kind'))
+          .sort((a, b) => b.period.localeCompare(a.period))
+          .slice(0, Number(params.get('limit') ?? 14));
+        return json(200, { reviews: list });
+      }
+      if (method === 'PUT' && kind) {
+        const now = new Date().toISOString();
+        const existing = reviews.find((review) => review.kind === kind && review.period === period);
+        const review: Review = {
+          _id: existing?._id ?? 'review-' + nextId++,
+          kind: kind as Review['kind'],
+          period: decodeURIComponent(period),
+          reflection: String(body.reflection ?? '').trim(),
+          focusTasks: [...new Set<string>(body.focusTasks ?? [])],
+          createdAt: existing?.createdAt ?? now,
+          updatedAt: now,
+        };
+        if (existing) Object.assign(existing, review);
+        else reviews.push(review);
+        return json(200, { review });
+      }
+    }
     const agentMatch = url.match(/\/api\/agents(?:\/([^/]+))?$/);
     if (agentMatch) {
       const agentId = agentMatch[1];
@@ -180,7 +211,7 @@ export const stubTaskApi = (
     return json(204);
   });
   vi.stubGlobal('fetch', fetchMock);
-  return { fetchMock, tasks, projects, agents };
+  return { fetchMock, tasks, projects, agents, reviews };
 };
 
 // Calls made to one endpoint and method, for example requestsTo(fetchMock, 'GET', '/api/tasks').
