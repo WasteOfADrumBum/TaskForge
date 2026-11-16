@@ -47,6 +47,7 @@ import {
   learningInStatus,
   learningTargetText,
 } from '../../utils/learning';
+import { getPortfolioIdeas, hasOpenProject, type PortfolioIdea } from '../../utils/portfolio';
 import { getOpenJobGaps, TOP_GAP_LIMIT } from '../../utils/skillGrowth';
 
 const panel = {
@@ -151,6 +152,7 @@ const LearningPage = () => {
   const [announcement, setAnnouncement] = useState('');
   const [actionError, setActionError] = useState<string | null>(null);
   const [gapBusy, setGapBusy] = useState<string[]>([]);
+  const [ideaBusy, setIdeaBusy] = useState<string[]>([]);
 
   const [title, setTitle] = useState('');
   const [skill, setSkill] = useState('');
@@ -164,6 +166,10 @@ const LearningPage = () => {
   const careerError = skills.error ?? jobs.error;
   const gaps = useMemo(
     () => getOpenJobGaps(skills.items, jobs.items, TOP_GAP_LIMIT),
+    [skills.items, jobs.items],
+  );
+  const ideas = useMemo(
+    () => getPortfolioIdeas(skills.items, jobs.items),
     [skills.items, jobs.items],
   );
 
@@ -232,6 +238,23 @@ const LearningPage = () => {
     setGapBusy((current) => current.filter((entry) => entry !== gapSkill));
     // The button is replaced by "On your roadmap", so the status line takes focus.
     settle(message, 'Added to your roadmap: ' + itemTitle + '.');
+  };
+
+  const addIdea = async (idea: PortfolioIdea) => {
+    if (ideaBusy.includes(idea.skill)) return;
+    begin();
+    setIdeaBusy((current) => [...current, idea.skill]);
+    const message = await items.add((token) =>
+      createLearningItem(token, {
+        title: idea.title,
+        skill: idea.skill,
+        kind: 'project',
+        notes: idea.notes,
+      }),
+    );
+    setIdeaBusy((current) => current.filter((entry) => entry !== idea.skill));
+    // The button is replaced by "On your roadmap", so the status line takes focus.
+    settle(message, 'Added to your roadmap: ' + idea.title + '.');
   };
 
   let status = announcement;
@@ -441,6 +464,75 @@ const LearningPage = () => {
         <Link asChild fontSize="sm" color="accent.teal" mt={3} display="inline-block">
           <RouterLink to="/career">Update skills and jobs in Career</RouterLink>
         </Link>
+      </Box>
+
+      <Box as="section" aria-labelledby="learning-projects" {...panel}>
+        <Heading as="h2" id="learning-projects" size="md" mb={1}>
+          Portfolio project ideas
+        </Heading>
+        <Text fontSize="sm" color="fg.muted" mb={2}>
+          Each idea pairs a skill your open saved jobs need with a skill you already have that those
+          jobs list. Rule-based.
+        </Text>
+        {careerError && !(skills.pending || jobs.pending) ? (
+          <Text color="fg.muted">Project ideas need your skills and saved jobs.</Text>
+        ) : roadmapBlocked ? (
+          <Text color="fg.muted">{ROADMAP_FIRST}</Text>
+        ) : !careerLoaded || !items.loaded ? (
+          <Text color="fg.muted">Loading project ideas...</Text>
+        ) : ideas.length ? (
+          <Box
+            as="ul"
+            role="list"
+            listStyleType="none"
+            m={0}
+            p={0}
+            aria-label="Portfolio project ideas from your skill gaps"
+          >
+            {ideas.map((idea) => {
+              const planned = hasOpenProject(items.items, idea.skill);
+              return (
+                <Box
+                  as="li"
+                  key={idea.skill}
+                  py={2}
+                  borderTopWidth="1px"
+                  borderColor="border.muted"
+                >
+                  <HStack justify="space-between" gap={3} flexWrap="wrap">
+                    <Text fontWeight="medium" overflowWrap="anywhere">
+                      {idea.title}
+                    </Text>
+                    {planned ? (
+                      <Text fontSize="sm" color="fg.muted">
+                        On your roadmap
+                      </Text>
+                    ) : (
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        aria-disabled={ideaBusy.includes(idea.skill) || undefined}
+                        onClick={() => void addIdea(idea)}
+                        aria-label={'Add project: ' + idea.title}
+                      >
+                        Add project
+                      </Button>
+                    )}
+                  </HStack>
+                  <Text fontSize="sm" color="fg.muted" overflowWrap="anywhere">
+                    {idea.notes}
+                  </Text>
+                </Box>
+              );
+            })}
+          </Box>
+        ) : (
+          <Text color="fg.muted">
+            {gaps.hasOpenJobs
+              ? 'Your skills cover every open saved job, so there are no gaps to build a project around.'
+              : 'Save jobs on the Career page to get project ideas from the skills they need.'}
+          </Text>
+        )}
       </Box>
 
       {items.error && !items.pending && (

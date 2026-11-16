@@ -4,6 +4,8 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+- KAN-71: the Learning page suggests up to three portfolio projects, each pairing a skill open saved jobs need most with a skill you already have that those jobs list, and adds one to the roadmap as a project with one press; rule-based, client-only.
+
 - KAN-70: a plain-text resume per user (`GET`/`PUT /api/resume`: headline, summary and body), edited on the Career page with a rule-based skill check: your skills it mentions, those it does not, and what open saved jobs need that it does not mention.
 
 - KAN-69: goals get an area (general, career or learning), chosen when adding a goal or changed on any goal on the Goals page and shown in text, and the Career page lists active career goals with their targets.

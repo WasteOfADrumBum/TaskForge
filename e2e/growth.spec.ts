@@ -26,7 +26,7 @@ const registerAndLogin = async (page: Page) => {
 
 // One account for the Phase 5 and 6 flows: the guarded API caps registrations per run, so each new
 // spec should reuse an account where it can.
-test('growth flows on mobile by keyboard: progress, reviews, goals, career, skill growth and learning', async ({
+test('growth flows on mobile by keyboard: progress, reviews, goals, career, skill growth, learning and project ideas', async ({
   page,
   playwright,
 }) => {
@@ -249,6 +249,21 @@ test('growth flows on mobile by keyboard: progress, reviews, goals, career, skil
     expect(roadmap).toEqual([
       expect.objectContaining({ title: 'Learn graphql', skill: 'graphql', status: 'in_progress' }),
     ]);
+
+    // Portfolio project: the graphql gap pairs with react, which the same job lists.
+    const projectTitle = 'Portfolio project: graphql with react';
+    const addProject = page
+      .getByRole('region', { name: /portfolio project ideas/i })
+      .getByRole('button', { name: 'Add project: ' + projectTitle });
+    await addProject.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByText('Added to your roadmap: ' + projectTitle + '.')).toBeFocused();
+    const withProject = (await (await api.get('/api/learning')).json()).items;
+    expect(withProject).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ title: projectTitle, skill: 'graphql', kind: 'project' }),
+      ]),
+    );
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true);
