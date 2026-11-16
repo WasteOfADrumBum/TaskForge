@@ -177,6 +177,27 @@ test('growth flows on mobile by keyboard: progress, reviews, goals, career, skil
     expect(allTasks).toEqual(
       expect.arrayContaining([expect.objectContaining({ title: learningTitle, status: 'todo' })]),
     );
+
+    // Resume: typed and saved by keyboard, then checked against the skills above.
+    const resumeSection = page.getByRole('region', { name: 'Resume' });
+    const summaryField = resumeSection.getByRole('textbox', { name: 'Summary' });
+    await summaryField.focus();
+    await page.keyboard.type('Builds accessible React apps.');
+    const saveResume = resumeSection.getByRole('button', { name: 'Save resume', exact: true });
+    await saveResume.focus();
+    await page.keyboard.press('Enter');
+    await expect(resumeSection.getByText(/^Saved at /)).toBeVisible();
+    await expect(
+      resumeSection.getByRole('list', { name: 'Your skills it mentions: 1' }),
+    ).toContainText('react');
+    await expect(
+      resumeSection.getByRole('list', {
+        name: 'Skills your open saved jobs need that it does not mention',
+      }),
+    ).toContainText('graphql: needed by 1 job');
+    expect((await (await api.get('/api/resume')).json()).resume).toMatchObject({
+      summary: 'Builds accessible React apps.',
+    });
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true);

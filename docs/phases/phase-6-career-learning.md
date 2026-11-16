@@ -28,9 +28,11 @@ It supports the goal of reaching senior engineer or tech lead by turning "skills
 
 - Career goals (KAN-69): goals get an area (general, career or learning), set or changed on the Goals page, and the Career page lists active career goals with their targets and a link to Goals. They reuse the Phase 5 goals model.
 
+- Resume (KAN-70): one plain-text resume per user (headline, summary and the rest) on the Career page, with a rule-based skill check that lists your skills it mentions, your skills it does not, and the skills open saved jobs need that it does not mention, matched by whole word.
+
 ## Planned capabilities
 
-- Career: resume, job opportunities, applications
+- Career: job opportunities, applications
 - Learning: portfolio-project recommendations
 - Turn a skill gap into a learning task or project in TaskForge
 

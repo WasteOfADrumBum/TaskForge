@@ -161,7 +161,7 @@ Release readiness and the approved bounded Phase 2 milestone are complete. Josh 
 
 Career:
 
-- [ ] **PLANNED**: Resume
+- [x] **COMPLETE**: Resume (KAN-70): plain text on the Career page with a rule-based skill check
 - [x] **COMPLETE**: Skills inventory (KAN-63, KAN-64)
 - [ ] **PLANNED**: Job opportunities
 - [x] **COMPLETE**: Saved jobs (KAN-63, KAN-64), with application status
