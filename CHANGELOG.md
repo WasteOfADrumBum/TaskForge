@@ -4,6 +4,8 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+- KAN-61: owner-scoped goals API (`/api/goals`) with title, description, status (active, achieved, dropped), optional target date and a server-recorded achieved time; no UI yet.
+
 - KAN-60: guided daily and weekly reviews at `/reviews` (look back, needs attention, choose up to 3 or 5 focus tasks, reflect), saved per day or week and reloaded when reopened; rule-based.
 
 - KAN-59: owner-scoped daily and weekly reviews API (`PUT /api/reviews/:kind/:period`, `GET /api/reviews`) with one review per period, a reflection and up to 3 (daily) or 5 (weekly) of the owner's own focus tasks; no UI yet.
