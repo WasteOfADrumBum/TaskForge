@@ -10,7 +10,7 @@ import {
   Textarea,
   VStack,
 } from '@chakra-ui/react';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { LuPlus } from 'react-icons/lu';
 import { useGoals } from '../../hooks/useGoals';
 import { useToday } from '../../hooks/useToday';
@@ -45,6 +45,18 @@ const GoalRow = ({
   onDelete: () => void;
 }) => {
   const [confirming, setConfirming] = useState(false);
+  // Keep keyboard focus on the delete controls as they swap (WCAG 2.4.3).
+  const confirmRef = useRef<HTMLButtonElement>(null);
+  const deleteRef = useRef<HTMLButtonElement>(null);
+  const swapped = useRef(false);
+  useEffect(() => {
+    if (!swapped.current) return;
+    (confirming ? confirmRef : deleteRef).current?.focus();
+  }, [confirming]);
+  const toggleConfirm = (next: boolean) => {
+    swapped.current = true;
+    setConfirming(next);
+  };
   const target = goalTargetText(goal, now);
   return (
     <Box as="li" py={3} borderTopWidth="1px" borderColor="border.muted">
@@ -92,13 +104,19 @@ const GoalRow = ({
         )}
         {confirming ? (
           <>
-            <Button size="xs" colorPalette="red" disabled={busy} onClick={onDelete}>
+            <Button
+              size="xs"
+              colorPalette="red"
+              disabled={busy}
+              onClick={onDelete}
+              ref={confirmRef}
+            >
               Confirm delete
               <Box as="span" srOnly>
                 : {goal.title}
               </Box>
             </Button>
-            <Button size="xs" variant="ghost" onClick={() => setConfirming(false)}>
+            <Button size="xs" variant="ghost" onClick={() => toggleConfirm(false)}>
               Keep
               <Box as="span" srOnly>
                 : {goal.title}
@@ -106,7 +124,13 @@ const GoalRow = ({
             </Button>
           </>
         ) : (
-          <Button size="xs" variant="ghost" disabled={busy} onClick={() => setConfirming(true)}>
+          <Button
+            size="xs"
+            variant="ghost"
+            disabled={busy}
+            onClick={() => toggleConfirm(true)}
+            ref={deleteRef}
+          >
             Delete
             <Box as="span" srOnly>
               : {goal.title}
@@ -120,8 +144,10 @@ const GoalRow = ({
 
 const GoalsPage = () => {
   const now = useToday();
-  const { goals, loaded, error, pending, waiting, busyId, reload, add, update, remove } =
+  const { goals, loaded, error, pending, waiting, isBusy, reload, add, update, remove } =
     useGoals();
+  // After a goal moves section or is deleted, its button is gone, so focus goes to the status line.
+  const statusRef = useRef<HTMLParagraphElement>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [targetDate, setTargetDate] = useState('');
@@ -132,30 +158,39 @@ const GoalsPage = () => {
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
     if (!title.trim()) return setFormError('Give the goal a title.');
+    const submitted = { title: title.trim(), description, targetDate };
     setFormError(null);
+    setAnnouncement('');
     const message = await add({
-      title: title.trim(),
-      description,
-      targetDate: targetDate || null,
+      title: submitted.title,
+      description: submitted.description,
+      targetDate: submitted.targetDate || null,
     });
     if (message) return setFormError(message);
-    setAnnouncement('Added goal: ' + title.trim() + '.');
-    setTitle('');
-    setDescription('');
-    setTargetDate('');
+    setAnnouncement('Added goal: ' + submitted.title + '.');
+    // Clear only what was sent, so anything typed while saving stays.
+    setTitle((value) => (value.trim() === submitted.title ? '' : value));
+    setDescription((value) => (value === submitted.description ? '' : value));
+    setTargetDate((value) => (value === submitted.targetDate ? '' : value));
   };
 
+  // Results go to the status line, which also takes focus because the pressed button is gone.
+  const settle = (message: string | null, success: string) => {
+    if (message) setActionError(message);
+    else setAnnouncement(success);
+    statusRef.current?.focus();
+  };
   const changeStatus = async (goal: Goal, status: GoalStatus) => {
     setActionError(null);
+    setAnnouncement('');
     const message = await update(getGoalId(goal), { status });
-    if (message) setActionError(message);
-    else setAnnouncement(goal.title + ' is now ' + goalStatusLabel[status].toLowerCase() + '.');
+    settle(message, goal.title + ' is now ' + goalStatusLabel[status].toLowerCase() + '.');
   };
   const removeGoal = async (goal: Goal) => {
     setActionError(null);
+    setAnnouncement('');
     const message = await remove(getGoalId(goal));
-    if (message) setActionError(message);
-    else setAnnouncement('Deleted goal: ' + goal.title + '.');
+    settle(message, 'Deleted goal: ' + goal.title + '.');
   };
 
   let status = announcement;
@@ -171,7 +206,16 @@ const GoalsPage = () => {
         <Text color="fg.muted" mt={1.5}>
           What you are working toward. Check in on them in your weekly review.
         </Text>
-        <Text role="status" aria-live="polite" fontSize="sm" color="fg.muted" mt={1}>
+        <Text
+          ref={statusRef}
+          tabIndex={-1}
+          role="status"
+          aria-live="polite"
+          fontSize="sm"
+          color="fg.muted"
+          mt={1}
+          _focusVisible={{ outline: '2px solid', outlineColor: 'accent.teal' }}
+        >
           {status}
         </Text>
       </Box>
@@ -224,7 +268,13 @@ const GoalsPage = () => {
             </Text>
           )}
           <HStack>
-            <Button type="submit" colorPalette="teal" loading={busyId === 'new'}>
+            <Button
+              type="submit"
+              colorPalette="teal"
+              loading={isBusy('new')}
+              // Adding before the list loads could be overwritten by that first load.
+              disabled={!loaded}
+            >
               <LuPlus aria-hidden="true" focusable="false" />
               Add goal
             </Button>
@@ -235,7 +285,14 @@ const GoalsPage = () => {
       {error && !pending && (
         <VStack align="start" gap={2}>
           <Text color="fg.error">{error}</Text>
-          <Button size="sm" variant="outline" onClick={reload}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              setAnnouncement('');
+              reload();
+            }}
+          >
             Retry loading goals
           </Button>
         </VStack>
@@ -273,7 +330,7 @@ const GoalsPage = () => {
                       key={getGoalId(goal)}
                       goal={goal}
                       now={now}
-                      busy={busyId === getGoalId(goal)}
+                      busy={isBusy(getGoalId(goal))}
                       onStatus={(next) => void changeStatus(goal, next)}
                       onDelete={() => void removeGoal(goal)}
                     />

@@ -19,7 +19,9 @@ export const useGoals = () => {
   const goals = loaded ? data.goals : [];
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
-  const [busyId, setBusyId] = useState<string | null>(null);
+  // Ids with a change in flight, kept per session so a new sign-in starts with none.
+  const [busy, setBusy] = useState<{ key: string; ids: string[] }>({ key: '', ids: [] });
+  const busyIds = busy.key === sessionKey ? busy.ids : [];
   const read = useDelayedRequest();
   const { begin } = read;
 
@@ -49,11 +51,16 @@ export const useGoals = () => {
   const run = useCallback(
     async (id: string, action: (token: string) => Promise<(items: Goal[]) => Goal[]>) => {
       if (!token || !isCurrentSession(token, sessionVersion)) return 'Your session has ended.';
-      setBusyId(id);
+      const key = token + ':' + sessionVersion;
+      const mark = (on: boolean) =>
+        setBusy((current) => {
+          const ids = current.key === key ? current.ids.filter((item) => item !== id) : [];
+          return { key, ids: on ? [...ids, id] : ids };
+        });
+      mark(true);
       try {
         const apply = await action(token);
         if (!isCurrentSession(token, sessionVersion)) return 'Your session has ended.';
-        const key = token + ':' + sessionVersion;
         setData((current) =>
           current?.key === key ? { key, goals: apply(current.goals) } : current,
         );
@@ -62,7 +69,7 @@ export const useGoals = () => {
         if (failure instanceof SessionExpiredError) return 'Your session has ended.';
         return failure instanceof Error ? failure.message : 'Something went wrong';
       } finally {
-        if (isCurrentSession(token, sessionVersion)) setBusyId(null);
+        mark(false);
       }
     },
     [token, sessionVersion],
@@ -90,7 +97,7 @@ export const useGoals = () => {
     error,
     pending: read.pending,
     waiting: read.waiting,
-    busyId,
+    isBusy: (id: string) => busyIds.includes(id),
     reload: () => setReloadKey((key) => key + 1),
     add,
     update,

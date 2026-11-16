@@ -4,7 +4,7 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
-- KAN-62: Goals page (`/goals`) to add goals and mark them achieved, dropped or active, and a goal check-in step in the weekly review.
+- KAN-62: Goals page (`/goals`) to add goals, mark them achieved, dropped or active again, and delete them after a confirming press, plus a goal check-in step in the weekly review.
 
 - KAN-61: owner-scoped goals API (`/api/goals`) with title, description, status (active, achieved, dropped), optional target date and a server-recorded achieved time; no UI yet.
 

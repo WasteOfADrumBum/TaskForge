@@ -11,7 +11,7 @@ import {
   Textarea,
   VStack,
 } from '@chakra-ui/react';
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { LuSave } from 'react-icons/lu';
 import { Link as RouterLink } from 'react-router-dom';
 import { getReviews, saveReview } from '../../api/reviews';
@@ -114,18 +114,40 @@ const Step = ({
 
 // Weekly goal check-in: active goals with their targets, and a quick way to mark one achieved.
 function GoalCheckIn({ now }: { now: Date }) {
-  const { goals, loaded, error, pending, busyId, reload, update } = useGoals();
+  const { goals, loaded, error, pending, isBusy, reload, update } = useGoals();
   const [message, setMessage] = useState<string | null>(null);
+  const [failure, setFailure] = useState<string | null>(null);
+  // The pressed button leaves the list, so focus moves to the result line.
+  const resultRef = useRef<HTMLParagraphElement>(null);
   const active = goals.filter((goal) => goal.status === 'active');
   const achieve = async (goal: Goal) => {
-    const failure = await update(getGoalId(goal), { status: 'achieved' });
-    setMessage(failure ?? 'Marked achieved: ' + goal.title + '.');
+    setMessage(null);
+    setFailure(null);
+    const error = await update(getGoalId(goal), { status: 'achieved' });
+    if (error) setFailure(error);
+    else {
+      setMessage('Marked achieved: ' + goal.title + '.');
+      resultRef.current?.focus();
+    }
   };
   return (
     <>
-      <Text role="status" aria-live="polite" fontSize="sm" color="fg.muted">
+      <Text
+        ref={resultRef}
+        tabIndex={-1}
+        role="status"
+        aria-live="polite"
+        fontSize="sm"
+        color="fg.muted"
+        _focusVisible={{ outline: '2px solid', outlineColor: 'accent.teal' }}
+      >
         {pending ? 'Loading your goals...' : (message ?? '')}
       </Text>
+      {failure && (
+        <Text role="alert" color="fg.error" fontSize="sm">
+          {failure}
+        </Text>
+      )}
       {error && !pending ? (
         <VStack align="start" gap={2}>
           <Text color="fg.error">{error}</Text>
@@ -159,7 +181,7 @@ function GoalCheckIn({ now }: { now: Date }) {
                 <Button
                   size="xs"
                   variant="outline"
-                  disabled={busyId === getGoalId(goal)}
+                  disabled={isBusy(getGoalId(goal))}
                   onClick={() => void achieve(goal)}
                 >
                   Mark achieved

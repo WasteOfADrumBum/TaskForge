@@ -99,11 +99,48 @@ describe('Goals page', () => {
     renderApp('/goals');
     await userEvent.click(await screen.findByRole('button', { name: 'Delete: Learn Rust' }));
     expect(goals).toHaveLength(1);
+    // Focus follows the swapped controls so keyboard users are never dropped on the page.
+    expect(screen.getByRole('button', { name: 'Confirm delete: Learn Rust' })).toHaveFocus();
     await userEvent.click(screen.getByRole('button', { name: 'Keep: Learn Rust' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Delete: Learn Rust' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Confirm delete: Learn Rust' }));
+    expect(screen.getByRole('button', { name: 'Delete: Learn Rust' })).toHaveFocus();
+    await userEvent.keyboard('{Enter}');
+    await userEvent.keyboard('{Enter}');
     await waitFor(() => expect(goals).toHaveLength(0));
     expect(screen.getByRole('status')).toHaveTextContent('Deleted goal: Learn Rust.');
+    expect(screen.getByRole('status')).toHaveFocus();
+  });
+
+  it('keeps each goal busy until its own change finishes when two are changed at once', async () => {
+    signIn();
+    const { fetchMock } = stubTaskApi(
+      [],
+      [],
+      [],
+      [],
+      [goal({ _id: 'g1', title: 'Learn Rust' }), goal({ _id: 'g2', title: 'Run a 10k' })],
+    );
+    const passThrough = fetchMock.getMockImplementation()!;
+    const releases: Array<() => void> = [];
+    fetchMock.mockImplementation(async (url: string, options: RequestInit = {}) => {
+      if ((options.method ?? 'GET') === 'PATCH') {
+        await new Promise<void>((resolve) => releases.push(resolve));
+      }
+      return passThrough(url, options);
+    });
+    renderApp('/goals');
+    await userEvent.click(await screen.findByRole('button', { name: 'Drop: Learn Rust' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Drop: Run a 10k' }));
+    await waitFor(() => expect(releases).toHaveLength(2));
+    releases[0]();
+    await waitFor(() =>
+      expect(screen.getByRole('region', { name: /^dropped/i })).toHaveTextContent('Learn Rust'),
+    );
+    // The second goal is still saving, so its buttons stay disabled.
+    expect(screen.getByRole('button', { name: 'Drop: Run a 10k' })).toBeDisabled();
+    releases[1]();
+    await waitFor(() =>
+      expect(screen.getByRole('region', { name: /^dropped/i })).toHaveTextContent('Run a 10k'),
+    );
   });
 
   it('shows a load error with a retry, and a failed change as an alert', async () => {
