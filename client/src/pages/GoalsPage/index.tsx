@@ -81,25 +81,29 @@ const GoalRow = ({
               variant="outline"
               disabled={busy}
               onClick={() => onStatus('achieved')}
+              aria-label={'Mark achieved: ' + goal.title}
             >
               Mark achieved
-              <Box as="span" srOnly>
-                : {goal.title}
-              </Box>
             </Button>
-            <Button size="xs" variant="ghost" disabled={busy} onClick={() => onStatus('dropped')}>
+            <Button
+              size="xs"
+              variant="ghost"
+              disabled={busy}
+              onClick={() => onStatus('dropped')}
+              aria-label={'Drop: ' + goal.title}
+            >
               Drop
-              <Box as="span" srOnly>
-                : {goal.title}
-              </Box>
             </Button>
           </>
         ) : (
-          <Button size="xs" variant="outline" disabled={busy} onClick={() => onStatus('active')}>
+          <Button
+            size="xs"
+            variant="outline"
+            disabled={busy}
+            onClick={() => onStatus('active')}
+            aria-label={'Reopen: ' + goal.title}
+          >
             Reopen
-            <Box as="span" srOnly>
-              : {goal.title}
-            </Box>
           </Button>
         )}
         {confirming ? (
@@ -110,17 +114,17 @@ const GoalRow = ({
               disabled={busy}
               onClick={onDelete}
               ref={confirmRef}
+              aria-label={'Confirm delete: ' + goal.title}
             >
               Confirm delete
-              <Box as="span" srOnly>
-                : {goal.title}
-              </Box>
             </Button>
-            <Button size="xs" variant="ghost" onClick={() => toggleConfirm(false)}>
+            <Button
+              size="xs"
+              variant="ghost"
+              onClick={() => toggleConfirm(false)}
+              aria-label={'Keep: ' + goal.title}
+            >
               Keep
-              <Box as="span" srOnly>
-                : {goal.title}
-              </Box>
             </Button>
           </>
         ) : (
@@ -130,11 +134,9 @@ const GoalRow = ({
             disabled={busy}
             onClick={() => toggleConfirm(true)}
             ref={deleteRef}
+            aria-label={'Delete: ' + goal.title}
           >
             Delete
-            <Box as="span" srOnly>
-              : {goal.title}
-            </Box>
           </Button>
         )}
       </HStack>

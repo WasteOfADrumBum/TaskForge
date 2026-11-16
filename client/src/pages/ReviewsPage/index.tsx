@@ -183,11 +183,9 @@ function GoalCheckIn({ now }: { now: Date }) {
                   variant="outline"
                   disabled={isBusy(getGoalId(goal))}
                   onClick={() => void achieve(goal)}
+                  aria-label={'Mark achieved: ' + goal.title}
                 >
                   Mark achieved
-                  <Box as="span" srOnly>
-                    : {goal.title}
-                  </Box>
                 </Button>
               </HStack>
             );
