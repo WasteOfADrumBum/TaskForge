@@ -76,6 +76,8 @@ const checkFocus = async (page: Page, label: string) => {
         visible: outline || ring,
       };
     });
+    // A short page (the 404 has one link) runs out of controls and focus leaves the page.
+    if (!focused && stop > 1) return;
     expect.soft(focused, `${label}: Tab stop ${stop} lands on a control`).not.toBeNull();
     if (!focused) return;
     expect
