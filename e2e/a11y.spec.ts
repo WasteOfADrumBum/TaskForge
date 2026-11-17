@@ -9,7 +9,7 @@ import { expect, test, type Page } from '@playwright/test';
 const apiURL = 'http://127.0.0.1:5051';
 const password = 'Accessibility QA passphrase 2026!';
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
-const FOCUS_STOPS = 3;
+const FOCUS_STOPS = 6;
 const VIEWPORTS = [
   { name: 'desktop', width: 1280, height: 900 },
   { name: 'phone', width: 390, height: 844 },
@@ -60,29 +60,45 @@ const checkStructure = async (page: Page, label: string) => {
   }
 };
 
-/** WCAG 2.4.7: the first Tab stops land on real controls and show a focus indicator. */
+/** WCAG 2.4.7: the first Tab stops land on real controls and look different when focused. */
 const checkFocus = async (page: Page, label: string) => {
-  await page.locator('body').focus();
+  // page.goto loads a fresh document, so the walk starts from the top of the page.
   for (let stop = 1; stop <= FOCUS_STOPS; stop++) {
     await page.keyboard.press('Tab');
-    const focused = await page.evaluate(() => {
+    const name = await page.evaluate(() => {
       const el = document.activeElement as HTMLElement | null;
       if (!el || el === document.body) return null;
-      const style = getComputedStyle(el);
-      const outline = style.outlineStyle !== 'none' && parseFloat(style.outlineWidth) > 0;
-      const ring = style.boxShadow !== 'none' && style.boxShadow !== '';
-      return {
-        name: (el.getAttribute('aria-label') ?? el.textContent ?? el.tagName).trim().slice(0, 60),
-        visible: outline || ring,
-      };
+      return (el.getAttribute('aria-label') || el.textContent || el.tagName).trim().slice(0, 60);
     });
     // A short page (the 404 has one link) runs out of controls and focus leaves the page.
-    if (!focused && stop > 1) return;
-    expect.soft(focused, `${label}: Tab stop ${stop} lands on a control`).not.toBeNull();
-    if (!focused) return;
-    expect
-      .soft(focused.visible, `${label}: Tab stop ${stop} ("${focused.name}") shows focus`)
-      .toBe(true);
+    if (name === null && stop > 1) return;
+    expect.soft(name, `${label}: Tab stop ${stop} lands on a control`).not.toBeNull();
+    if (name === null) return;
+    // Compare the focused look with the same element unfocused, so a resting shadow can't pass.
+    // Polled, because focus styles may animate in.
+    await expect
+      .soft(async () => {
+        const changed = await page.evaluate(() => {
+          const el = document.activeElement as HTMLElement;
+          const look = () => {
+            const st = getComputedStyle(el);
+            const outline =
+              st.outlineStyle !== 'none' &&
+              parseFloat(st.outlineWidth) > 0 &&
+              !/rgba\([^)]*,\s*0\)|transparent/.test(st.outlineColor)
+                ? st.outlineStyle + st.outlineWidth + st.outlineColor
+                : 'none';
+            return [outline, st.boxShadow, st.borderColor, st.backgroundColor].join('|');
+          };
+          const focused = look();
+          el.blur();
+          const resting = look();
+          el.focus({ focusVisible: true } as FocusOptions);
+          return focused !== resting;
+        });
+        expect(changed).toBe(true);
+      }, `${label}: Tab stop ${stop} ("${name}") shows focus`)
+      .toPass({ timeout: 2_000 });
   }
 };
 
