@@ -94,13 +94,20 @@ const RegisterPage = () => {
   };
   return (
     <Box minH="100vh" bg="bg.subtle">
-      <HStack maxW="7xl" mx="auto" px={{ base: 4, md: 6 }} py={5} justify="space-between">
+      <HStack
+        as="header"
+        maxW="7xl"
+        mx="auto"
+        px={{ base: 4, md: 6 }}
+        py={5}
+        justify="space-between"
+      >
         <Brand compact />
         <Button asChild variant="ghost">
           <Link to="/login">Sign in</Link>
         </Button>
       </HStack>
-      <Box maxW="md" mx="auto" px={4} py={{ base: 10, md: 20 }}>
+      <Box as="main" maxW="md" mx="auto" px={4} py={{ base: 10, md: 20 }}>
         <chakra.form
           onSubmit={handleRegister}
           bg="bg.panel"

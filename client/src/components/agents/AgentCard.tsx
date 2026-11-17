@@ -22,15 +22,7 @@ interface AgentCardProps {
 }
 
 const AgentCard = ({ agent, workload, workloadMessage, onEdit, onDelete }: AgentCardProps) => (
-  <Box
-    as="li"
-    bg="bg.panel"
-    borderWidth="1px"
-    borderRadius="lg"
-    p={{ base: 4, md: 5 }}
-    opacity={agent.status === 'disabled' ? 0.75 : 1}
-    minW="0"
-  >
+  <Box as="li" bg="bg.panel" borderWidth="1px" borderRadius="lg" p={{ base: 4, md: 5 }} minW="0">
     <HStack justify="space-between" align="flex-start" gap={3}>
       <Box minW="0">
         <Heading as="h3" size="md" wordBreak="break-word">

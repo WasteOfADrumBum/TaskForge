@@ -52,6 +52,7 @@ export default tseslint.config(
       'scripts/**/*.mjs',
       'e2e/**/*.ts',
       'playwright.config.ts',
+      'playwright.a11y.config.ts',
       'server/integration/**/*.ts',
     ],
     languageOptions: { globals: globals.node },
