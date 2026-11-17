@@ -2,13 +2,14 @@ import { randomUUID } from 'node:crypto';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
-// KAN-76: automated WCAG 2.2 A and AA checks (the rules axe-core can test) and page structure on
+// KAN-76 and KAN-78: automated WCAG 2.2 A and AA checks (the rules axe-core can test) and page structure on
 // every Phase 1 to 7 route, signed out and signed in, at desktop and phone widths. Passing is not
 // full conformance: screen-reader output and visual judgement still need a person.
 
 const apiURL = 'http://127.0.0.1:5051';
 const password = 'Accessibility QA passphrase 2026!';
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
+const FOCUS_STOPS = 3;
 const VIEWPORTS = [
   { name: 'desktop', width: 1280, height: 900 },
   { name: 'phone', width: 390, height: 844 },
@@ -59,6 +60,30 @@ const checkStructure = async (page: Page, label: string) => {
   }
 };
 
+/** WCAG 2.4.7: the first Tab stops land on real controls and show a focus indicator. */
+const checkFocus = async (page: Page, label: string) => {
+  await page.locator('body').focus();
+  for (let stop = 1; stop <= FOCUS_STOPS; stop++) {
+    await page.keyboard.press('Tab');
+    const focused = await page.evaluate(() => {
+      const el = document.activeElement as HTMLElement | null;
+      if (!el || el === document.body) return null;
+      const style = getComputedStyle(el);
+      const outline = style.outlineStyle !== 'none' && parseFloat(style.outlineWidth) > 0;
+      const ring = style.boxShadow !== 'none' && style.boxShadow !== '';
+      return {
+        name: (el.getAttribute('aria-label') ?? el.textContent ?? el.tagName).trim().slice(0, 60),
+        visible: outline || ring,
+      };
+    });
+    expect.soft(focused, `${label}: Tab stop ${stop} lands on a control`).not.toBeNull();
+    if (!focused) return;
+    expect
+      .soft(focused.visible, `${label}: Tab stop ${stop} ("${focused.name}") shows focus`)
+      .toBe(true);
+  }
+};
+
 // Soft assertions, so one run reports every failing page instead of stopping at the first.
 const audit = (page: Page, path: string, viewport: string) =>
   test.step(`${path} (${viewport})`, async () => {
@@ -67,6 +92,7 @@ const audit = (page: Page, path: string, viewport: string) =>
     const label = `${path} (${viewport})`;
     expect.soft(await violations(page), `axe violations on ${label}`).toEqual([]);
     await checkStructure(page, label);
+    if (viewport === 'desktop') await checkFocus(page, label);
   });
 
 test.describe('signed out', () => {
