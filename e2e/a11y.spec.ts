@@ -2,13 +2,14 @@ import { randomUUID } from 'node:crypto';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
-// KAN-76: automated WCAG 2.2 A and AA checks (the rules axe-core can test) and page structure on
+// KAN-76 and KAN-78: automated WCAG 2.2 A and AA checks (the rules axe-core can test) and page structure on
 // every Phase 1 to 7 route, signed out and signed in, at desktop and phone widths. Passing is not
 // full conformance: screen-reader output and visual judgement still need a person.
 
 const apiURL = 'http://127.0.0.1:5051';
 const password = 'Accessibility QA passphrase 2026!';
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
+const FOCUS_STOPS = 6;
 const VIEWPORTS = [
   { name: 'desktop', width: 1280, height: 900 },
   { name: 'phone', width: 390, height: 844 },
@@ -59,6 +60,48 @@ const checkStructure = async (page: Page, label: string) => {
   }
 };
 
+/** WCAG 2.4.7: the first Tab stops land on real controls and look different when focused. */
+const checkFocus = async (page: Page, label: string) => {
+  // page.goto loads a fresh document, so the walk starts from the top of the page.
+  for (let stop = 1; stop <= FOCUS_STOPS; stop++) {
+    await page.keyboard.press('Tab');
+    const name = await page.evaluate(() => {
+      const el = document.activeElement as HTMLElement | null;
+      if (!el || el === document.body) return null;
+      return (el.getAttribute('aria-label') || el.textContent || el.tagName).trim().slice(0, 60);
+    });
+    // A short page (the 404 has one link) runs out of controls and focus leaves the page.
+    if (name === null && stop > 1) return;
+    expect.soft(name, `${label}: Tab stop ${stop} lands on a control`).not.toBeNull();
+    if (name === null) return;
+    // Compare the focused look with the same element unfocused, so a resting shadow can't pass.
+    // Polled, because focus styles may animate in.
+    await expect
+      .soft(async () => {
+        const changed = await page.evaluate(() => {
+          const el = document.activeElement as HTMLElement;
+          const look = () => {
+            const st = getComputedStyle(el);
+            const outline =
+              st.outlineStyle !== 'none' &&
+              parseFloat(st.outlineWidth) > 0 &&
+              !/rgba\([^)]*,\s*0\)|transparent/.test(st.outlineColor)
+                ? st.outlineStyle + st.outlineWidth + st.outlineColor
+                : 'none';
+            return [outline, st.boxShadow, st.borderColor, st.backgroundColor].join('|');
+          };
+          const focused = look();
+          el.blur();
+          const resting = look();
+          el.focus({ focusVisible: true } as FocusOptions);
+          return focused !== resting;
+        });
+        expect(changed).toBe(true);
+      }, `${label}: Tab stop ${stop} ("${name}") shows focus`)
+      .toPass({ timeout: 2_000 });
+  }
+};
+
 // Soft assertions, so one run reports every failing page instead of stopping at the first.
 const audit = (page: Page, path: string, viewport: string) =>
   test.step(`${path} (${viewport})`, async () => {
@@ -67,6 +110,7 @@ const audit = (page: Page, path: string, viewport: string) =>
     const label = `${path} (${viewport})`;
     expect.soft(await violations(page), `axe violations on ${label}`).toEqual([]);
     await checkStructure(page, label);
+    if (viewport === 'desktop') await checkFocus(page, label);
   });
 
 test.describe('signed out', () => {
