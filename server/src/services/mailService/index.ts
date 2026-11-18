@@ -4,7 +4,7 @@ import { RESET_TOKEN_TTL_MINUTES } from '../passwordResetService';
 // provider by default; the owner opts in by setting RESEND_API_KEY, EMAIL_FROM and APP_URL.
 type ResetEmailConfig = { apiKey: string; from: string; appUrl: string };
 
-const readAppUrl = (value: string | undefined) => {
+export const readAppUrl = (value: string | undefined) => {
   if (!value) return null;
   try {
     const url = new URL(value);

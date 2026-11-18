@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Box, Button, chakra, Field, Heading, Input, Text, VStack } from '@chakra-ui/react';
 import { Link, useNavigate } from 'react-router-dom';
+import TextLink from '../../components/auth/TextLink';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { resetPassword } from '../../api/auth';
 import AuthPageFrame from '../../components/auth/AuthPageFrame';
 import { toaster } from '../../components/ui/toaster';
@@ -16,7 +18,7 @@ const readTokenFromHash = (): string | null => {
 };
 
 const ResetPasswordPage = () => {
-  const [token] = useState(readTokenFromHash);
+  const [token, setToken] = useState(readTokenFromHash);
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [passwordError, setPasswordError] = useState<string | null>(null);
@@ -26,23 +28,34 @@ const ResetPasswordPage = () => {
   const passwordInput = useRef<HTMLInputElement>(null);
   const confirmInput = useRef<HTMLInputElement>(null);
   const controller = useRef<AbortController | null>(null);
+  const inFlight = useRef(false);
   const navigate = useNavigate();
+  useDocumentTitle(token ? 'Choose a new password · TaskForge' : 'Reset link problem · TaskForge');
 
   useEffect(() => {
     // Drop the token from the address bar and history once it is in memory.
-    if (window.location.hash) {
+    const takeTokenFromHash = () => {
+      if (!window.location.hash) return;
+      const fromHash = readTokenFromHash();
+      if (fromHash) setToken(fromHash);
       window.history.replaceState(
         window.history.state,
         '',
         window.location.pathname + window.location.search,
       );
-    }
-    return () => controller.current?.abort();
+    };
+    takeTokenFromHash();
+    // A link pasted into this same tab changes only the fragment and does not remount the page.
+    window.addEventListener('hashchange', takeTokenFromHash);
+    return () => {
+      window.removeEventListener('hashchange', takeTokenFromHash);
+      controller.current?.abort();
+    };
   }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (pending || !token) return;
+    if (inFlight.current || !token) return;
     const policyError = getRegistrationPasswordError(password);
     setPasswordError(policyError);
     if (policyError) {
@@ -54,6 +67,7 @@ const ResetPasswordPage = () => {
       confirmInput.current?.focus();
       return;
     }
+    inFlight.current = true;
     controller.current?.abort();
     const current = new AbortController();
     controller.current = current;
@@ -68,7 +82,10 @@ const ResetPasswordPage = () => {
       if (current.signal.aborted) return;
       setRequestError(error instanceof Error ? error.message : 'Unable to reset your password');
     } finally {
-      if (!current.signal.aborted) setPending(false);
+      if (!current.signal.aborted) {
+        inFlight.current = false;
+        setPending(false);
+      }
     }
   };
 
@@ -87,8 +104,8 @@ const ResetPasswordPage = () => {
             This reset link does not work
           </Heading>
           <Text color="fg.muted">
-            The link is incomplete or was already opened. Reset links work once and expire after 30
-            minutes.
+            The link is incomplete, or this page was reloaded after opening it. Reset links work
+            once and expire after 30 minutes.
           </Text>
           <Button asChild size="lg">
             <Link to="/forgot-password">Ask for a new link</Link>
@@ -148,16 +165,22 @@ const ResetPasswordPage = () => {
             />
             <Field.ErrorText fontSize="xs">{confirmError}</Field.ErrorText>
           </Field.Root>
+          {/* The screen-reader alert stays mounted (and empty) so text placed in it is announced;
+              the visible copy is hidden from assistive tech to avoid a repeat. */}
+          <Text srOnly role="alert">
+            {requestError ?? ''}
+          </Text>
           {requestError && (
             <VStack align="stretch" gap={2}>
-              <Text role="alert" color="red.fg">
+              <Text aria-hidden="true" color="red.fg">
                 {requestError}
               </Text>
-              <Link to="/forgot-password">Ask for a new reset link</Link>
+              <TextLink to="/forgot-password">Ask for a new reset link</TextLink>
             </VStack>
           )}
-          <Button type="submit" size="lg" width="full" loading={pending}>
-            Save new password
+          {/* aria-disabled instead of disabled keeps keyboard focus on the button while saving. */}
+          <Button type="submit" size="lg" width="full" aria-disabled={pending || undefined}>
+            {pending ? 'Saving new password…' : 'Save new password'}
           </Button>
         </VStack>
       </chakra.form>

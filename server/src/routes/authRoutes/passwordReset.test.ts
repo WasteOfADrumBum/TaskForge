@@ -172,6 +172,18 @@ describe('POST /api/auth/reset-password', () => {
     await expect(bcrypt.compare(strong, hash)).resolves.toBe(true);
   });
 
+  it('does not use up the link when hashing the new password fails', async () => {
+    const hashSpy = jest
+      .spyOn(bcrypt, 'hash')
+      .mockRejectedValueOnce(new Error('hash failed') as never);
+    const response = await request(app)
+      .post('/api/auth/reset-password')
+      .send({ token, password: strong });
+    expect(response.status).toBe(500);
+    expect(consumePasswordResetToken).not.toHaveBeenCalled();
+    hashSpy.mockRestore();
+  });
+
   it('treats a deleted account as an invalid link and hides store errors', async () => {
     jest.mocked(consumePasswordResetToken).mockResolvedValueOnce('gone');
     jest.mocked(setUserPassword).mockResolvedValueOnce(false);

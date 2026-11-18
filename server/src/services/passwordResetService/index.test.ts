@@ -1,5 +1,9 @@
 jest.mock('../../models/passwordResetModel', () => ({
-  PasswordReset: { deleteMany: jest.fn(), create: jest.fn(), findOneAndDelete: jest.fn() },
+  PasswordReset: {
+    deleteMany: jest.fn(),
+    findOneAndUpdate: jest.fn(),
+    findOneAndDelete: jest.fn(),
+  },
 }));
 jest.mock('../../models/userModel', () => ({ User: { findByIdAndUpdate: jest.fn() } }));
 
@@ -16,17 +20,23 @@ import {
 describe('passwordResetService', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it('issues a 256-bit token, stores only its hash, expires in 30 minutes and clears older tokens', async () => {
+  it('issues a 256-bit token, stores only its hash, expires in 30 minutes and replaces the old one in one upsert', async () => {
     const now = new Date('2026-11-18T07:00:00.000Z');
     const token = await createPasswordResetToken('u1', now);
     expect(isResetTokenShape(token)).toBe(true);
-    expect(PasswordReset.deleteMany).toHaveBeenCalledWith({ user: 'u1' });
-    expect(PasswordReset.create).toHaveBeenCalledWith({
-      user: 'u1',
-      tokenHash: hashResetToken(token),
-      expiresAt: new Date('2026-11-18T07:30:00.000Z'),
-    });
-    expect(JSON.stringify(jest.mocked(PasswordReset.create).mock.calls)).not.toContain(token);
+    expect(PasswordReset.findOneAndUpdate).toHaveBeenCalledWith(
+      { user: 'u1' },
+      {
+        $set: {
+          tokenHash: hashResetToken(token),
+          expiresAt: new Date('2026-11-18T07:30:00.000Z'),
+        },
+      },
+      { upsert: true },
+    );
+    expect(JSON.stringify(jest.mocked(PasswordReset.findOneAndUpdate).mock.calls)).not.toContain(
+      token,
+    );
     expect(await createPasswordResetToken('u1', now)).not.toBe(token);
   });
 

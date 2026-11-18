@@ -89,3 +89,9 @@ npm run auth:reset-link --workspace server -- --email you@example.com
 ```
 
 Open the printed link within 30 minutes. It works once; a newer link replaces it. The script prints nothing else and sends nothing. Do not paste the link anywhere shared.
+
+Known limits of reset (KAN-79):
+
+- Existing sessions stay signed in after a reset until their 7-day token expires. Revoking them needs a per-request account check (follow-up).
+- Forgot-password allows 3 requests per address per hour and 30 per 15 minutes overall, keyed without IP addresses (the proxy trust boundary is not established). Someone who knows an address can use up its hourly allowance or replace its outstanding link; the owner script still works.
+- The email is sent after the reply. A restart at that moment can drop it; ask again.

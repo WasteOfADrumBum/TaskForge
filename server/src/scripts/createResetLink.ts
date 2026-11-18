@@ -6,7 +6,7 @@ import {
   createPasswordResetToken,
   RESET_TOKEN_TTL_MINUTES,
 } from '../services/passwordResetService';
-import { buildResetLink } from '../services/mailService';
+import { buildResetLink, readAppUrl } from '../services/mailService';
 
 // Owner recovery without email: run on your own machine with your own MONGO_URI.
 //   npm run auth:reset-link --workspace server -- --email you@example.com
@@ -17,15 +17,18 @@ const readEmail = (args: string[]) => {
   return value?.trim().toLowerCase() || null;
 };
 
-const readAppUrl = () => {
-  const raw = process.env.APP_URL?.trim() || 'https://task.onesmall.company';
-  return new URL(raw).origin;
-};
+const DEFAULT_APP_URL = 'https://task.onesmall.company';
 
 const main = async () => {
   const email = readEmail(process.argv.slice(2));
   if (!email) {
     console.error('Usage: npm run auth:reset-link --workspace server -- --email you@example.com');
+    process.exitCode = 1;
+    return;
+  }
+  const appUrl = readAppUrl(process.env.APP_URL?.trim() || DEFAULT_APP_URL);
+  if (!appUrl) {
+    console.error('APP_URL must be an https address, for example https://task.example.com');
     process.exitCode = 1;
     return;
   }
@@ -39,7 +42,7 @@ const main = async () => {
     }
     const token = await createPasswordResetToken(String(user._id));
     console.log(`Reset link (works once, expires in ${RESET_TOKEN_TTL_MINUTES} minutes):`);
-    console.log(buildResetLink(readAppUrl(), token));
+    console.log(buildResetLink(appUrl, token));
   } finally {
     await mongoose.disconnect();
   }

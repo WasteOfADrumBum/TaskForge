@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Box, Button, chakra, Field, Heading, Input, Text, VStack } from '@chakra-ui/react';
-import { Link } from 'react-router-dom';
 import { requestPasswordReset } from '../../api/auth';
 import AuthPageFrame from '../../components/auth/AuthPageFrame';
+import TextLink from '../../components/auth/TextLink';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 type Outcome = { kind: 'sent' | 'error'; message: string } | null;
 
@@ -11,11 +12,14 @@ const ForgotPasswordPage = () => {
   const [pending, setPending] = useState(false);
   const [outcome, setOutcome] = useState<Outcome>(null);
   const controller = useRef<AbortController | null>(null);
+  const inFlight = useRef(false);
+  useDocumentTitle('Reset your password · TaskForge');
   useEffect(() => () => controller.current?.abort(), []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (pending) return;
+    if (inFlight.current) return;
+    inFlight.current = true;
     controller.current?.abort();
     const current = new AbortController();
     controller.current = current;
@@ -32,7 +36,10 @@ const ForgotPasswordPage = () => {
         message: error instanceof Error ? error.message : 'Unable to request a reset link',
       });
     } finally {
-      if (!current.signal.aborted) setPending(false);
+      if (!current.signal.aborted) {
+        inFlight.current = false;
+        setPending(false);
+      }
     }
   };
 
@@ -68,21 +75,25 @@ const ForgotPasswordPage = () => {
               autoComplete="email"
             />
           </Field.Root>
-          {outcome?.kind === 'sent' && (
-            <Text role="status" aria-live="polite" color="fg">
+          {/* Screen-reader live regions stay mounted (and empty) so text placed in them is
+              announced; the visible copy below is hidden from assistive tech to avoid repeats. */}
+          <Text srOnly role="status" aria-live="polite">
+            {outcome?.kind === 'sent' ? outcome.message : ''}
+          </Text>
+          <Text srOnly role="alert">
+            {outcome?.kind === 'error' ? outcome.message : ''}
+          </Text>
+          {outcome && (
+            <Text aria-hidden="true" color={outcome.kind === 'error' ? 'red.fg' : 'fg'}>
               {outcome.message}
             </Text>
           )}
-          {outcome?.kind === 'error' && (
-            <Text role="alert" color="red.fg">
-              {outcome.message}
-            </Text>
-          )}
-          <Button type="submit" size="lg" width="full" loading={pending}>
-            Send reset link
+          {/* aria-disabled instead of disabled keeps keyboard focus on the button while sending. */}
+          <Button type="submit" size="lg" width="full" aria-disabled={pending || undefined}>
+            {pending ? 'Sending reset link…' : 'Send reset link'}
           </Button>
           <Text textAlign="center" color="fg.muted">
-            Remembered it? <Link to="/login">Back to sign in</Link>
+            Remembered it? <TextLink to="/login">Back to sign in</TextLink>
           </Text>
         </VStack>
       </chakra.form>

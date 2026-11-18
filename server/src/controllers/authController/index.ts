@@ -174,9 +174,11 @@ export const resetPassword = async (req: Request, res: Response) => {
   if (policyError) return res.status(400).json({ message: policyError });
 
   try {
+    // Hash first: a failure here must not burn the one-time link.
+    const passwordHash = await bcrypt.hash(password, 10);
     const userId = await consumePasswordResetToken(token);
     if (!userId) return res.status(400).json({ message: INVALID_RESET_LINK_MESSAGE });
-    const updated = await setUserPassword(userId, await bcrypt.hash(password, 10));
+    const updated = await setUserPassword(userId, passwordHash);
     if (!updated) return res.status(400).json({ message: INVALID_RESET_LINK_MESSAGE });
     return res.status(200).json({ message: 'Password updated. Sign in with your new password.' });
   } catch {

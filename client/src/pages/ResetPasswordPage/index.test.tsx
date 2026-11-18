@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { toaster } from '../../components/ui/toaster';
@@ -78,7 +78,9 @@ describe('ResetPasswordPage', () => {
       reply(400, { message: 'This reset link is invalid, used or expired. Ask for a new one.' }),
     );
     await fill('a-new-strong-password');
-    expect(await screen.findByRole('alert')).toHaveTextContent('invalid, used or expired');
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent('invalid, used or expired'),
+    );
     expect(screen.getByRole('link', { name: 'Ask for a new reset link' })).toHaveAttribute(
       'href',
       '/forgot-password',
@@ -96,5 +98,46 @@ describe('ResetPasswordPage', () => {
       '/forgot-password',
     );
     expect(screen.queryByLabelText(/new password/i)).not.toBeInTheDocument();
+  });
+
+  it('sends one request when the form is submitted twice quickly', async () => {
+    const { fetchMock } = stubTaskApi();
+    openWithToken();
+    type Reply = ReturnType<typeof reply>;
+    let release: (value: Reply) => void = () => undefined;
+    fetchMock.mockImplementationOnce(() => new Promise<Reply>((resolve) => (release = resolve)));
+    fireEvent.change(await screen.findByLabelText(/^new password/i), {
+      target: { value: 'a-new-strong-password' },
+    });
+    fireEvent.change(screen.getByLabelText(/confirm new password/i), {
+      target: { value: 'a-new-strong-password' },
+    });
+    const button = screen.getByRole('button', { name: 'Save new password' });
+    fireEvent.click(button);
+    fireEvent.click(button);
+    const resetCalls = () =>
+      fetchMock.mock.calls.filter(([url]) => String(url).includes('reset-password')).length;
+    expect(resetCalls()).toBe(1);
+    await act(async () =>
+      release({ status: 200, ok: true, json: async () => ({ message: 'ok' }) }),
+    );
+    expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeInTheDocument();
+    expect(resetCalls()).toBe(1);
+  });
+
+  it('picks up a link pasted into the same tab and titles the page', async () => {
+    stubTaskApi();
+    openWithToken('not-a-token');
+    await screen.findByRole('heading', { level: 1, name: 'This reset link does not work' });
+    expect(document.title).toBe('Reset link problem · TaskForge');
+    act(() => {
+      window.history.replaceState(null, '', `/reset-password#token=${token}`);
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    });
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Choose a new password' }),
+    ).toBeInTheDocument();
+    expect(window.location.hash).toBe('');
+    expect(document.title).toBe('Choose a new password · TaskForge');
   });
 });

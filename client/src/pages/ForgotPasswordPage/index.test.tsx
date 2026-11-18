@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderApp, stubTaskApi } from '../../test/renderApp';
@@ -29,7 +29,11 @@ describe('ForgotPasswordPage', () => {
     await userEvent.type(screen.getByLabelText(/email/i), 'me@example.com');
     await userEvent.click(screen.getByRole('button', { name: 'Send reset link' }));
 
-    expect(await screen.findByRole('status')).toHaveTextContent('a reset link is on its way');
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent('a reset link is on its way'),
+    );
+    expect(document.title).toBe('Reset your password · TaskForge');
+    expect(screen.getByRole('button', { name: 'Send reset link' })).toHaveFocus();
     const [url, options] = fetchMock.mock.calls.at(-1)!;
     expect(url).toMatch(/\/api\/auth\/forgot-password$/);
     expect(JSON.parse(String(options?.body))).toEqual({ email: 'me@example.com' });
@@ -45,7 +49,15 @@ describe('ForgotPasswordPage', () => {
     );
     await userEvent.type(await screen.findByLabelText(/email/i), 'me@example.com');
     await userEvent.click(screen.getByRole('button', { name: 'Send reset link' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('not set up yet');
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('not set up yet'));
     expect(screen.getByRole('link', { name: 'Back to sign in' })).toHaveAttribute('href', '/login');
+  });
+
+  it('keeps its screen-reader announcers mounted and empty before submitting', async () => {
+    stubTaskApi();
+    renderApp('/forgot-password');
+    await screen.findByRole('heading', { level: 1, name: 'Reset your password' });
+    expect(screen.getByRole('status')).toHaveTextContent('');
+    expect(screen.getByRole('alert')).toHaveTextContent('');
   });
 });

@@ -14,12 +14,17 @@ export const isResetTokenShape = (token: unknown): token is string =>
 // link works. Returns the raw token; only its hash is stored.
 export const createPasswordResetToken = async (userId: string, now = new Date()) => {
   const token = randomBytes(32).toString('hex');
-  await PasswordReset.deleteMany({ user: userId });
-  await PasswordReset.create({
-    user: userId,
-    tokenHash: hashResetToken(token),
-    expiresAt: new Date(now.getTime() + RESET_TOKEN_TTL_MINUTES * 60_000),
-  });
+  // A single upsert keyed on the unique user field, so concurrent requests leave one valid link.
+  await PasswordReset.findOneAndUpdate(
+    { user: userId },
+    {
+      $set: {
+        tokenHash: hashResetToken(token),
+        expiresAt: new Date(now.getTime() + RESET_TOKEN_TTL_MINUTES * 60_000),
+      },
+    },
+    { upsert: true },
+  );
   return token;
 };
 
