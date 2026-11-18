@@ -7,11 +7,19 @@ import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const ADVISORY_ID = /GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}/i;
+const ADVISORY_ID = /^GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}$/i;
+const ADVISORY_URL =
+  /^https:\/\/github\.com\/advisories\/(GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4})$/i;
+
+const isRealDate = (value) => {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+};
 
 export const advisoryId = (via) => {
-  const match = typeof via?.url === 'string' ? via.url.match(ADVISORY_ID) : null;
-  return match ? match[0].toLowerCase() : null;
+  const match = typeof via?.url === 'string' ? via.url.match(ADVISORY_URL) : null;
+  return match ? match[1].toLowerCase() : null;
 };
 
 // Returns every advisory (object `via` entry) in an `npm audit --json` report.
@@ -41,11 +49,7 @@ export const evaluateAudit = ({ productionReport, fullReport, exceptions, today 
   const allowed = new Map();
   for (const entry of exceptions ?? []) {
     const id = String(entry.advisory ?? '').toLowerCase();
-    if (
-      !ADVISORY_ID.test(id) ||
-      entry.scope !== 'dev' ||
-      !/^\d{4}-\d{2}-\d{2}$/.test(entry.expires ?? '')
-    ) {
+    if (!ADVISORY_ID.test(id) || entry.scope !== 'dev' || !isRealDate(entry.expires)) {
       problems.push(`Malformed exception entry: ${JSON.stringify(entry)}`);
       continue;
     }
@@ -67,6 +71,26 @@ export const evaluateAudit = ({ productionReport, fullReport, exceptions, today 
     } else {
       tolerated.add(entry.advisory);
     }
+  }
+  // Every vulnerable package must trace (through string `via` links) to a listed advisory, and
+  // the package count must match npm's total, so a partial or odd report cannot pass silently.
+  const vulnerabilities = fullReport?.vulnerabilities ?? {};
+  const reachesAdvisory = (name, seen = new Set()) => {
+    if (seen.has(name)) return false;
+    seen.add(name);
+    return (vulnerabilities[name]?.via ?? []).some((via) =>
+      via && typeof via === 'object' ? true : typeof via === 'string' && reachesAdvisory(via, seen),
+    );
+  };
+  for (const name of Object.keys(vulnerabilities)) {
+    if (!reachesAdvisory(name))
+      problems.push(`Vulnerable package ${name} has no traceable advisory.`);
+  }
+  const fullTotal = fullReport?.metadata?.vulnerabilities?.total;
+  if (Number.isInteger(fullTotal) && fullTotal !== Object.keys(vulnerabilities).length) {
+    problems.push(
+      `Full audit total (${fullTotal}) does not match its ${Object.keys(vulnerabilities).length} listed packages.`,
+    );
   }
   return { ok: problems.length === 0, problems, tolerated: [...tolerated] };
 };

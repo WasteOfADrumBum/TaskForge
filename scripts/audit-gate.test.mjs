@@ -107,3 +107,42 @@ test('the committed exception list is well formed and dev-only', () => {
   }
   assert.equal(listAdvisories(clean).length, 0);
 });
+
+test('fails on a package with no traceable advisory or a total that does not match', () => {
+  const stringsOnly = {
+    metadata: { vulnerabilities: { total: 2 } },
+    vulnerabilities: { jest: { via: ['picomatch'] }, lodash: { via: [] } },
+  };
+  const mismatch = structuredClone(picomatch);
+  mismatch.metadata.vulnerabilities.total = 5;
+  for (const fullReport of [stringsOnly, mismatch]) {
+    const result = evaluateAudit({
+      productionReport: clean,
+      fullReport,
+      exceptions: [exception],
+      today: '2026-11-18',
+    });
+    assert.equal(result.ok, false);
+  }
+});
+
+test('accepts only GitHub advisory URLs and real calendar dates', () => {
+  const lookalike = structuredClone(picomatch);
+  lookalike.vulnerabilities.picomatch.via[0].url = 'https://evil.example/GHSA-fc5q-39xc-vjpf';
+  assert.equal(
+    evaluateAudit({
+      productionReport: clean,
+      fullReport: lookalike,
+      exceptions: [exception],
+      today: '2026-11-18',
+    }).ok,
+    false,
+  );
+  const badDate = evaluateAudit({
+    productionReport: clean,
+    fullReport: picomatch,
+    exceptions: [{ ...exception, expires: '2026-13-45' }],
+    today: '2026-11-18',
+  });
+  assert.ok(badDate.problems.some((p) => /Malformed exception/.test(p)));
+});
