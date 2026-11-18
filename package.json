@@ -23,7 +23,8 @@
     "test:local-ai": "node scripts/run-local-ai-smoke.mjs",
     "test:backup-drill": "node --test scripts/backup-drill.mjs",
     "backup:export": "node scripts/backup-tool.mjs export",
-    "backup:verify": "node scripts/backup-tool.mjs verify"
+    "backup:verify": "node scripts/backup-tool.mjs verify",
+    "audit:gate": "node scripts/audit-gate.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",

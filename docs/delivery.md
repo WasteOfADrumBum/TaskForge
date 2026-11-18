@@ -31,7 +31,7 @@ gh pr checks <PR_NUMBER> --required
 gh pr merge <PR_NUMBER> --merge --match-head-commit <REVIEWED_HEAD_SHA>
 ```
 
-Do not use `--admin`, weaken checks, or bypass a failed gate. Re-review changed code and repeat affected validation after corrections. A new scope, meaningful cost, major architecture or core security change, risky data operation, material UX direction change, or Phases4–8 needs Josh's decision before implementation.
+Do not use `--admin`, weaken checks, or bypass a failed gate. The only audit exceptions are owner-approved, dated, development-only entries in `.github/audit-exceptions.json` (KAN-80); production dependencies never get one. Re-review changed code and repeat affected validation after corrections. A new scope, meaningful cost, major architecture or core security change, risky data operation, material UX direction change, or Phases4–8 needs Josh's decision before implementation.
 
 ## Deployment boundaries
 

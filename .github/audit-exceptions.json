@@ -1,0 +1,13 @@
+{
+  "$comment": "Advisories the CI audit gate tolerates in development dependencies only. Production dependencies never get exceptions. Remove an entry as soon as a fixed release exists; an expired entry fails CI. Owner approval required for every entry.",
+  "exceptions": [
+    {
+      "advisory": "GHSA-fc5q-39xc-vjpf",
+      "package": "picomatch",
+      "scope": "dev",
+      "approved": "2026-11-18 by Josh (KAN-80)",
+      "expires": "2026-12-18",
+      "reason": "picomatch ReDoS through repeated extglobs; every published release (<=4.0.7) is affected and no fix exists. Reached only through build and test tooling (Jest, Vitest, Vite, ESLint, tsup); npm audit --omit=dev reports 0. Recheck for a picomatch release by the expiry date and remove this entry."
+    }
+  ]
+}
