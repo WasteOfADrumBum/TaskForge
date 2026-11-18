@@ -40,6 +40,17 @@ describe('passwordResetService', () => {
     expect(await createPasswordResetToken('u1', now)).not.toBe(token);
   });
 
+  it('retries once when two first-time requests race on the unique user index', async () => {
+    jest
+      .mocked(PasswordReset.findOneAndUpdate)
+      .mockRejectedValueOnce(Object.assign(new Error('dup'), { code: 11000 }))
+      .mockResolvedValueOnce(null as never);
+    await expect(createPasswordResetToken('u1')).resolves.toMatch(/^[a-f0-9]{64}$/);
+    expect(PasswordReset.findOneAndUpdate).toHaveBeenCalledTimes(2);
+    jest.mocked(PasswordReset.findOneAndUpdate).mockRejectedValueOnce(new Error('down'));
+    await expect(createPasswordResetToken('u1')).rejects.toThrow('down');
+  });
+
   it('claims a token atomically and only while it is unexpired', async () => {
     const now = new Date('2026-11-18T07:10:00.000Z');
     jest.mocked(PasswordReset.findOneAndDelete).mockResolvedValueOnce({ user: 'u1' } as never);

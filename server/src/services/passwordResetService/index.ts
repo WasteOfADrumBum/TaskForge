@@ -15,16 +15,26 @@ export const isResetTokenShape = (token: unknown): token is string =>
 export const createPasswordResetToken = async (userId: string, now = new Date()) => {
   const token = randomBytes(32).toString('hex');
   // A single upsert keyed on the unique user field, so concurrent requests leave one valid link.
-  await PasswordReset.findOneAndUpdate(
-    { user: userId },
-    {
-      $set: {
-        tokenHash: hashResetToken(token),
-        expiresAt: new Date(now.getTime() + RESET_TOKEN_TTL_MINUTES * 60_000),
+  const upsert = () =>
+    PasswordReset.findOneAndUpdate(
+      { user: userId },
+      {
+        $set: {
+          tokenHash: hashResetToken(token),
+          expiresAt: new Date(now.getTime() + RESET_TOKEN_TTL_MINUTES * 60_000),
+        },
       },
-    },
-    { upsert: true },
-  );
+      { upsert: true },
+    );
+  try {
+    await upsert();
+  } catch (error) {
+    // Two first-time upserts can race on the unique index; the retry then updates the winner's row.
+    if (!(error && typeof error === 'object' && 'code' in error && error.code === 11000)) {
+      throw error;
+    }
+    await upsert();
+  }
   return token;
 };
 

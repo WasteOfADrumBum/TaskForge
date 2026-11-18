@@ -55,6 +55,7 @@ it('stores only a hash with a TTL index, and a new link replaces the old one', a
   expect(JSON.stringify(records)).not.toContain(second);
   const indexes = await PasswordReset.collection.indexes();
   expect(indexes.find((index) => index.key.expiresAt === 1)?.expireAfterSeconds).toBe(0);
+  expect(indexes.find((index) => index.key.user === 1)?.unique).toBe(true);
   expect((await reset(first)).status).toBe(400);
 });
 
