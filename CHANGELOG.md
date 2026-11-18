@@ -4,6 +4,8 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+- KAN-80: the CI audit gate keeps zero production vulnerabilities with no exceptions, and tolerates only owner-approved, dated, development-only advisories listed in `.github/audit-exceptions.json`. First entry: picomatch GHSA-fc5q-39xc-vjpf (no fixed release; build and test tools only), expiring 2026-12-18.
+
 - KAN-75: Brand Studio gains a profile kit: copy-ready LinkedIn headline, About section and GitHub profile README drafts built from your saved personal brand, resume, skills and career goals; rule-based, with nothing posted for you.
 
 - KAN-74: Brand Studio page (`/brand`, in the sidebar) to edit the TaskForge and personal brands: name, tagline, colors with a rule-based WCAG contrast check, fonts, logos, brand voice, writing style and image prompts, plus a Markdown brand guide download.
