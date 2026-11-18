@@ -117,7 +117,15 @@ test.describe('signed out', () => {
   for (const viewport of VIEWPORTS) {
     test(`public pages pass on ${viewport.name}`, async ({ page }) => {
       await page.setViewportSize(viewport);
-      for (const path of ['/', '/login', '/register', '/no-such-page']) {
+      for (const path of [
+        '/',
+        '/login',
+        '/register',
+        '/forgot-password',
+        '/reset-password',
+        '/reset-password#token=' + 'a'.repeat(64),
+        '/no-such-page',
+      ]) {
         await audit(page, path, viewport.name);
       }
     });

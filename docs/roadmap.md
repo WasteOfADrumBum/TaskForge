@@ -85,6 +85,7 @@ Decided at Phase 1 closure (2026-10-02). These are tracked as ongoing maintenanc
 - [x] **COMPLETE**: Demo waiting/recovery experience (KAN-10, PR #21). Delayed waiting and safe recovery are shipped; demo access/data strategy is documented without automatic production reseeding.
 - [ ] **IN PROGRESS**: README screenshot recapture and release evidence (KAN-14). Current production-equivalent source and synthetic local data; final capture/review evidence remains.
 - [ ] **PLANNED**: CHANGELOG backfill for work before PR #4. Build it from git history; never invent entries.
+- [x] **COMPLETE**: Password reset (KAN-79): one-time reset links (hashed, 30-minute, single use) through `/forgot-password` and `/reset-password`, plus an owner script that prints a link. Reset email sends only after the owner configures an email provider; it is off by default.
 
 These are known minor polish issues found during PR #7. They were never Phase 1 items:
 

@@ -12,7 +12,8 @@
     "format": "prettier --write src",
     "seed:demo": "node --loader ts-node/esm ./src/scripts/seedDemo.ts",
     "test:integration": "jest --config jest.integration.config.ts --runInBand",
-    "smoke:local-ai": "node ../scripts/run-local-ai-smoke.mjs"
+    "smoke:local-ai": "node ../scripts/run-local-ai-smoke.mjs",
+    "auth:reset-link": "tsup src/scripts/createResetLink.ts --no-config --format esm --platform node --out-dir dist/scripts --silent && node dist/scripts/createResetLink.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

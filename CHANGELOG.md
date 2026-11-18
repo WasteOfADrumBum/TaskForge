@@ -4,6 +4,8 @@ All notable changes to TaskForge are recorded here.
 
 ## Unreleased
 
+- KAN-79: password reset. "Forgot password?" on sign-in leads to `/forgot-password`, which emails a one-time reset link when email is configured (`RESEND_API_KEY`, `EMAIL_FROM`, `APP_URL`; off by default) and says so plainly when it is not. `/reset-password` sets a new password under the registration policy. Links carry a 256-bit token in the URL fragment, are stored only as a SHA-256 hash, work once, expire after 30 minutes and are replaced by any newer link; forgot-password answers the same for every address and is rate limited. Owners can also print a link with `npm run auth:reset-link --workspace server -- --email <address>`.
+
 - KAN-75: Brand Studio gains a profile kit: copy-ready LinkedIn headline, About section and GitHub profile README drafts built from your saved personal brand, resume, skills and career goals; rule-based, with nothing posted for you.
 
 - KAN-74: Brand Studio page (`/brand`, in the sidebar) to edit the TaskForge and personal brands: name, tagline, colors with a rule-based WCAG contrast check, fonts, logos, brand voice, writing style and image prompts, plus a Markdown brand guide download.

@@ -8,6 +8,9 @@ type TimingOptions = {
   registerAccountWindowMs?: number;
   loginCapacityWindowMs?: number;
   registerCapacityWindowMs?: number;
+  forgotAccountWindowMs?: number;
+  forgotCapacityWindowMs?: number;
+  resetCapacityWindowMs?: number;
 };
 
 // Render's exact forwarded-header trust boundary is not established. Account keys
@@ -76,6 +79,15 @@ export const createAuthRateLimiters = (timings: TimingOptions = {}) => {
         () => 'capacity',
       ),
       make('register-account', timings.registerAccountWindowMs ?? 60 * MINUTE, 5, accountKey),
+    ],
+    // Few emails per account and a global ceiling keep the endpoint from being used to spam.
+    forgotPassword: [
+      make('forgot-capacity', timings.forgotCapacityWindowMs ?? 15 * MINUTE, 30, () => 'capacity'),
+      make('forgot-account', timings.forgotAccountWindowMs ?? 60 * MINUTE, 3, accountKey),
+    ],
+    // Tokens carry 256 bits, so guessing is infeasible; this only bounds request volume.
+    resetPassword: [
+      make('reset-capacity', timings.resetCapacityWindowMs ?? 15 * MINUTE, 30, () => 'capacity'),
     ],
     shutdown: () => stores.forEach((store) => store.shutdown()),
   };

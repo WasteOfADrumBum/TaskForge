@@ -154,6 +154,9 @@ const LoginPage = () => {
                 autoComplete="current-password"
               />
             </Field.Root>
+            <Text fontSize="sm" textAlign="end">
+              <Link to="/forgot-password">Forgot password?</Link>
+            </Text>
             {requestState.waiting ? (
               <RequestFeedback message="TaskForge may be waking up. Sign-in is still waiting for a response." />
             ) : requestMessage && !requestState.pending ? (
