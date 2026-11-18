@@ -6,6 +6,8 @@ import { Toaster } from './components/ui/toaster';
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const AppShell = lazy(() => import('./components/layout/AppShell'));
 const CommandCenterPage = lazy(() => import('./pages/CommandCenterPage'));
@@ -27,7 +29,7 @@ const CareerPage = lazy(() => import('./pages/CareerPage'));
 const LearningPage = lazy(() => import('./pages/LearningPage'));
 const BrandPage = lazy(() => import('./pages/BrandPage'));
 
-// Public: `/` (landing), `/login`, `/register`.
+// Public: `/` (landing), `/login`, `/register`, `/forgot-password`, `/reset-password`.
 // Authenticated, inside the app shell: `/home` (Command Center), `/work` (tasks),
 // `/work/projects`, `/work/projects/:id`, `/workforce` (Agent Registry), `/workforce/:id`,
 // `/workforce/runs`, `/workforce/runs/:id`, `/knowledge`, `/knowledge/ask` (Ask TaskForge),
@@ -38,6 +40,8 @@ export const AppRoutes = () => (
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route element={<ProtectedRoute />}>
         <Route element={<AppShell />}>
           <Route path="/home" element={<CommandCenterPage />} />

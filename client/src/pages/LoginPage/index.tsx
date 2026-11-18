@@ -6,6 +6,7 @@ import { Box, Button, chakra, Field, Heading, HStack, Input, Text, VStack } from
 import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../../api/auth';
 import Brand from '../../components/layout/Brand';
+import TextLink from '../../components/auth/TextLink';
 import { toaster } from '../../components/ui/toaster';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks/typedHooks';
 import {
@@ -154,6 +155,9 @@ const LoginPage = () => {
                 autoComplete="current-password"
               />
             </Field.Root>
+            <Text fontSize="sm" textAlign="end">
+              <TextLink to="/forgot-password">Forgot password?</TextLink>
+            </Text>
             {requestState.waiting ? (
               <RequestFeedback message="TaskForge may be waking up. Sign-in is still waiting for a response." />
             ) : requestMessage && !requestState.pending ? (

@@ -85,6 +85,47 @@ export const register = async (
   return readApiJson<RegisterResponse>(response);
 };
 
+interface MessageResponse {
+  message: string;
+}
+
+export const requestPasswordReset = async (
+  email: string,
+  signal?: AbortSignal,
+): Promise<MessageResponse> => {
+  const response = await fetchApi(
+    API_URL + '/api/auth/forgot-password',
+    {
+      method: 'POST',
+      signal,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    },
+    { mutation: false },
+  );
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response, 'Unable to request a reset link'));
+  }
+  return readApiJson<MessageResponse>(response);
+};
+
+export const resetPassword = async (
+  token: string,
+  password: string,
+  signal?: AbortSignal,
+): Promise<MessageResponse> => {
+  const response = await fetchApi(API_URL + '/api/auth/reset-password', {
+    method: 'POST',
+    signal,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, password }),
+  });
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response, 'Unable to reset your password'));
+  }
+  return readApiJson<MessageResponse>(response);
+};
+
 export const logout = async (): Promise<void> => {
   const response = await fetchApi(
     API_URL + '/api/auth/logout',

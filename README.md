@@ -179,6 +179,9 @@ npm --workspace server run seed:demo   # needs MONGO_URI, DEMO_EMAIL, DEMO_PASSW
 | `AI_PROVIDER`     | No         | Server provider selection; production stays disabled; simulation requires explicit selection |
 | `OLLAMA_MODEL`    | Local only | Installed local model name; no automatic pull or hosted fallback                             |
 | `OLLAMA_BASE_URL` | Local only | Loopback model service (default `http://127.0.0.1:11434`)                                    |
+| `APP_URL`         | No         | Public site address used in reset links (https); reset email is off without it               |
+| `EMAIL_FROM`      | No         | Sender for reset email, e.g. `TaskForge <no-reply@example.com>`                              |
+| `RESEND_API_KEY`  | No         | Resend API key for reset email; reset email is off without it                                |
 | `DEMO_EMAIL`      | Seed only  | Demo account email for `seed:demo`                                                           |
 | `DEMO_PASSWORD`   | Seed only  | Demo account password for `seed:demo`                                                        |
 

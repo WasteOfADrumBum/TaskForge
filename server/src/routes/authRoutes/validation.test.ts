@@ -1,6 +1,11 @@
 // Controller/input tests isolate their behavior; rate limits have real HTTP coverage separately.
 jest.mock('../../middleware/authRateLimit', () => ({
-  createAuthRateLimiters: () => ({ login: [], register: [] }),
+  createAuthRateLimiters: () => ({
+    login: [],
+    register: [],
+    forgotPassword: [],
+    resetPassword: [],
+  }),
 }));
 
 import request from 'supertest';

@@ -79,3 +79,19 @@ For repeatable walkthrough/QA data, use synthetic local fixtures or the existing
 Requests are bounded to 90 seconds across connection and body parsing. Safe reads/sign-in may be canceled and manually retried; mutations are never automatically replayed. An unconfirmed write requires refreshing/verifying the workspace before another submission. Cancellation does not roll back server work.
 
 Read-only smoke evidence on 2026-10-06 at 11:50 UTC: the initial `/ready` response took 31.535 seconds and returned 200 ready; the next took 0.189 seconds and also returned 200 ready. This demonstrates observed slow-start recovery without account/database writes; it is not an always-available free-tier guarantee.
+
+## Recover an account (password reset)
+
+Reset email is off until `RESEND_API_KEY`, `EMAIL_FROM` and `APP_URL` are set on the Render API service. Without email, the owner can print a one-time reset link from their own machine with the production `MONGO_URI` in `server/.env`:
+
+```powershell
+npm run auth:reset-link --workspace server -- --email you@example.com
+```
+
+Open the printed link within 30 minutes. It works once; a newer link replaces it. The script prints nothing else and sends nothing. Do not paste the link anywhere shared.
+
+Known limits of reset (KAN-79):
+
+- Existing sessions stay signed in after a reset until their 7-day token expires. Revoking them needs a per-request account check (follow-up).
+- Forgot-password allows 3 requests per address per hour and 30 per 15 minutes overall, keyed without IP addresses (the proxy trust boundary is not established). Someone who knows an address can use up its hourly allowance or replace its outstanding link; the owner script still works.
+- The email is sent after the reply. A restart at that moment can drop it; ask again.

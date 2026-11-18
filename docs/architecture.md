@@ -35,7 +35,7 @@ flowchart LR
 
 - Built with Vite and served by Vercel as static files. `client/vercel.json` rewrites every path to `index.html` so client-side routes like `/home` work on refresh.
 - Routing (React Router v7) with lazy-loaded pages:
-  - Public: `/` (landing), `/login`, `/register`.
+  - Public: `/` (landing), `/login`, `/register`, `/forgot-password`, `/reset-password`.
   - Authenticated: `/home` (Command Center), `/work` (tasks), `/work/projects` (projects), `/work/projects/:id` (project detail), `/workforce` (Agent Registry), `/workforce/:id` (agent detail), `/progress` (progress analytics), `/reviews` (daily and weekly reviews), `/goals`, `/career` (skills, saved jobs and skill gaps), `/learning` (learning roadmap), `/brand` (Brand Studio), and `/settings`. All of them sit behind `ProtectedRoute` inside a shared `AppShell` layout.
 - The `AppShell` provides the sidebar (a drawer below the `lg` breakpoint), the top bar, and the skip-to-content link. It loads the user's tasks, projects, and agents once per session; the top bar's refresh action reloads all three.
 - State (Redux Toolkit): an `auth` slice (token, sessionVersion, loading, error), a `tasks` slice (items, loading, error, loaded), a `projects` slice (items, loading, error, loaded), and an `agents` slice (items, loading, error, loaded). Every data slice resets on logout and on session expiry. When a project or an agent is deleted, the tasks slice unassigns its tasks locally, mirroring the server. Agent workload counts are derived from the tasks slice; there is no separate endpoint. Counts and empty states appear only after a successful task load; pending or failed loads show unknown assignment state and safe deletion wording.
@@ -63,49 +63,51 @@ flowchart LR
     AgentS -- "unassign tasks on delete" --> TaskM
 ```
 
-| Endpoint                         | Auth | Purpose                                         |
-| -------------------------------- | ---- | ----------------------------------------------- |
-| `GET /`                          | No   | Plain-text "API is running" page                |
-| `GET /health`                    | No   | Liveness check used by Render                   |
-| `POST /api/auth/register`        | No   | Create an account                               |
-| `POST /api/auth/login`           | No   | Verify credentials, return a JWT                |
-| `POST /api/auth/logout`          | No   | Stateless acknowledgement                       |
-| `GET /api/tasks`                 | JWT  | List the signed-in user's tasks                 |
-| `POST /api/tasks`                | JWT  | Create a task owned by the user                 |
-| `PATCH /api/tasks/:id`           | JWT  | Update one of the user's tasks                  |
-| `DELETE /api/tasks/:id`          | JWT  | Delete one of the user's tasks                  |
-| `GET /api/projects`              | JWT  | List the signed-in user's projects              |
-| `POST /api/projects`             | JWT  | Create a project owned by the user              |
-| `GET /api/projects/:id`          | JWT  | Get one of the user's projects                  |
-| `PATCH /api/projects/:id`        | JWT  | Update one of the user's projects               |
-| `DELETE /api/projects/:id`       | JWT  | Delete a project; its tasks become unassigned   |
-| `GET /api/agents`                | JWT  | List the signed-in user's agents                |
-| `POST /api/agents`               | JWT  | Create an agent definition owned by the user    |
-| `GET /api/agents/:id`            | JWT  | Get one of the user's agents                    |
-| `PATCH /api/agents/:id`          | JWT  | Update one of the user's agents                 |
-| `DELETE /api/agents/:id`         | JWT  | Delete an agent; its tasks become unassigned    |
-| `GET /api/reviews`               | JWT  | List the user's recent daily and weekly reviews |
-| `PUT /api/reviews/:kind/:period` | JWT  | Save (create or replace) one review             |
-| `GET /api/goals`                 | JWT  | List the user's goals                           |
-| `POST /api/goals`                | JWT  | Create a goal owned by the user                 |
-| `PATCH /api/goals/:id`           | JWT  | Update one of the user's goals                  |
-| `DELETE /api/goals/:id`          | JWT  | Delete one of the user's goals                  |
-| `GET /api/skills`                | JWT  | List the user's skills inventory                |
-| `POST /api/skills`               | JWT  | Add a skill (one per name)                      |
-| `PATCH /api/skills/:id`          | JWT  | Rename a skill or change its level              |
-| `DELETE /api/skills/:id`         | JWT  | Remove a skill                                  |
-| `GET /api/jobs`                  | JWT  | List the user's saved jobs                      |
-| `POST /api/jobs`                 | JWT  | Save a job by hand                              |
-| `PATCH /api/jobs/:id`            | JWT  | Update a saved job                              |
-| `DELETE /api/jobs/:id`           | JWT  | Delete a saved job                              |
-| `GET /api/learning`              | JWT  | List the user's learning roadmap                |
-| `POST /api/learning`             | JWT  | Add a learning item owned by the user           |
-| `PATCH /api/learning/:id`        | JWT  | Update one of the user's learning items         |
-| `DELETE /api/learning/:id`       | JWT  | Delete one of the user's learning items         |
-| `GET /api/resume`                | JWT  | Get the user's resume, or null                  |
-| `PUT /api/resume`                | JWT  | Create or replace the user's resume             |
-| `GET /api/brands`                | JWT  | List the user's brand profiles                  |
-| `PUT /api/brands/:kind`          | JWT  | Create or replace a brand profile               |
+| Endpoint                         | Auth | Purpose                                                                           |
+| -------------------------------- | ---- | --------------------------------------------------------------------------------- |
+| `GET /`                          | No   | Plain-text "API is running" page                                                  |
+| `GET /health`                    | No   | Liveness check used by Render                                                     |
+| `POST /api/auth/register`        | No   | Create an account                                                                 |
+| `POST /api/auth/login`           | No   | Verify credentials, return a JWT                                                  |
+| `POST /api/auth/logout`          | No   | Stateless acknowledgement                                                         |
+| `POST /api/auth/forgot-password` | No   | Email a one-time reset link (same reply for every address; 503 when email is off) |
+| `POST /api/auth/reset-password`  | No   | Set a new password with a valid reset token                                       |
+| `GET /api/tasks`                 | JWT  | List the signed-in user's tasks                                                   |
+| `POST /api/tasks`                | JWT  | Create a task owned by the user                                                   |
+| `PATCH /api/tasks/:id`           | JWT  | Update one of the user's tasks                                                    |
+| `DELETE /api/tasks/:id`          | JWT  | Delete one of the user's tasks                                                    |
+| `GET /api/projects`              | JWT  | List the signed-in user's projects                                                |
+| `POST /api/projects`             | JWT  | Create a project owned by the user                                                |
+| `GET /api/projects/:id`          | JWT  | Get one of the user's projects                                                    |
+| `PATCH /api/projects/:id`        | JWT  | Update one of the user's projects                                                 |
+| `DELETE /api/projects/:id`       | JWT  | Delete a project; its tasks become unassigned                                     |
+| `GET /api/agents`                | JWT  | List the signed-in user's agents                                                  |
+| `POST /api/agents`               | JWT  | Create an agent definition owned by the user                                      |
+| `GET /api/agents/:id`            | JWT  | Get one of the user's agents                                                      |
+| `PATCH /api/agents/:id`          | JWT  | Update one of the user's agents                                                   |
+| `DELETE /api/agents/:id`         | JWT  | Delete an agent; its tasks become unassigned                                      |
+| `GET /api/reviews`               | JWT  | List the user's recent daily and weekly reviews                                   |
+| `PUT /api/reviews/:kind/:period` | JWT  | Save (create or replace) one review                                               |
+| `GET /api/goals`                 | JWT  | List the user's goals                                                             |
+| `POST /api/goals`                | JWT  | Create a goal owned by the user                                                   |
+| `PATCH /api/goals/:id`           | JWT  | Update one of the user's goals                                                    |
+| `DELETE /api/goals/:id`          | JWT  | Delete one of the user's goals                                                    |
+| `GET /api/skills`                | JWT  | List the user's skills inventory                                                  |
+| `POST /api/skills`               | JWT  | Add a skill (one per name)                                                        |
+| `PATCH /api/skills/:id`          | JWT  | Rename a skill or change its level                                                |
+| `DELETE /api/skills/:id`         | JWT  | Remove a skill                                                                    |
+| `GET /api/jobs`                  | JWT  | List the user's saved jobs                                                        |
+| `POST /api/jobs`                 | JWT  | Save a job by hand                                                                |
+| `PATCH /api/jobs/:id`            | JWT  | Update a saved job                                                                |
+| `DELETE /api/jobs/:id`           | JWT  | Delete a saved job                                                                |
+| `GET /api/learning`              | JWT  | List the user's learning roadmap                                                  |
+| `POST /api/learning`             | JWT  | Add a learning item owned by the user                                             |
+| `PATCH /api/learning/:id`        | JWT  | Update one of the user's learning items                                           |
+| `DELETE /api/learning/:id`       | JWT  | Delete one of the user's learning items                                           |
+| `GET /api/resume`                | JWT  | Get the user's resume, or null                                                    |
+| `PUT /api/resume`                | JWT  | Create or replace the user's resume                                               |
+| `GET /api/brands`                | JWT  | List the user's brand profiles                                                    |
+| `PUT /api/brands/:kind`          | JWT  | Create or replace a brand profile                                                 |
 
 **Projects and tasks:**
 
