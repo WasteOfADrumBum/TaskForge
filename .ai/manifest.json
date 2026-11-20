@@ -1,0 +1,68 @@
+{
+  "manifestVersion": 1,
+  "source": {
+    "id": "one-small-engineering/ai-standards",
+    "repository": "WasteOfADrumBum/one-small-engineering"
+  },
+  "policyVersion": "1.0.0",
+  "adapters": ["claude", "codex", "copilot", "gemini", "chatgpt"],
+  "projectFile": ".ai/project.md",
+  "files": {
+    ".ai/.gitignore": {
+      "sha256": "7cb7a74ca8f5926077a34d14cf927b65556299069c1ccebab3aa57f8ccc64350"
+    },
+    ".ai/chatgpt-project-instructions.md": {
+      "sha256": "5a6ec31dbb8f89ee3cc89600119f2dfee98c099c1aa9becf6d42a8ae67426f26"
+    },
+    ".ai/shared/accessibility.md": {
+      "sha256": "286809762ef76413741a6c5ad103d7fcbb7f23c29db33c6654485b9305e22527"
+    },
+    ".ai/shared/architecture.md": {
+      "sha256": "3b5fc6e371692b5e027dadb7607eb3ceb7fea434af775b0a77ab86a8830e638f"
+    },
+    ".ai/shared/autonomy.md": {
+      "sha256": "1d8285506e0a513ad234d26e349db829674df7a98517c4e60f6a7f3b5e5ca790"
+    },
+    ".ai/shared/code-quality.md": {
+      "sha256": "d84415e4d3fd9f5c6fdbfb936c8393d0e2722445198be4b91860e9051d6b5281"
+    },
+    ".ai/shared/collaboration.md": {
+      "sha256": "14ad15abf79bd68ed73c260dd663e466e4a307edbe13b20df87e0a695510b482"
+    },
+    ".ai/shared/completion.md": {
+      "sha256": "af254f52595c3c8e2edda3ed40a98c2f6680ca92014ad1ffc2ea2cb3ba6fd042"
+    },
+    ".ai/shared/documentation.md": {
+      "sha256": "b5a23bb268910ec556f53eb5e39fad83d2d336c915277fc586e8ee51e17efdd9"
+    },
+    ".ai/shared/learning.md": {
+      "sha256": "dafcb9d23b8e338f2aae294fa48cb39c215a34d5896bf30d7e045aa7fb7c1801"
+    },
+    ".ai/shared/security.md": {
+      "sha256": "3d89c81cfdac619a588f513e302711da20cc95d928028c5d3e599c91492a38f5"
+    },
+    ".ai/shared/testing.md": {
+      "sha256": "2856034a8338b460a525251e6df8656d457dfebf5550b09e38e8d83dd5820859"
+    }
+  },
+  "blocks": {
+    ".github/copilot-instructions.md": {
+      "sha256": "2bb619f5bc8ca678feb20eada6f652ad38a0fc352062252dde5eac79f6990ec9",
+      "createdFile": false
+    },
+    "AGENTS.md": {
+      "sha256": "42aa963c09711363a51791cf6ebb46200271cd9a2442b60f7d51fba31952086d",
+      "createdFile": false
+    },
+    "CLAUDE.md": {
+      "sha256": "d14fe56159745f6d1c39aad7ad42105bb12ab3489a30fa8773863844b8bca6bc",
+      "createdFile": false
+    },
+    "GEMINI.md": {
+      "sha256": "2bb619f5bc8ca678feb20eada6f652ad38a0fc352062252dde5eac79f6990ec9",
+      "createdFile": false
+    }
+  },
+  "installedAt": "2026-11-20T03:50:33Z",
+  "updatedAt": "2026-11-20T03:50:33Z"
+}
