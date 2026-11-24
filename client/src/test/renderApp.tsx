@@ -1,10 +1,9 @@
-import { ChakraProvider } from '@chakra-ui/react';
 import { render } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import { AppRoutes } from '../App';
-import { system } from '../assets/theme/theme';
+import { Provider as UiProvider } from '../components/ui/provider';
 import { store } from '../redux/store';
 import { setToken } from '../redux/slices/authSlice';
 import type { Agent } from '../types/agent';
@@ -407,10 +406,10 @@ export const requestsTo = (
 export const renderApp = (path: string) =>
   render(
     <Provider store={store}>
-      <ChakraProvider value={system}>
+      <UiProvider>
         <MemoryRouter initialEntries={[path]}>
           <AppRoutes />
         </MemoryRouter>
-      </ChakraProvider>
+      </UiProvider>
     </Provider>,
   );

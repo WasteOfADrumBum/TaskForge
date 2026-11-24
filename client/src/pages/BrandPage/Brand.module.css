@@ -1,0 +1,50 @@
+/* A bordered group for each repeating list (colors, fonts, logos, image prompts). */
+.listSection {
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--os-border);
+  border-radius: var(--os-radius-md);
+  min-width: 0;
+}
+
+.legend {
+  padding-inline: 0.25rem;
+}
+
+.profileField {
+  max-width: 20rem;
+}
+
+/* Row fields: fixed widths, or growing to fill the row with a floor before wrapping. */
+.w9 {
+  width: 9rem;
+}
+.w10 {
+  width: 10rem;
+}
+.w12 {
+  width: 12rem;
+}
+.grow10,
+.grow12 {
+  flex: 1 1 0%;
+}
+.grow10 {
+  min-width: 10rem;
+}
+.grow12 {
+  min-width: 12rem;
+}
+
+.swatch {
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--os-border);
+  border-radius: var(--os-radius-sm);
+}
+
+.logo {
+  max-height: 3rem;
+  max-width: 12rem;
+}

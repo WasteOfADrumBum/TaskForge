@@ -1,4 +1,4 @@
-import { Button, Dialog, HStack, Portal, Text } from '@chakra-ui/react';
+import { Button, Dialog } from '@onesmall/ui';
 import { LuTrash2 } from 'react-icons/lu';
 import type { Task } from '../../types/task';
 
@@ -17,40 +17,28 @@ const DeleteTaskDialog = ({
   onOpenChange,
   onConfirm,
 }: DeleteTaskDialogProps) => (
-  <Dialog.Root
+  <Dialog
     open={open}
-    onOpenChange={(details) => onOpenChange(details.open)}
+    onClose={() => onOpenChange(false)}
     role="alertdialog"
+    title="Delete task?"
+    footer={
+      <>
+        <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+          Cancel
+        </Button>
+        <Button color="danger" onClick={onConfirm} loading={loading} leftIcon={<LuTrash2 />}>
+          Delete task
+        </Button>
+      </>
+    }
   >
-    <Portal>
-      <Dialog.Backdrop />
-      <Dialog.Positioner>
-        <Dialog.Content>
-          <Dialog.Header>
-            <Dialog.Title>Delete task?</Dialog.Title>
-          </Dialog.Header>
-          <Dialog.Body>
-            <Text color="fg.muted">
-              {task
-                ? task.title + ' will be permanently deleted. This action cannot be undone.'
-                : 'This task will be permanently deleted.'}
-            </Text>
-          </Dialog.Body>
-          <Dialog.Footer>
-            <HStack justify="flex-end" w="full">
-              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-                Cancel
-              </Button>
-              <Button colorPalette="red" onClick={onConfirm} loading={loading}>
-                <LuTrash2 />
-                Delete task
-              </Button>
-            </HStack>
-          </Dialog.Footer>
-        </Dialog.Content>
-      </Dialog.Positioner>
-    </Portal>
-  </Dialog.Root>
+    <p className="os-text-muted os-m-0">
+      {task
+        ? task.title + ' will be permanently deleted. This action cannot be undone.'
+        : 'This task will be permanently deleted.'}
+    </p>
+  </Dialog>
 );
 
 export default DeleteTaskDialog;

@@ -1,0 +1,24 @@
+/* The project name link: body-colored, teal on hover. */
+.titleLink {
+  color: inherit;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.titleLink:hover {
+  color: var(--os-primary-text);
+  text-decoration: underline;
+}
+
+/* Two-line description; from md up it keeps two lines of height so cards line up. */
+.description {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+@media (min-width: 768px) {
+  .description {
+    min-height: 2.5em;
+  }
+}

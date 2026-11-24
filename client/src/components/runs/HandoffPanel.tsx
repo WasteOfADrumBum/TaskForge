@@ -1,16 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import {
-  Box,
-  Button,
-  chakra,
-  Field,
-  HStack,
-  Link,
-  NativeSelect,
-  Text,
-  Textarea,
-  VStack,
-} from '@chakra-ui/react';
+import { Button, Field, Select, Stack, Textarea } from '@onesmall/ui';
 import { Link as RouterLink } from 'react-router-dom';
 import { createHandoff, getHandoffs } from '../../api/handoffs';
 import { isCurrentSession } from '../../api/authenticatedFetch';
@@ -153,11 +142,11 @@ function Content({
   };
   return (
     <RunSection title="Handoffs">
-      <Text color="fg.muted" mb={3}>
+      <p className="os-text-muted os-mt-0 os-mb-3">
         An approved draft can hand work to another agent. Each child stays queued until you select
         its execution mode, then needs its own review. No task assignment is changed.
-      </Text>
-      <HStack flexWrap="wrap" mb={3}>
+      </p>
+      <div className="os-flex os-flex-wrap os-items-center os-gap-2 os-mb-3">
         <Button
           size="sm"
           variant="outline"
@@ -168,9 +157,9 @@ function Content({
         </Button>
         {read.pending && (
           <>
-            <Text role="status">
+            <p role="status" className="os-m-0">
               {read.waiting ? 'TaskForge is still loading handoffs...' : 'Loading handoffs...'}
-            </Text>
+            </p>
             <Button
               size="sm"
               variant="outline"
@@ -183,83 +172,83 @@ function Content({
             </Button>
           </>
         )}
-      </HStack>
+      </div>
       {error && (
-        <Text role="alert" color="fg.error">
+        <p role="alert" className="os-text-danger os-m-0">
           {error}
-        </Text>
+        </p>
       )}
       {writeError && (
-        <Text role="alert" color="fg.error">
+        <p role="alert" className="os-text-danger os-m-0">
           {writeError}
-        </Text>
+        </p>
       )}
       {refreshRequired && (
-        <Text>
+        <p className="os-m-0">
           Refresh handoffs before trying again. An identical manual retry uses the same creation
           key.
-        </Text>
+        </p>
       )}
-      {success && <Text role="status">Handoff queued. No model was called or task changed.</Text>}
+      {success && (
+        <p role="status" className="os-m-0">
+          Handoff queued. No model was called or task changed.
+        </p>
+      )}
       {run.status === 'approved' && (run.handoff?.ancestors.length ?? 0) < 3 && (
-        <chakra.form onSubmit={(event) => void submit(event)} mt={4}>
-          <VStack align="stretch" gap={3}>
-            {!ready && <Text>Task and agent data must load successfully before a handoff.</Text>}
+        <form onSubmit={(event) => void submit(event)} className="os-mt-4">
+          <Stack gap={3}>
+            {!ready && (
+              <p className="os-m-0">Task and agent data must load successfully before a handoff.</p>
+            )}
             {ready && !eligible.length && (
-              <Text>
+              <p className="os-m-0">
                 No task is assigned to another active agent with Read tasks and Draft artifacts.
                 Assign one in Work first.
-              </Text>
+              </p>
             )}
-            <Field.Root disabled={blocked || !ready}>
-              <Field.Label htmlFor="handoff-task">Handoff target task</Field.Label>
-              <NativeSelect.Root disabled={blocked || !ready}>
-                <NativeSelect.Field
-                  id="handoff-task"
-                  value={taskId}
-                  onChange={(event) => setTaskId(event.target.value)}
-                >
-                  <option value="">Choose an assigned target task</option>
-                  {eligible.map((task) => (
-                    <option key={getTaskId(task)} value={getTaskId(task)}>
-                      {task.title}
-                    </option>
-                  ))}
-                </NativeSelect.Field>
-                <NativeSelect.Indicator />
-              </NativeSelect.Root>
-            </Field.Root>
-            <Field.Root>
-              <Field.Label htmlFor="handoff-request">Handoff request</Field.Label>
+            <Field id="handoff-task" label="Handoff target task" disabled={blocked || !ready}>
+              <Select
+                value={taskId}
+                disabled={blocked || !ready}
+                onChange={(event) => setTaskId(event.target.value)}
+              >
+                <option value="">Choose an assigned target task</option>
+                {eligible.map((task) => (
+                  <option key={getTaskId(task)} value={getTaskId(task)}>
+                    {task.title}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field
+              id="handoff-request"
+              label="Handoff request"
+              hint="Only the approved output text is passed with target context. Maximum 3 handoffs in a chain; no repeated agents. Oversized context is rejected."
+            >
               <Textarea
-                id="handoff-request"
                 value={input}
                 maxLength={8000}
                 disabled={blocked}
                 onChange={(event) => setInput(event.target.value)}
               />
-              <Field.HelperText>
-                Only the approved output text is passed with target context. Maximum 3 handoffs in a
-                chain; no repeated agents. Oversized context is rejected.
-              </Field.HelperText>
-            </Field.Root>
-            <Button
-              type="submit"
-              colorPalette="teal"
-              disabled={blocked || !selected || !input.trim()}
-            >
+            </Field>
+            <Button type="submit" color="primary" disabled={blocked || !selected || !input.trim()}>
               Create queued handoff
             </Button>
-          </VStack>
-        </chakra.form>
+          </Stack>
+        </form>
       )}
-      {run.status !== 'approved' && <Text>Approve this run before creating a child handoff.</Text>}
-      {(run.handoff?.ancestors.length ?? 0) >= 3 && <Text>Handoff depth limit reached.</Text>}
+      {run.status !== 'approved' && (
+        <p className="os-m-0">Approve this run before creating a child handoff.</p>
+      )}
+      {(run.handoff?.ancestors.length ?? 0) >= 3 && (
+        <p className="os-m-0">Handoff depth limit reached.</p>
+      )}
       {write.pending && (
-        <HStack mt={3} flexWrap="wrap">
-          <Text role="status">
+        <div className="os-flex os-flex-wrap os-items-center os-gap-2 os-mt-3">
+          <p role="status" className="os-m-0">
             {write.waiting ? 'TaskForge is still creating the handoff...' : 'Creating handoff...'}
-          </Text>
+          </p>
           <Button
             variant="outline"
             onClick={() => {
@@ -271,26 +260,24 @@ function Content({
           >
             Stop waiting for handoff
           </Button>
-        </HStack>
+        </div>
       )}
       {loaded && !read.pending && !error && !children.length && (
-        <Text mt={3}>No child handoffs.</Text>
+        <p className="os-mt-3 os-mb-0">No child handoffs.</p>
       )}
-      <VStack align="stretch" gap={3} mt={4}>
+      <Stack gap={3} className="os-mt-4">
         {children.map((child) => (
-          <Box key={getRunId(child)} borderWidth="1px" borderRadius="md" p={3} minW="0">
+          <div key={getRunId(child)} className="os-border os-rounded-md os-p-3 os-min-w-0">
             <RunStatusBadge status={child.status} />
             <RunText value={child.input} />
-            <Link asChild color="accent.teal">
-              <RouterLink to={'/workforce/runs/' + getRunId(child)}>View child run</RouterLink>
-            </Link>
-          </Box>
+            <RouterLink to={'/workforce/runs/' + getRunId(child)}>View child run</RouterLink>
+          </div>
         ))}
-      </VStack>
-      <Text mt={3} fontSize="sm" color="fg.muted">
+      </Stack>
+      <p className="os-mt-3 os-mb-0 os-text-sm os-text-muted">
         Latest 100 direct children. Cancellation or failure affects only that run; nothing executes
         automatically.
-      </Text>
+      </p>
     </RunSection>
   );
 }

@@ -1,0 +1,127 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--os-bg);
+}
+.header {
+  border-bottom: 1px solid var(--os-border);
+  background-color: var(--os-surface);
+}
+.headerInner,
+.content {
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+.headerInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.75rem;
+}
+.main {
+  flex: 1;
+}
+.content {
+  padding-block: 3.5rem;
+}
+.hero {
+  max-width: 56rem;
+  margin-inline: auto;
+  text-align: center;
+}
+.title {
+  margin: 0;
+  font-size: var(--os-text-3xl);
+  line-height: 1.15;
+}
+.lead {
+  margin: 0;
+  max-width: 48rem;
+  color: var(--os-text-muted);
+  font-size: var(--os-text-lg);
+}
+.section {
+  margin-top: 3.5rem;
+}
+.stack {
+  padding: 1.5rem;
+  border-radius: var(--os-radius-xl);
+  text-align: center;
+}
+.feature {
+  padding: 1.5rem;
+  border-top-width: 3px;
+  border-radius: var(--os-radius-xl);
+  transition:
+    transform var(--os-duration-base) var(--os-ease-standard),
+    box-shadow var(--os-duration-base) var(--os-ease-standard);
+}
+.feature[data-color='secondary'] {
+  border-top-color: var(--os-secondary);
+}
+.feature[data-color='info'] {
+  border-top-color: var(--os-info);
+}
+.feature[data-color='primary'] {
+  border-top-color: var(--os-primary);
+}
+.feature:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgb(0 0 0 / 0.12);
+}
+@media (prefers-reduced-motion: reduce) {
+  .feature:hover {
+    transform: none;
+  }
+}
+.featureIcon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--os-radius-lg);
+}
+.feature[data-color='secondary'] .featureIcon {
+  background-color: var(--os-secondary-soft);
+  color: var(--os-secondary-text);
+}
+.feature[data-color='info'] .featureIcon {
+  background-color: var(--os-info-soft);
+  color: var(--os-info-text);
+}
+.feature[data-color='primary'] .featureIcon {
+  background-color: var(--os-primary-soft);
+  color: var(--os-primary-text);
+}
+.eyebrow {
+  margin: 0 auto;
+  color: var(--os-info-text);
+  font-size: var(--os-text-sm);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+@media (min-width: 768px) {
+  .headerInner,
+  .content {
+    padding-inline: 1.5rem;
+  }
+  .content {
+    padding-block: 5rem;
+  }
+  .title {
+    font-size: var(--os-text-5xl);
+  }
+  .lead {
+    font-size: var(--os-text-xl);
+  }
+  .section {
+    margin-top: 5rem;
+  }
+  .stack {
+    padding: 2.5rem;
+  }
+}

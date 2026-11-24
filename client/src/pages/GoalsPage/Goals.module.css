@@ -1,0 +1,9 @@
+/* Keeps line breaks the user typed in a goal's description. */
+.preWrap {
+  white-space: pre-wrap;
+}
+
+/* Area select and target date stay narrow in the add form. */
+.narrow {
+  max-width: 12rem;
+}

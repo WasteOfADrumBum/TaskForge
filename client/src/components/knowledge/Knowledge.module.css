@@ -1,0 +1,27 @@
+/* Shared by the Knowledge, Knowledge source and Ask TaskForge screens. */
+
+/* Page column: the knowledge screens read best at a fixed maximum width. */
+.page {
+  width: 100%;
+  max-width: 60rem;
+}
+
+/* Long titles and pasted text wrap anywhere instead of overflowing on phones. */
+.anywhere {
+  overflow-wrap: anywhere;
+}
+
+/* Source text and quotes keep their line breaks. */
+.preWrap {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* An exact excerpt, set off with a start border. */
+.quote {
+  margin: 0.25rem 0 0;
+  padding-inline-start: 0.75rem;
+  border-inline-start: 2px solid var(--os-border);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

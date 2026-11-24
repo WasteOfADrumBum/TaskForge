@@ -1,46 +1,54 @@
-import { Box, HStack, Link, Text, VStack } from '@chakra-ui/react';
+import type { ReactNode } from 'react';
 import { LuGithub, LuHistory, LuLinkedin, LuMail } from 'react-icons/lu';
+import styles from './AppFooter.module.css';
 
 const githubUrl = 'https://github.com/WasteOfADrumBum/TaskForge';
 const changelogUrl = githubUrl + '/blob/main/CHANGELOG.md';
 const linkedinUrl = import.meta.env.VITE_LINKEDIN_URL as string | undefined;
 
+const FooterLink = ({
+  href,
+  icon,
+  children,
+  external = true,
+}: {
+  href: string;
+  icon: ReactNode;
+  children: ReactNode;
+  external?: boolean;
+}) => (
+  <a
+    href={href}
+    className={styles.link}
+    {...(external ? { target: '_blank', rel: 'noreferrer' } : {})}
+  >
+    <span aria-hidden="true">{icon}</span>
+    {children}
+  </a>
+);
+
 const AppFooter = () => (
-  <Box as="footer" borderTopWidth="1px" bg="bg.panel" mt="auto">
-    <VStack maxW="7xl" mx="auto" px={{ base: 4, md: 6 }} py={6} gap={3}>
-      <HStack gap={5} flexWrap="wrap" justify="center">
-        <Link href={githubUrl} target="_blank" rel="noreferrer">
-          <HStack gap={1.5}>
-            <LuGithub />
-            <Text>GitHub</Text>
-          </HStack>
-        </Link>
-        <Link href={changelogUrl} target="_blank" rel="noreferrer">
-          <HStack gap={1.5}>
-            <LuHistory />
-            <Text>Changelog</Text>
-          </HStack>
-        </Link>
-        <Link href="mailto:JMSmall89@gmail.com">
-          <HStack gap={1.5}>
-            <LuMail />
-            <Text>Email</Text>
-          </HStack>
-        </Link>
+  <footer className={styles.footer}>
+    <div className={styles.inner}>
+      <div className={styles.links}>
+        <FooterLink href={githubUrl} icon={<LuGithub />}>
+          GitHub
+        </FooterLink>
+        <FooterLink href={changelogUrl} icon={<LuHistory />}>
+          Changelog
+        </FooterLink>
+        <FooterLink href="mailto:JMSmall89@gmail.com" icon={<LuMail />} external={false}>
+          Email
+        </FooterLink>
         {linkedinUrl && (
-          <Link href={linkedinUrl} target="_blank" rel="noreferrer">
-            <HStack gap={1.5}>
-              <LuLinkedin />
-              <Text>LinkedIn</Text>
-            </HStack>
-          </Link>
+          <FooterLink href={linkedinUrl} icon={<LuLinkedin />}>
+            LinkedIn
+          </FooterLink>
         )}
-      </HStack>
-      <Text color="fg.muted" fontSize="sm">
-        © 2026 Joshua Small · TaskForge
-      </Text>
-    </VStack>
-  </Box>
+      </div>
+      <p className="os-text-muted os-text-sm os-m-0">© 2026 Joshua Small · TaskForge</p>
+    </div>
+  </footer>
 );
 
 export default AppFooter;

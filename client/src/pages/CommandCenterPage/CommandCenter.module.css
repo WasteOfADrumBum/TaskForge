@@ -1,0 +1,71 @@
+/* "Your daily brief" eyebrow over the greeting. */
+.eyebrow {
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Activity marker: a small square in the brand color of the change. */
+.dot {
+  flex-shrink: 0;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-top: 0.375rem;
+  border-radius: var(--os-radius-sm);
+}
+.dotCreated {
+  background-color: var(--os-primary);
+}
+.dotUpdated {
+  background-color: var(--os-accent);
+}
+
+/* Project name link: reads as body text, teal on hover, truncated on one line. */
+.projectLink {
+  min-width: 0;
+  color: var(--os-text);
+  text-decoration: none;
+}
+.projectLink:hover {
+  color: var(--os-primary-text);
+}
+
+/* Count tiles: the label sits under the number visually, but first in the dt/dd order. */
+.tile {
+  display: flex;
+  flex-direction: column-reverse;
+  padding-block: 0.75rem;
+  background-color: var(--os-surface-2);
+  border-radius: var(--os-radius-md);
+}
+
+/* A recommendation card link, tinted by tone with a colored start border. */
+.recommendation {
+  display: block;
+  padding: 1rem;
+  border: 1px solid var(--os-border);
+  border-inline-start-width: 3px;
+  border-radius: var(--os-radius-md);
+  color: var(--os-text);
+  text-decoration: none;
+}
+.teal {
+  border-inline-start-color: var(--os-primary);
+  background-color: var(--os-primary-soft);
+}
+.orange {
+  border-inline-start-color: var(--os-secondary);
+  background-color: var(--os-secondary-soft);
+}
+.violet {
+  border-inline-start-color: var(--os-accent);
+  background-color: var(--os-accent-soft);
+}
+.teal:hover {
+  border-color: var(--os-primary);
+}
+.orange:hover {
+  border-color: var(--os-secondary);
+}
+.violet:hover {
+  border-color: var(--os-accent);
+}

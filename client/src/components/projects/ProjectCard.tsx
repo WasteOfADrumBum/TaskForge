@@ -1,8 +1,9 @@
-import { Box, Button, Heading, HStack, Link, Progress, Text } from '@chakra-ui/react';
+import { Button, Progress } from '@onesmall/ui';
 import { LuPencil, LuTrash2 } from 'react-icons/lu';
 import { Link as RouterLink } from 'react-router-dom';
 import { getProjectId, type Project } from '../../types/project';
 import { isProjectAtRisk, type ProjectTaskStats } from '../../utils/projects';
+import styles from './ProjectCard.module.css';
 import ProjectRiskBadge from './ProjectRiskBadge';
 import ProjectStatusBadge from './ProjectStatusBadge';
 
@@ -20,63 +21,65 @@ interface ProjectCardProps {
 }
 
 const ProjectCard = ({ project, stats, onEdit, onDelete }: ProjectCardProps) => (
-  <Box as="li" bg="bg.panel" borderWidth="1px" borderRadius="lg" p={{ base: 4, md: 5 }} minW="0">
-    <HStack justify="space-between" align="flex-start" gap={3} mb={2}>
-      <Heading as="h3" size="md" minW="0">
-        <Link asChild color="fg" _hover={{ color: 'accent.teal' }}>
-          <RouterLink to={'/work/projects/' + getProjectId(project)}>{project.name}</RouterLink>
-        </Link>
-      </Heading>
-      <HStack gap={2} flexWrap="wrap" justify="flex-end">
+  <li className="tf-panel os-p-4 md:os-p-5 os-min-w-0">
+    <div className="os-flex os-justify-between os-items-start os-gap-3 os-mb-2">
+      <h3 className="tf-h3 os-m-0 os-min-w-0">
+        <RouterLink to={'/work/projects/' + getProjectId(project)} className={styles.titleLink}>
+          {project.name}
+        </RouterLink>
+      </h3>
+      <div className="os-flex os-flex-wrap os-justify-end os-gap-2">
         {isProjectAtRisk(project, stats) && <ProjectRiskBadge overdue={stats.overdue} />}
         <ProjectStatusBadge status={project.status} />
-      </HStack>
-    </HStack>
-    <Text color="fg.muted" fontSize="sm" lineClamp={2} minH={{ md: '2.5em' }}>
+      </div>
+    </div>
+    <p className={'os-text-muted os-text-sm os-m-0 ' + styles.description}>
       {project.description || 'No description.'}
-    </Text>
-    <Box mt={4}>
-      <HStack justify="space-between" fontSize="xs" color="fg.muted" mb={1.5}>
-        <Text>
+    </p>
+    <div className="os-mt-4">
+      <div className="os-flex os-justify-between os-gap-2 os-text-xs os-text-muted os-mb-1">
+        <p className="os-m-0">
           {stats.total
             ? `${stats.open} open · ${stats.done} done${stats.overdue ? ` · ${stats.overdue} overdue` : ''}`
             : 'No tasks yet'}
-        </Text>
-        {stats.total > 0 && <Text>{stats.completion}%</Text>}
-      </HStack>
-      <Progress.Root value={stats.completion} size="xs" colorPalette="teal">
-        <Progress.Track aria-label={project.name + ' completion'}>
-          <Progress.Range />
-        </Progress.Track>
-      </Progress.Root>
-    </Box>
-    <HStack justify="space-between" mt={4} gap={2} flexWrap="wrap">
-      <Text fontSize="xs" color="fg.muted">
+        </p>
+        {stats.total > 0 && <p className="os-m-0">{stats.completion}%</p>}
+      </div>
+      <Progress
+        value={stats.completion}
+        size="sm"
+        color="primary"
+        label={project.name + ' completion'}
+        hideLabel
+      />
+    </div>
+    <div className="os-flex os-flex-wrap os-justify-between os-items-center os-gap-2 os-mt-4">
+      <p className="os-text-xs os-text-muted os-m-0">
         {project.updatedAt ? 'Updated ' + dateFormat.format(new Date(project.updatedAt)) : ''}
-      </Text>
-      <HStack gap={1}>
+      </p>
+      <div className="os-flex os-gap-1">
         <Button
           size="xs"
           variant="ghost"
           onClick={() => onEdit(project)}
           aria-label={'Edit ' + project.name}
+          leftIcon={<LuPencil />}
         >
-          <LuPencil />
           Edit
         </Button>
         <Button
           size="xs"
           variant="ghost"
-          colorPalette="red"
+          color="danger"
           onClick={() => onDelete(project)}
           aria-label={'Delete ' + project.name}
+          leftIcon={<LuTrash2 />}
         >
-          <LuTrash2 />
           Delete
         </Button>
-      </HStack>
-    </HStack>
-  </Box>
+      </div>
+    </div>
+  </li>
 );
 
 export default ProjectCard;

@@ -1,9 +1,8 @@
-import { ChakraProvider } from '@chakra-ui/react';
+import { Provider as UiProvider } from '../components/ui/provider';
 import { act, render, renderHook, screen, within } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { system } from '../assets/theme/theme';
 import TopBar from '../components/layout/TopBar';
 import CommandCenterPage from '../pages/CommandCenterPage';
 import WorkPage from '../pages/WorkPage';
@@ -83,11 +82,11 @@ describe('useToday', () => {
 describe('Top bar across midnight', () => {
   it('rolls the date label over to the next day', () => {
     render(
-      <ChakraProvider value={system}>
+      <UiProvider>
         <MemoryRouter initialEntries={['/home']}>
           <TopBar navOpen={false} onOpenNav={() => {}} onRefresh={() => {}} refreshing={false} />
         </MemoryRouter>
-      </ChakraProvider>,
+      </UiProvider>,
     );
     expect(screen.getByText('Thu, Oct 15')).toBeInTheDocument();
     act(() => {
@@ -104,11 +103,11 @@ describe('Work page across midnight', () => {
     );
     render(
       <Provider store={store}>
-        <ChakraProvider value={system}>
+        <UiProvider>
           <MemoryRouter>
             <WorkPage />
           </MemoryRouter>
-        </ChakraProvider>
+        </UiProvider>
       </Provider>,
     );
     expect(screen.queryByText('Overdue', { exact: true })).not.toBeInTheDocument();
@@ -131,11 +130,11 @@ describe('Command Center across midnight', () => {
     );
     render(
       <Provider store={store}>
-        <ChakraProvider value={system}>
+        <UiProvider>
           <MemoryRouter>
             <CommandCenterPage />
           </MemoryRouter>
-        </ChakraProvider>
+        </UiProvider>
       </Provider>,
     );
     const row = (title: string) => within(screen.getByText(title).closest('li') as HTMLElement);

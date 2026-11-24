@@ -119,7 +119,9 @@ test('conflicting edits cannot overwrite source and foreign source routes reveal
     });
     expect(update.status()).toBe(200);
     await page.getByRole('button', { name: 'Save changes' }).click();
-    await expect(page.getByRole('alert')).toContainText('Refresh');
+    // OneSmallUI's ToastProvider keeps an empty, visually hidden assertive live region on every
+    // page, so target the visible alert that carries the conflict message.
+    await expect(page.getByRole('alert').filter({ hasText: 'Refresh' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Save changes' })).toBeDisabled();
     expect((await (await api.get('/api/knowledge/' + source.id)).json()).source.content).toBe(
       'Updated elsewhere',

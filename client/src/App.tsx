@@ -1,7 +1,8 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-import { Toaster } from './components/ui/toaster';
+import { ToastProvider } from '@onesmall/ui';
+import { ToastBridge } from './components/ui/toaster';
 
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
@@ -72,8 +73,10 @@ export const AppRoutes = () => (
 const App = () => {
   return (
     <Router>
-      <Toaster />
-      <AppRoutes />
+      <ToastProvider placement="bottom-right" label="Notifications">
+        <ToastBridge />
+        <AppRoutes />
+      </ToastProvider>
     </Router>
   );
 };

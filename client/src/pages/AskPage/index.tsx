@@ -1,18 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import {
-  Box,
-  Button,
-  chakra,
-  Field,
-  Heading,
-  HStack,
-  Input,
-  Link,
-  NativeSelect,
-  Text,
-  Textarea,
-  VStack,
-} from '@chakra-ui/react';
+import { Button, Checkbox, Field, Input, Select, Stack, Textarea } from '@onesmall/ui';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { searchKnowledge } from '../../api/knowledge';
 import { createRun, getRunProviderStatus } from '../../api/runs';
@@ -35,6 +22,8 @@ import {
 } from '../../utils/askTaskForge';
 import { utf8Bytes, validKnowledgeQuery } from '../../utils/knowledge';
 import { SessionExpiredError } from '../../utils/session';
+import knowledgeStyles from '../../components/knowledge/Knowledge.module.css';
+import styles from './Ask.module.css';
 
 function AskContent({ token, sessionVersion }: { token: string; sessionVersion: number }) {
   const navigate = useNavigate();
@@ -160,26 +149,17 @@ function AskContent({ token, sessionVersion }: { token: string; sessionVersion: 
     }
   };
   const radio = (value: AskMode, label: string, description: string, disabled = false) => (
-    <Box
-      borderWidth="1px"
-      borderColor={mode === value ? 'accent.teal' : 'border'}
-      borderRadius="md"
-      borderStyle={disabled ? 'dashed' : 'solid'}
-      p={3}
+    <div
+      className={styles.mode}
+      data-selected={mode === value || undefined}
+      data-disabled={disabled || undefined}
     >
       {/* No dimming: the help text says why the mode is unavailable, so it keeps full contrast. */}
-      <chakra.label
-        display="flex"
-        gap={3}
-        alignItems="flex-start"
-        cursor={disabled ? 'not-allowed' : 'pointer'}
-        fontWeight="semibold"
-      >
-        <chakra.input
+      <label className={styles.modeLabel}>
+        <input
           type="radio"
           name="ask-mode"
           value={value}
-          mt={1}
           checked={mode === value}
           disabled={disabled}
           aria-describedby={'ask-mode-' + value + '-help'}
@@ -190,31 +170,28 @@ function AskContent({ token, sessionVersion }: { token: string; sessionVersion: 
           }}
         />
         {label}
-      </chakra.label>
-      <Text id={'ask-mode-' + value + '-help'} fontSize="sm" color="fg.muted" ms={7}>
+      </label>
+      <p
+        id={'ask-mode-' + value + '-help'}
+        className={'os-text-sm os-text-muted ' + styles.modeHelp}
+      >
         {description}
-      </Text>
-    </Box>
+      </p>
+    </div>
   );
   return (
-    <VStack align="stretch" gap={6} maxW="960px" w="full">
-      <Box>
-        <Link asChild color="accent.teal">
-          <RouterLink to="/knowledge">Back to Knowledge</RouterLink>
-        </Link>
-        <Heading as="h1" mt={2}>
-          Ask TaskForge
-        </Heading>
-        <Text color="fg.muted" mt={2}>
+    <Stack gap={6} className={knowledgeStyles.page}>
+      <div>
+        <RouterLink to="/knowledge">Back to Knowledge</RouterLink>
+        <h1 className="tf-h1 os-mt-2 os-mb-0">Ask TaskForge</h1>
+        <p className="os-text-muted os-mt-2 os-mb-0">
           Ask about your private knowledge sources. Every answer links to the exact source excerpt
           and version it came from. Citations show where text came from, not that it is true.
-        </Text>
-      </Box>
-      <chakra.fieldset borderWidth="0" p={0} m={0} minW={0}>
-        <chakra.legend fontWeight="semibold" mb={3}>
-          Choose how to ask
-        </chakra.legend>
-        <VStack align="stretch" gap={3}>
+        </p>
+      </div>
+      <fieldset>
+        <legend className="os-font-semibold os-mb-3">Choose how to ask</legend>
+        <Stack gap={3}>
           {radio(
             'keyword',
             'Find cited sources (keyword, no AI)',
@@ -232,199 +209,185 @@ function AskContent({ token, sessionVersion }: { token: string; sessionVersion: 
                 : 'Checking AI capability…',
             !groundedReady,
           )}
-        </VStack>
-      </chakra.fieldset>
-      <Text role="status" aria-live="polite" aria-atomic="true">
+        </Stack>
+      </fieldset>
+      <p role="status" aria-live="polite" aria-atomic="true" className="os-m-0">
         {announcement}
-      </Text>
+      </p>
       {mode === 'keyword' && (
-        <Box borderWidth="1px" borderColor="border" borderRadius="lg" p={{ base: 4, md: 6 }}>
-          <chakra.form onSubmit={(event) => void find(event)}>
-            <Heading as="h2" size="md" mb={4}>
-              Find cited sources
-            </Heading>
-            <Field.Root disabled={search.pending}>
-              <Field.Label htmlFor="ask-keywords">Words to look for</Field.Label>
+        <div className="tf-panel os-p-4 md:os-p-6">
+          <form onSubmit={(event) => void find(event)}>
+            <h2 className="tf-h2 os-mt-0 os-mb-4">Find cited sources</h2>
+            <Field
+              label="Words to look for"
+              id="ask-keywords"
+              disabled={search.pending}
+              hint="Up to 120 bytes and 8 words. Shows at most 10 exact excerpts."
+            >
               <Input
-                id="ask-keywords"
                 value={keywordQuery}
                 onChange={(event) => {
                   setKeywordQuery(event.target.value);
                   setResults(null);
                 }}
               />
-              <Field.HelperText>
-                Up to 120 bytes and 8 words. Shows at most 10 exact excerpts.
-              </Field.HelperText>
-            </Field.Root>
-            <Field.Root mt={3} disabled={!projects.loaded || search.pending}>
-              <Field.Label htmlFor="ask-project">Limit to project</Field.Label>
-              <NativeSelect.Root>
-                <NativeSelect.Field
-                  id="ask-project"
-                  value={project ?? ''}
-                  onChange={(event) => {
-                    setProject(event.target.value || null);
-                    setResults(null);
-                  }}
-                >
-                  <option value="">All my sources</option>
-                  {projects.items.map((item) => (
-                    <option key={getProjectId(item)} value={getProjectId(item)}>
-                      {item.name}
-                    </option>
-                  ))}
-                </NativeSelect.Field>
-                <NativeSelect.Indicator />
-              </NativeSelect.Root>
-            </Field.Root>
+            </Field>
+            <Field
+              label="Limit to project"
+              id="ask-project"
+              className="os-mt-3"
+              disabled={!projects.loaded || search.pending}
+            >
+              <Select
+                value={project ?? ''}
+                onChange={(event) => {
+                  setProject(event.target.value || null);
+                  setResults(null);
+                }}
+              >
+                <option value="">All my sources</option>
+                {projects.items.map((item) => (
+                  <option key={getProjectId(item)} value={getProjectId(item)}>
+                    {item.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
             <Button
               type="submit"
-              mt={3}
-              colorPalette="teal"
+              className="os-mt-3"
+              color="primary"
               disabled={search.pending || !validKnowledgeQuery(keywordQuery)}
             >
               Find sources
             </Button>
-          </chakra.form>
+          </form>
           {search.waiting && (
-            <Button mt={3} variant="outline" onClick={search.cancel}>
+            <Button className="os-mt-3" variant="outline" onClick={search.cancel}>
               Stop waiting for search
             </Button>
           )}
           {searchError && (
-            <Text role="alert" mt={3}>
+            <p role="alert" className="os-mt-3 os-mb-0">
               {searchError}
-            </Text>
+            </p>
           )}
           {results && (
-            <Box mt={4}>
-              <Heading as="h3" size="sm" mb={2}>
+            <div className="os-mt-4">
+              <h3 className="tf-h3 os-mt-0 os-mb-2">
                 {results.results.length
                   ? results.results.length +
                     (results.results.length === 1 ? ' cited source' : ' cited sources')
                   : 'No matching sources'}
-              </Heading>
+              </h3>
               {!results.results.length && (
-                <Text>
+                <p className="os-m-0">
                   Nothing in your sources matched those words. Try different words or add a source
                   on the Knowledge page.
-                </Text>
+                </p>
               )}
-              <chakra.ol listStyleType="none" p={0} m={0}>
+              <ol className="os-list-unstyled os-m-0 os-p-0">
                 {results.results.map((hit) => (
-                  <chakra.li key={hit.sourceId} borderTopWidth="1px" borderColor="border" py={3}>
-                    <Link asChild color="accent.teal" overflowWrap="anywhere">
-                      <RouterLink
-                        to={'/knowledge/' + encodeURIComponent(hit.sourceId)}
-                        state={{ citation: hit }}
-                      >
-                        {hit.title} — version {hit.version}
-                      </RouterLink>
-                    </Link>
-                    <Text fontSize="sm" color="fg.muted">
+                  <li key={hit.sourceId} className="os-border-top os-py-3">
+                    <RouterLink
+                      to={'/knowledge/' + encodeURIComponent(hit.sourceId)}
+                      state={{ citation: hit }}
+                      className={knowledgeStyles.anywhere}
+                    >
+                      {hit.title} — version {hit.version}
+                    </RouterLink>
+                    <p className="os-text-sm os-text-muted os-m-0">
                       {hit.matchedInContent
                         ? 'Text match; exact source excerpt. Open to check it against the current version.'
                         : 'Title match; excerpt shown for context only.'}
-                    </Text>
-                    <chakra.blockquote
-                      mt={1}
-                      ps={3}
-                      borderStartWidth="2px"
-                      borderColor="border"
-                      whiteSpace="pre-wrap"
-                      overflowWrap="anywhere"
-                    >
-                      {hit.citation.quote}
-                    </chakra.blockquote>
-                  </chakra.li>
+                    </p>
+                    <blockquote className={knowledgeStyles.quote}>{hit.citation.quote}</blockquote>
+                  </li>
                 ))}
-              </chakra.ol>
-            </Box>
+              </ol>
+            </div>
           )}
-        </Box>
+        </div>
       )}
       {mode === 'grounded' && groundedReady && (
-        <Box borderWidth="1px" borderColor="border" borderRadius="lg" p={{ base: 4, md: 6 }}>
-          <chakra.form onSubmit={(event) => void ask(event)}>
-            <Heading as="h2" size="md" mb={2}>
-              Ask for a grounded answer
-            </Heading>
-            <Text color="fg.muted" mb={4}>
+        <div className="tf-panel os-p-4 md:os-p-6">
+          <form onSubmit={(event) => void ask(event)}>
+            <h2 className="tf-h2 os-mt-0 os-mb-2">Ask for a grounded answer</h2>
+            <p className="os-text-muted os-mt-0 os-mb-4">
               This creates a queued Run for an assigned agent with knowledge access. On the next
               page you choose Execute to run the local model; nothing runs automatically. The
               configured local model has not been verified and can still fail.
-            </Text>
-            {!resourcesReady && <Text>Task and agent data must load before you can ask.</Text>}
+            </p>
+            {!resourcesReady && (
+              <p className="os-mt-0">Task and agent data must load before you can ask.</p>
+            )}
             {resourcesReady && !eligible.length && (
-              <Text>
+              <p className="os-mt-0">
                 No task is assigned to an active agent with task read, draft and knowledge read
                 permissions. Update an agent in Workforce and assign it a task first.
-              </Text>
+              </p>
             )}
-            <Field.Root disabled={write.pending || uncertain || !resourcesReady} required>
-              <Field.Label htmlFor="ask-task">Task and agent</Field.Label>
-              <NativeSelect.Root>
-                <NativeSelect.Field
-                  id="ask-task"
-                  value={taskId}
-                  onChange={(event) => {
-                    setTaskId(event.target.value);
-                    setIncludeProject(false);
-                  }}
-                >
-                  <option value="">Choose an assigned task</option>
-                  {eligible.map((task) => (
-                    <option key={getTaskId(task)} value={getTaskId(task)}>
-                      {task.title} —{' '}
-                      {agents.items.find((agent) => getAgentId(agent) === task.assigneeAgent)
-                        ?.name ?? 'Agent'}
-                    </option>
-                  ))}
-                </NativeSelect.Field>
-                <NativeSelect.Indicator />
-              </NativeSelect.Root>
-            </Field.Root>
-            <Field.Root
-              mt={3}
+            <Field
+              label="Task and agent"
+              id="ask-task"
+              disabled={write.pending || uncertain || !resourcesReady}
+              required
+            >
+              <Select
+                value={taskId}
+                onChange={(event) => {
+                  setTaskId(event.target.value);
+                  setIncludeProject(false);
+                }}
+              >
+                <option value="">Choose an assigned task</option>
+                {eligible.map((task) => (
+                  <option key={getTaskId(task)} value={getTaskId(task)}>
+                    {task.title} —{' '}
+                    {agents.items.find((agent) => getAgentId(agent) === task.assigneeAgent)?.name ??
+                      'Agent'}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field
+              label="Your question"
+              id="ask-question"
+              className="os-mt-3"
               disabled={write.pending || uncertain}
               required
-              invalid={questionBytes > GROUNDED_QUESTION_MAX_BYTES}
+              hint={
+                <>
+                  {questionBytes} of {GROUNDED_QUESTION_MAX_BYTES} bytes. Your sources are treated
+                  as untrusted text; instructions inside them are ignored.
+                </>
+              }
+              error={
+                questionBytes > GROUNDED_QUESTION_MAX_BYTES
+                  ? 'Shorten the question to 480 bytes or fewer.'
+                  : undefined
+              }
             >
-              <Field.Label htmlFor="ask-question">Your question</Field.Label>
-              <Textarea
-                id="ask-question"
-                value={question}
-                onChange={(event) => setQuestion(event.target.value)}
-              />
-              <Field.HelperText>
-                {questionBytes} of {GROUNDED_QUESTION_MAX_BYTES} bytes. Your sources are treated as
-                untrusted text; instructions inside them are ignored.
-              </Field.HelperText>
-              {questionBytes > GROUNDED_QUESTION_MAX_BYTES && (
-                <Field.ErrorText>Shorten the question to 480 bytes or fewer.</Field.ErrorText>
-              )}
-            </Field.Root>
-            <chakra.label display="flex" gap={2} alignItems="center" mt={3}>
-              <chakra.input
-                type="checkbox"
-                checked={includeProject}
-                disabled={write.pending || uncertain || !projectAllowed}
-                aria-describedby="ask-include-project-help"
-                onChange={(event) => setIncludeProject(event.target.checked)}
-              />
-              Search this task’s project sources instead
-            </chakra.label>
-            <Text id="ask-include-project-help" fontSize="sm" color="fg.muted">
+              <Textarea value={question} onChange={(event) => setQuestion(event.target.value)} />
+            </Field>
+            <Checkbox
+              className="os-mt-3"
+              label="Search this task’s project sources instead"
+              checked={includeProject}
+              disabled={write.pending || uncertain || !projectAllowed}
+              aria-describedby="ask-include-project-help"
+              onChange={(event) => setIncludeProject(event.target.checked)}
+            />
+            <p id="ask-include-project-help" className="os-text-sm os-text-muted os-m-0">
               Unchecked, TaskForge searches only your sources that have no project.{' '}
               {projectAllowed
                 ? 'Checked, it searches only sources linked to the task’s project.'
                 : 'Project search needs a task with a project and an agent with project read permission.'}
-            </Text>
-            <HStack mt={4} flexWrap="wrap">
+            </p>
+            <div className="os-flex os-flex-wrap os-items-center os-gap-2 os-mt-4">
               <Button
                 type="submit"
-                colorPalette="teal"
+                color="primary"
                 disabled={write.pending || !selected || !validGroundedQuestion(question)}
               >
                 {uncertain ? 'Retry same request' : 'Create question run'}
@@ -442,19 +405,19 @@ function AskContent({ token, sessionVersion }: { token: string; sessionVersion: 
                   Start a new question
                 </Button>
               )}
-            </HStack>
-          </chakra.form>
+            </div>
+          </form>
           {createError && (
-            <Box mt={3}>
-              <Text role="alert">{createError}</Text>
-              <Link asChild color="accent.teal">
-                <RouterLink to="/workforce/runs">Open Run activity</RouterLink>
-              </Link>
-            </Box>
+            <div className="os-mt-3">
+              <p role="alert" className="os-m-0">
+                {createError}
+              </p>
+              <RouterLink to="/workforce/runs">Open Run activity</RouterLink>
+            </div>
           )}
-        </Box>
+        </div>
       )}
-    </VStack>
+    </Stack>
   );
 }
 

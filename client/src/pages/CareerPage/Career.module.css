@@ -1,0 +1,24 @@
+/* Career page layout helpers that OneSmallUI utilities do not cover. */
+
+/* Long names, titles and notes wrap anywhere instead of overflowing on phones. */
+.wrap {
+  overflow-wrap: anywhere;
+}
+
+/* Notes keep the line breaks the user typed. */
+.preWrap {
+  white-space: pre-wrap;
+}
+
+/* A form field that grows to share a wrapping row, but never narrower than 12rem. */
+.grow {
+  flex: 1 1 0%;
+  min-width: 12rem;
+}
+
+/* An inline text link followed by its icon. */
+.iconLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}

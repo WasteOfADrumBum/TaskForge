@@ -1,4 +1,4 @@
-import { Button, HStack } from '@chakra-ui/react';
+import { Button, Stack } from '@onesmall/ui';
 import { useEffect, useRef, useState } from 'react';
 
 // A Delete button that asks for a second, confirming press. Focus follows the controls as they
@@ -27,11 +27,11 @@ const ConfirmDeleteButton = ({
     setConfirming(next);
   };
   return confirming ? (
-    <HStack gap={2}>
+    <Stack direction="row" gap={2}>
       <Button
         ref={confirmRef}
         size="xs"
-        colorPalette="red"
+        color="danger"
         // aria-disabled rather than disabled, so focus stays here while the delete runs and
         // after a failure.
         aria-disabled={busy || undefined}
@@ -45,7 +45,7 @@ const ConfirmDeleteButton = ({
       <Button size="xs" variant="ghost" onClick={() => toggle(false)} aria-label={'Keep: ' + name}>
         Keep
       </Button>
-    </HStack>
+    </Stack>
   ) : (
     <Button
       ref={startRef}

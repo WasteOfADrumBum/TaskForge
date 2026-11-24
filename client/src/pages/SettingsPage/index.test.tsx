@@ -6,11 +6,11 @@ import SettingsPage from './index';
 
 beforeEach(() => {
   localStorage.clear();
-  document.documentElement.classList.remove('light', 'dark');
+  document.documentElement.removeAttribute('data-os-theme');
 });
 afterEach(() => {
   localStorage.clear();
-  document.documentElement.classList.remove('light', 'dark');
+  document.documentElement.removeAttribute('data-os-theme');
 });
 const renderSettings = () =>
   render(
@@ -54,13 +54,13 @@ describe('Settings honest controls and theme accessibility', () => {
     await waitFor(() => expect(light).toHaveAttribute('aria-pressed', 'true'));
     expect(dark).toHaveAttribute('aria-pressed', 'false');
     expect(system).toHaveAttribute('aria-pressed', 'false');
-    expect(document.documentElement).toHaveClass('light');
+    expect(document.documentElement).toHaveAttribute('data-os-theme', 'light');
     expect(localStorage.getItem('theme')).toBe('light');
     await userEvent.tab();
     expect(dark).toHaveFocus();
     await userEvent.keyboard('{Enter}');
     await waitFor(() => expect(dark).toHaveAttribute('aria-pressed', 'true'));
-    expect(document.documentElement).toHaveClass('dark');
+    expect(document.documentElement).toHaveAttribute('data-os-theme', 'dark');
     expect(localStorage.getItem('theme')).toBe('dark');
     system.focus();
     await userEvent.keyboard('{Enter}');
@@ -70,7 +70,7 @@ describe('Settings honest controls and theme accessibility', () => {
     expect(localStorage.getItem('theme')).toBe('system');
   });
 
-  it('restores the saved theme through the real next-themes provider after remount', async () => {
+  it('restores the saved theme through the real theme provider after remount', async () => {
     const first = renderSettings();
     await userEvent.click(screen.getByRole('button', { name: 'Light' }));
     await waitFor(() => expect(localStorage.getItem('theme')).toBe('light'));
@@ -80,6 +80,6 @@ describe('Settings honest controls and theme accessibility', () => {
       expect(screen.getByRole('button', { name: 'Light' })).toHaveAttribute('aria-pressed', 'true'),
     );
     expect(screen.getByRole('button', { name: 'Dark' })).toHaveAttribute('aria-pressed', 'false');
-    expect(document.documentElement).toHaveClass('light');
+    expect(document.documentElement).toHaveAttribute('data-os-theme', 'light');
   });
 });

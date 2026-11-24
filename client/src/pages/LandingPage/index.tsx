@@ -1,120 +1,90 @@
-import { Box, Button, Heading, HStack, SimpleGrid, Text, VStack } from '@chakra-ui/react';
+import { Grid, Stack } from '@onesmall/ui';
 import { LuChartNoAxesCombined, LuLockKeyhole, LuListChecks } from 'react-icons/lu';
-import { Link } from 'react-router-dom';
 import AppFooter from '../../components/layout/AppFooter';
 import Brand from '../../components/layout/Brand';
+import { LinkButton } from '../../components/ui/links';
+import styles from './Landing.module.css';
 
 const features = [
   {
     icon: LuListChecks,
     title: 'Plan clearly',
     text: 'Create tasks with priorities, due dates, workflow tracking, search, filters, and sorting.',
-    color: 'orange',
+    color: 'secondary',
   },
   {
     icon: LuChartNoAxesCombined,
     title: 'Stay focused',
     text: 'See workload metrics, overdue work, completion status, and the tasks that need attention.',
-    color: 'blue',
+    color: 'info',
   },
   {
     icon: LuLockKeyhole,
     title: 'Work securely',
     text: 'JWT authentication and user-scoped data keep every workspace isolated to its owner.',
-    color: 'cyan',
+    color: 'primary',
   },
-];
+] as const;
 
 const LandingPage = () => (
-  <Box minH="100vh" bg="bg.subtle" display="flex" flexDirection="column">
-    <Box as="header" borderBottomWidth="1px" bg="bg.panel">
-      <HStack maxW="7xl" mx="auto" px={{ base: 4, md: 6 }} py={3} justify="space-between">
+  <div className={styles.page}>
+    <header className={styles.header}>
+      <div className={styles.headerInner}>
         <Brand compact />
-        <HStack>
-          <Button asChild variant="ghost">
-            <Link to="/login">Log in</Link>
-          </Button>
-          <Button asChild colorPalette="orange">
-            <Link to="/register">Get started</Link>
-          </Button>
-        </HStack>
-      </HStack>
-    </Box>
-    <Box as="main" flex="1">
-      <Box maxW="7xl" mx="auto" px={{ base: 4, md: 6 }} py={{ base: 14, md: 20 }}>
-        <VStack textAlign="center" gap={6} maxW="4xl" mx="auto">
+        <Stack direction="row" gap={2}>
+          <LinkButton to="/login" variant="ghost">
+            Log in
+          </LinkButton>
+          <LinkButton to="/register" color="secondary">
+            Get started
+          </LinkButton>
+        </Stack>
+      </div>
+    </header>
+    <main className={styles.main}>
+      <div className={styles.content}>
+        <Stack gap={6} align="center" className={styles.hero}>
           <Brand hero />
-          <Heading as="h1" size={{ base: '3xl', md: '5xl' }}>
-            Turn your workload into a clear plan.
-          </Heading>
-          <Text fontSize={{ base: 'lg', md: 'xl' }} color="fg.muted" maxW="3xl">
+          <h1 className={styles.title}>Turn your workload into a clear plan.</h1>
+          <p className={styles.lead}>
             TaskForge is a secure productivity workspace for organizing tasks, priorities, due
             dates, and progress without unnecessary complexity.
-          </Text>
-          <HStack gap={3} flexWrap="wrap" justify="center">
-            <Button asChild size="lg" colorPalette="orange">
-              <Link to="/register">Create an account</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" colorPalette="blue">
-              <Link to="/login">Sign in</Link>
-            </Button>
-          </HStack>
-        </VStack>
-        <SimpleGrid columns={{ base: 1, md: 3 }} gap={5} mt={{ base: 14, md: 20 }}>
+          </p>
+          <Stack direction="row" gap={3} wrap justify="center">
+            <LinkButton to="/register" size="lg" color="secondary">
+              Create an account
+            </LinkButton>
+            <LinkButton to="/login" size="lg" variant="outline" color="info">
+              Sign in
+            </LinkButton>
+          </Stack>
+        </Stack>
+        <Grid columns={{ base: 1, md: 3 }} gap={5} className={styles.section}>
           {features.map(({ icon: Icon, title, text, color }) => (
-            <Box
-              key={title}
-              bg="bg.panel"
-              borderWidth="1px"
-              borderTopWidth="3px"
-              borderTopColor={color + '.400'}
-              borderRadius="xl"
-              p={6}
-              transition="all 0.18s ease"
-              _hover={{ transform: 'translateY(-2px)', boxShadow: 'md' }}
-            >
-              <HStack gap={3} mb={4}>
-                <Box
-                  display="grid"
-                  placeItems="center"
-                  boxSize="10"
-                  borderRadius="lg"
-                  bg={color + '.subtle'}
-                  color={color + '.fg'}
-                  flexShrink={0}
-                >
+            <div key={title} className={`tf-panel ${styles.feature}`} data-color={color}>
+              <div className="os-flex os-items-center os-gap-3 os-mb-4">
+                <span className={styles.featureIcon}>
                   <Icon size={20} aria-hidden="true" focusable="false" />
-                </Box>
-                <Heading as="h2" size="md">
-                  {title}
-                </Heading>
-              </HStack>
-              <Text color="fg.muted">{text}</Text>
-            </Box>
+                </span>
+                <h2 className="tf-h2 os-m-0">{title}</h2>
+              </div>
+              <p className="os-text-muted os-m-0">{text}</p>
+            </div>
           ))}
-        </SimpleGrid>
-        <Box
-          mt={{ base: 14, md: 20 }}
-          bg="bg.panel"
-          borderWidth="1px"
-          borderRadius="2xl"
-          p={{ base: 6, md: 10 }}
-          textAlign="center"
-        >
-          <Text color="blue.400" fontSize="sm" textTransform="uppercase" letterSpacing="widest">
-            Built with
-          </Text>
-          <Heading as="h2" size="lg" mt={2}>
+        </Grid>
+        <div className={`tf-panel ${styles.section} ${styles.stack}`}>
+          <p className={styles.eyebrow}>Built with</p>
+          <h2 className="tf-h2 os-mt-2 os-mb-0">
             React · TypeScript · Node.js · Express · MongoDB
-          </Heading>
-          <Text color="fg.muted" mt={3}>
+          </h2>
+          <p className="os-text-muted os-mt-3 os-mb-0 os-mx-auto">
             Deployed with Vercel, Render, and MongoDB Atlas.
-          </Text>
-        </Box>
-      </Box>
-    </Box>
+          </p>
+        </div>
+      </div>
+    </main>
     <AppFooter />
-  </Box>
+  </div>
 );
 
 export default LandingPage;

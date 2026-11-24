@@ -1,0 +1,37 @@
+.page {
+  min-height: 100vh;
+  background-color: var(--os-bg);
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding: 1.25rem 1rem;
+}
+.main {
+  max-width: 28rem;
+  margin-inline: auto;
+  padding: 2.5rem 1rem;
+}
+/* The form card on sign-in, registration and recovery pages. */
+.card {
+  padding: 1.5rem;
+  background-color: var(--os-surface);
+  border: 1px solid var(--os-border);
+  border-radius: var(--os-radius-xl);
+  box-shadow: var(--os-shadow-sm, 0 1px 2px rgb(0 0 0 / 0.08));
+}
+@media (min-width: 768px) {
+  .header {
+    padding-inline: 1.5rem;
+  }
+  .main {
+    padding-block: 5rem;
+  }
+  .card {
+    padding: 2rem;
+  }
+}

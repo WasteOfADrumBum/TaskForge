@@ -17,7 +17,7 @@ Rule: only mark an item COMPLETE after it is implemented and validated. Planned 
 ## Permanent constraint: $0 extra cost
 
 TaskForge must add **$0 in recurring infrastructure or API cost** unless that cost is explicitly approved.
-Free-first stack: React + Vite, Chakra UI, TypeScript, Node/Express, MongoDB Atlas (free tier), Vercel (free), Render (free), GitHub Actions, and local AI where practical.
+Free-first stack: React + Vite, OneSmallUI (`@onesmall/ui`), TypeScript, Node/Express, MongoDB Atlas (free tier), Vercel (free), Render (free), GitHub Actions, and local AI where practical.
 AI features go through a provider abstraction and are never hard-wired to one paid provider. See [Phase 2](phases/phase-2-ai-workforce.md#ai-provider-abstraction).
 
 ---

@@ -1,14 +1,5 @@
 import RequestFeedback from '../ui/RequestFeedback';
-import {
-  Box,
-  CloseButton,
-  Drawer,
-  Flex,
-  Portal,
-  SkipNavContent,
-  SkipNavLink,
-  Text,
-} from '@chakra-ui/react';
+import { Drawer, SkipLink } from '@onesmall/ui';
 import { Suspense, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useAgentLoader } from '../../hooks/useAgentLoader';
@@ -18,8 +9,9 @@ import { useAppSelector } from '../../redux/hooks/typedHooks';
 import AppFooter from './AppFooter';
 import Sidebar from './Sidebar';
 import TopBar, { MOBILE_NAV_ID } from './TopBar';
+import styles from './Shell.module.css';
 
-const SIDEBAR_WIDTH = '248px';
+const MAIN_ID = 'main-content';
 
 // Authenticated layout: persistent sidebar on large screens, a drawer below `lg`.
 const AppShell = () => {
@@ -48,64 +40,33 @@ const AppShell = () => {
   const closeNav = () => setNavOpen(false);
 
   return (
-    <Box minH="100vh" bg="bg">
-      <SkipNavLink>Skip to content</SkipNavLink>
-      <Box
-        as="aside"
-        aria-label="Sidebar"
-        display={{ base: 'none', lg: 'block' }}
-        position="fixed"
-        insetY="0"
-        left="0"
-        w={SIDEBAR_WIDTH}
-        bg="shell.sidebar"
-        borderRightWidth="1px"
-        overflowY="auto"
-        zIndex="sticky"
-      >
+    <div className={styles.shell}>
+      <SkipLink targetId={MAIN_ID}>Skip to content</SkipLink>
+      <aside aria-label="Sidebar" className={styles.aside}>
         <Sidebar />
-      </Box>
-      {/* Set the content id through `ids`: an `id` prop on Drawer.Content would break the
-          dialog's focus trap and Escape handling, which look the element up by id. */}
-      <Drawer.Root
-        open={navOpen}
-        onOpenChange={(details) => setNavOpen(details.open)}
-        placement="start"
-        ids={{ content: MOBILE_NAV_ID }}
-        lazyMount
-        unmountOnExit
-      >
-        <Portal>
-          <Drawer.Backdrop />
-          <Drawer.Positioner>
-            <Drawer.Content bg="shell.sidebar" maxW="280px">
-              <Drawer.Title srOnly>Navigation</Drawer.Title>
-              <Drawer.CloseTrigger asChild top="4" insetEnd="3">
-                <CloseButton size="sm" aria-label="Close navigation" />
-              </Drawer.CloseTrigger>
-              <Sidebar onNavigate={closeNav} />
-            </Drawer.Content>
-          </Drawer.Positioner>
-        </Portal>
-      </Drawer.Root>
-      <Flex direction="column" minH="100vh" ml={{ base: 0, lg: SIDEBAR_WIDTH }} minW="0">
+      </aside>
+      {navOpen && (
+        <Drawer
+          id={MOBILE_NAV_ID}
+          open={navOpen}
+          onClose={closeNav}
+          title="Navigation"
+          closeLabel="Close navigation"
+          placement="start"
+          size="sm"
+          className={styles.drawer}
+        >
+          <Sidebar onNavigate={closeNav} />
+        </Drawer>
+      )}
+      <div className={styles.column}>
         <TopBar
           navOpen={navOpen}
           onOpenNav={() => setNavOpen(true)}
           onRefresh={refresh}
           refreshing={loading}
         />
-        <SkipNavContent />
-        <Box
-          as="main"
-          flex="1"
-          w="full"
-          maxW="1600px"
-          mx="auto"
-          minW="0"
-          px={{ base: 4, md: 6, xl: 9 }}
-          py={{ base: 6, md: 8 }}
-        >
+        <main id={MAIN_ID} tabIndex={-1} className={styles.main}>
           {waiting && loading ? (
             <RequestFeedback
               message="TaskForge may be waking up. Your data is still loading."
@@ -123,13 +84,13 @@ const AppShell = () => {
           ) : recovered && !loading ? (
             <RequestFeedback message="Your data is up to date." />
           ) : null}
-          <Suspense fallback={<Text color="fg.muted">Loading...</Text>}>
+          <Suspense fallback={<p className="os-text-muted os-m-0">Loading...</p>}>
             <Outlet />
           </Suspense>
-        </Box>
+        </main>
         <AppFooter />
-      </Flex>
-    </Box>
+      </div>
+    </div>
   );
 };
 

@@ -1,18 +1,4 @@
-import {
-  Badge,
-  Box,
-  Button,
-  chakra,
-  Field,
-  Heading,
-  HStack,
-  Input,
-  Link,
-  NativeSelect,
-  Text,
-  Textarea,
-  VStack,
-} from '@chakra-ui/react';
+import { Badge, Button, Field, Input, Select, Stack, Textarea } from '@onesmall/ui';
 import { useMemo, useRef, useState, type FormEvent } from 'react';
 import { LuExternalLink, LuPlus } from 'react-icons/lu';
 import { Link as RouterLink } from 'react-router-dom';
@@ -49,13 +35,7 @@ import {
 } from '../../utils/learning';
 import { getPortfolioIdeas, hasOpenProject, type PortfolioIdea } from '../../utils/portfolio';
 import { getOpenJobGaps, TOP_GAP_LIMIT } from '../../utils/skillGrowth';
-
-const panel = {
-  bg: 'bg.panel',
-  borderWidth: '1px',
-  borderRadius: 'lg',
-  p: { base: 4, md: 5 },
-} as const;
+import styles from './Learning.module.css';
 
 const TITLE_ERROR = 'Give the item a title.';
 const SKILL_ERROR = 'Use letters, numbers, spaces or hyphens for the skill, up to 40.';
@@ -94,31 +74,28 @@ const LearningRow = ({
     .filter(Boolean)
     .join(' · ');
   return (
-    <Box as="li" py={3} borderTopWidth="1px" borderColor="border.muted">
-      <Text fontWeight="medium" overflowWrap="anywhere">
-        {item.title}
-      </Text>
-      <Text fontSize="sm" color="fg.muted">
-        {meta}
-      </Text>
+    <li className="os-py-3 os-border-top">
+      <p className={`os-font-medium os-m-0 os-max-w-none ${styles.wrap}`}>{item.title}</p>
+      <p className="os-text-sm os-text-muted os-m-0">{meta}</p>
       {item.notes && (
-        <Text fontSize="sm" color="fg.muted" overflowWrap="anywhere" whiteSpace="pre-wrap">
+        <p
+          className={`os-text-sm os-text-muted os-m-0 os-max-w-none ${styles.wrap} ${styles.preWrap}`}
+        >
           {item.notes}
-        </Text>
+        </p>
       )}
-      <HStack gap={2} mt={2} flexWrap="wrap">
+      <div className="os-flex os-items-center os-gap-2 os-mt-2 os-flex-wrap">
         {link && (
-          <Link
+          <a
             href={link}
             target="_blank"
             rel="noopener noreferrer"
-            fontSize="sm"
-            color="accent.teal"
+            className={`os-text-sm ${styles.iconLink}`}
             aria-label={'Open link: ' + item.title + ' (opens in a new tab)'}
           >
             Open link
             <LuExternalLink aria-hidden="true" focusable="false" />
-          </Link>
+          </a>
         )}
         {moves[item.status].map(([label, next]) => (
           <Button
@@ -136,8 +113,8 @@ const LearningRow = ({
           </Button>
         ))}
         <ConfirmDeleteButton name={item.title} busy={busy} onConfirm={onDelete} />
-      </HStack>
-    </Box>
+      </div>
+    </li>
   );
 };
 
@@ -273,136 +250,129 @@ const LearningPage = () => {
   const roadmapBlocked = !items.loaded && !!items.error && !items.pending;
 
   return (
-    <VStack align="stretch" gap={{ base: 6, md: 8 }}>
-      <Box>
-        <Heading as="h1" size={{ base: '2xl', md: '3xl' }}>
-          Learning
-        </Heading>
-        <Text color="fg.muted" mt={1.5}>
+    <Stack gap={{ base: 6, md: 8 }}>
+      <div>
+        <h1 className="tf-h1 os-m-0">Learning</h1>
+        <p className="os-text-muted os-m-0 os-mt-2">
           Your learning roadmap: courses, articles and projects, each tied to a skill if you like.
-        </Text>
-        <Text
+        </p>
+        <p
           ref={statusRef}
           tabIndex={-1}
           role="status"
           aria-live="polite"
-          fontSize="sm"
-          color="fg.muted"
-          mt={1}
-          _focusVisible={{ outline: '2px solid', outlineColor: 'accent.teal' }}
+          className="os-text-sm os-text-muted os-m-0 os-mt-1"
         >
           {status}
-        </Text>
-      </Box>
+        </p>
+      </div>
 
-      <chakra.form onSubmit={onSubmit} noValidate aria-labelledby="new-learning-heading" {...panel}>
-        <Heading as="h2" id="new-learning-heading" size="md" mb={4}>
+      <form
+        onSubmit={onSubmit}
+        noValidate
+        aria-labelledby="new-learning-heading"
+        className="tf-panel os-p-4 md:os-p-5"
+      >
+        <h2 id="new-learning-heading" className="tf-h2 os-m-0 os-mb-4">
           Add to your roadmap
-        </Heading>
-        <VStack align="stretch" gap={4}>
-          <Field.Root required invalid={formError === TITLE_ERROR}>
-            <Field.Label>
-              Title
-              <Field.RequiredIndicator />
-            </Field.Label>
+        </h2>
+        <Stack gap={4}>
+          <Field label="Title" required>
             <Input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               maxLength={LEARNING_TITLE_MAX}
+              invalid={formError === TITLE_ERROR}
             />
-          </Field.Root>
-          <HStack gap={4} align="start" flexWrap="wrap">
-            <Field.Root flex="1" minW="12rem" invalid={formError === SKILL_ERROR}>
-              <Field.Label>Skill (optional)</Field.Label>
+          </Field>
+          <div className="os-flex os-items-start os-gap-4 os-flex-wrap">
+            <Field
+              label="Skill (optional)"
+              hint="Matches the skills on your Career page by name."
+              className={styles.grow}
+            >
               <Input
                 value={skill}
                 onChange={(event) => setSkill(event.target.value)}
                 maxLength={40}
+                invalid={formError === SKILL_ERROR}
               />
-              <Field.HelperText>Matches the skills on your Career page by name.</Field.HelperText>
-            </Field.Root>
-            <Field.Root flex="1" minW="10rem">
-              <Field.Label>Kind</Field.Label>
-              <NativeSelect.Root>
-                <NativeSelect.Field
-                  value={kind}
-                  onChange={(event) => setKind(event.target.value as LearningKind)}
-                >
-                  {LEARNING_KINDS.map((option) => (
-                    <option key={option} value={option}>
-                      {learningKindLabel[option]}
-                    </option>
-                  ))}
-                </NativeSelect.Field>
-                <NativeSelect.Indicator />
-              </NativeSelect.Root>
-            </Field.Root>
-          </HStack>
-          <Field.Root invalid={formError === LINK_ERROR}>
-            <Field.Label>Link (optional, https)</Field.Label>
+            </Field>
+            <Field label="Kind" className={styles.growNarrow}>
+              <Select
+                value={kind}
+                onChange={(event) => setKind(event.target.value as LearningKind)}
+              >
+                {LEARNING_KINDS.map((option) => (
+                  <option key={option} value={option}>
+                    {learningKindLabel[option]}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          </div>
+          <Field label="Link (optional, https)">
             <Input
               type="url"
               value={url}
               onChange={(event) => setUrl(event.target.value)}
               maxLength={LEARNING_URL_MAX}
+              invalid={formError === LINK_ERROR}
             />
-          </Field.Root>
-          <Field.Root>
-            <Field.Label>Target date (optional)</Field.Label>
+          </Field>
+          <Field label="Target date (optional)">
             <Input
               type="date"
               value={targetDate}
               onChange={(event) => setTargetDate(event.target.value)}
-              maxW="12rem"
+              className={styles.dateInput}
             />
-          </Field.Root>
-          <Field.Root>
-            <Field.Label>Notes (optional)</Field.Label>
+          </Field>
+          <Field label="Notes (optional)">
             <Textarea
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
               rows={2}
               maxLength={LEARNING_NOTES_MAX}
             />
-          </Field.Root>
+          </Field>
           {formError && (
-            <Text role="alert" color="fg.error">
+            <p role="alert" className="os-text-danger os-m-0">
               {formError}
-            </Text>
+            </p>
           )}
           {roadmapBlocked && (
-            <Text id="learning-add-blocked" fontSize="sm" color="fg.muted">
+            <p id="learning-add-blocked" className="os-text-sm os-text-muted os-m-0">
               {ROADMAP_FIRST}
-            </Text>
+            </p>
           )}
-          <HStack>
+          <div className="os-flex os-items-center">
             <Button
               type="submit"
-              colorPalette="teal"
               loading={items.isBusy('new')}
               // Adding before the list loads could be overwritten by that first load.
               disabled={!items.loaded}
               aria-describedby={roadmapBlocked ? 'learning-add-blocked' : undefined}
+              leftIcon={<LuPlus aria-hidden="true" focusable="false" />}
             >
-              <LuPlus aria-hidden="true" focusable="false" />
               Add to roadmap
             </Button>
-          </HStack>
-        </VStack>
-      </chakra.form>
+          </div>
+        </Stack>
+      </form>
 
-      <Box as="section" aria-labelledby="learning-gaps" {...panel}>
-        <Heading as="h2" id="learning-gaps" size="md" mb={1}>
+      <section aria-labelledby="learning-gaps" className="tf-panel os-p-4 md:os-p-5">
+        <h2 id="learning-gaps" className="tf-h2 os-m-0 os-mb-1">
           From your skill gaps
-        </Heading>
-        <Text fontSize="sm" color="fg.muted" mb={2}>
+        </h2>
+        <p className="os-text-sm os-text-muted os-m-0 os-mb-2">
           The skills your open saved jobs need that are not in your skills yet. Rule-based.
-        </Text>
+        </p>
         {careerError && !(skills.pending || jobs.pending) ? (
-          <VStack align="start" gap={2}>
-            <Text role="alert" color="fg.error">
+          <Stack gap={2} align="flex-start">
+            <p role="alert" className="os-text-danger os-m-0">
               {careerError}
-            </Text>
+            </p>
             <Button
               size="sm"
               variant="outline"
@@ -413,40 +383,29 @@ const LearningPage = () => {
             >
               Retry loading skill gaps
             </Button>
-          </VStack>
+          </Stack>
         ) : roadmapBlocked ? (
-          <Text color="fg.muted">{ROADMAP_FIRST}</Text>
+          <p className="os-text-muted os-m-0">{ROADMAP_FIRST}</p>
         ) : !careerLoaded || !items.loaded ? (
-          <Text color="fg.muted">Loading your skill gaps...</Text>
+          <p className="os-text-muted os-m-0">Loading your skill gaps...</p>
         ) : gaps.gaps.length ? (
-          <Box
-            as="ul"
+          <ul
             role="list"
-            listStyleType="none"
-            m={0}
-            p={0}
+            className="os-list-unstyled os-m-0 os-p-0"
             aria-label="Skills your open saved jobs need"
           >
             {gaps.gaps.map((gap) => {
               const planned = hasOpenLearning(items.items, gap.skill);
               return (
-                <HStack
-                  as="li"
+                <li
                   key={gap.skill}
-                  justify="space-between"
-                  gap={3}
-                  py={2}
-                  borderTopWidth="1px"
-                  borderColor="border.muted"
-                  flexWrap="wrap"
+                  className="os-flex os-items-center os-justify-between os-gap-3 os-py-2 os-border-top os-flex-wrap"
                 >
-                  <Text overflowWrap="anywhere">
+                  <p className={`os-m-0 ${styles.wrap}`}>
                     {gap.skill}: needed by {gap.jobs} {gap.jobs === 1 ? 'job' : 'jobs'}
-                  </Text>
+                  </p>
                   {planned ? (
-                    <Text fontSize="sm" color="fg.muted">
-                      On your roadmap
-                    </Text>
+                    <p className="os-text-sm os-text-muted os-m-0">On your roadmap</p>
                   ) : (
                     <Button
                       size="xs"
@@ -458,65 +417,52 @@ const LearningPage = () => {
                       Add to roadmap
                     </Button>
                   )}
-                </HStack>
+                </li>
               );
             })}
-          </Box>
+          </ul>
         ) : (
-          <Text color="fg.muted">
+          <p className="os-text-muted os-m-0">
             {gaps.hasOpenJobs
               ? 'Your skills cover every open saved job.'
               : 'Save jobs on the Career page to see the skills they need.'}
-          </Text>
+          </p>
         )}
-        <Link asChild fontSize="sm" color="accent.teal" mt={3} display="inline-block">
-          <RouterLink to="/career">Update skills and jobs in Career</RouterLink>
-        </Link>
-      </Box>
+        <RouterLink to="/career" className="os-text-sm os-inline-block os-mt-3">
+          Update skills and jobs in Career
+        </RouterLink>
+      </section>
 
-      <Box as="section" aria-labelledby="learning-projects" {...panel}>
-        <Heading as="h2" id="learning-projects" size="md" mb={1}>
+      <section aria-labelledby="learning-projects" className="tf-panel os-p-4 md:os-p-5">
+        <h2 id="learning-projects" className="tf-h2 os-m-0 os-mb-1">
           Portfolio project ideas
-        </Heading>
-        <Text fontSize="sm" color="fg.muted" mb={2}>
+        </h2>
+        <p className="os-text-sm os-text-muted os-m-0 os-mb-2">
           Each idea pairs a skill your open saved jobs need with a skill you already have at working
           level or above that those jobs list. Rule-based.
-        </Text>
+        </p>
         {careerError && !(skills.pending || jobs.pending) ? (
-          <Text color="fg.muted">
+          <p className="os-text-muted os-m-0">
             Project ideas need your skills and saved jobs. Use the retry above.
-          </Text>
+          </p>
         ) : roadmapBlocked ? (
-          <Text color="fg.muted">{ROADMAP_FIRST}</Text>
+          <p className="os-text-muted os-m-0">{ROADMAP_FIRST}</p>
         ) : !careerLoaded || !items.loaded ? (
-          <Text color="fg.muted">Loading project ideas...</Text>
+          <p className="os-text-muted os-m-0">Loading project ideas...</p>
         ) : ideas.length ? (
-          <Box
-            as="ul"
+          <ul
             role="list"
-            listStyleType="none"
-            m={0}
-            p={0}
+            className="os-list-unstyled os-m-0 os-p-0"
             aria-label="Portfolio project ideas from your skill gaps"
           >
             {ideas.map((idea) => {
               const planned = hasOpenProject(items.items, idea.skill);
               return (
-                <Box
-                  as="li"
-                  key={idea.skill}
-                  py={2}
-                  borderTopWidth="1px"
-                  borderColor="border.muted"
-                >
-                  <HStack justify="space-between" gap={3} flexWrap="wrap">
-                    <Text fontWeight="medium" overflowWrap="anywhere">
-                      {idea.title}
-                    </Text>
+                <li key={idea.skill} className="os-py-2 os-border-top">
+                  <div className="os-flex os-items-center os-justify-between os-gap-3 os-flex-wrap">
+                    <p className={`os-font-medium os-m-0 ${styles.wrap}`}>{idea.title}</p>
                     {planned ? (
-                      <Text fontSize="sm" color="fg.muted">
-                        On your roadmap
-                      </Text>
+                      <p className="os-text-sm os-text-muted os-m-0">On your roadmap</p>
                     ) : (
                       <Button
                         size="xs"
@@ -528,26 +474,26 @@ const LearningPage = () => {
                         Add project
                       </Button>
                     )}
-                  </HStack>
-                  <Text fontSize="sm" color="fg.muted" overflowWrap="anywhere">
+                  </div>
+                  <p className={`os-text-sm os-text-muted os-m-0 os-max-w-none ${styles.wrap}`}>
                     {idea.notes}
-                  </Text>
-                </Box>
+                  </p>
+                </li>
               );
             })}
-          </Box>
+          </ul>
         ) : (
-          <Text color="fg.muted">
+          <p className="os-text-muted os-m-0">
             {gaps.hasOpenJobs
               ? 'Your skills cover every open saved job, so there are no gaps to build a project around.'
               : 'Save jobs on the Career page to get project ideas from the skills they need.'}
-          </Text>
+          </p>
         )}
-      </Box>
+      </section>
 
       {items.error && !items.pending && (
-        <VStack align="start" gap={2}>
-          <Text color="fg.error">{items.error}</Text>
+        <Stack gap={2} align="flex-start">
+          <p className="os-text-danger os-m-0">{items.error}</p>
           <Button
             size="sm"
             variant="outline"
@@ -558,12 +504,12 @@ const LearningPage = () => {
           >
             Retry loading roadmap
           </Button>
-        </VStack>
+        </Stack>
       )}
       {actionError && (
-        <Text role="alert" color="fg.error">
+        <p role="alert" className="os-text-danger os-m-0">
           {actionError}
-        </Text>
+        </p>
       )}
 
       {items.loaded &&
@@ -571,15 +517,16 @@ const LearningPage = () => {
           const list = learningInStatus(items.items, group);
           if (group === 'done' && list.length === 0) return null;
           return (
-            <Box key={group} as="section" aria-labelledby={'learning-' + group} {...panel}>
-              <Heading as="h2" id={'learning-' + group} size="md" mb={2}>
-                {learningStatusLabel[group]}{' '}
-                <Badge variant="subtle" size="sm">
-                  {list.length}
-                </Badge>
-              </Heading>
+            <section
+              key={group}
+              aria-labelledby={'learning-' + group}
+              className="tf-panel os-p-4 md:os-p-5"
+            >
+              <h2 id={'learning-' + group} className="tf-h2 os-m-0 os-mb-2">
+                {learningStatusLabel[group]} <Badge size="sm">{list.length}</Badge>
+              </h2>
               {list.length ? (
-                <Box as="ul" role="list" listStyleType="none" m={0} p={0}>
+                <ul role="list" className="os-list-unstyled os-m-0 os-p-0">
                   {list.map((item) => (
                     <LearningRow
                       key={getLearningId(item)}
@@ -590,16 +537,16 @@ const LearningPage = () => {
                       onDelete={() => void remove(item)}
                     />
                   ))}
-                </Box>
+                </ul>
               ) : (
-                <Text color="fg.muted">
+                <p className="os-text-muted os-m-0">
                   {group === 'in_progress' ? 'Nothing in progress.' : 'Nothing planned yet.'}
-                </Text>
+                </p>
               )}
-            </Box>
+            </section>
           );
         })}
-    </VStack>
+    </Stack>
   );
 };
 

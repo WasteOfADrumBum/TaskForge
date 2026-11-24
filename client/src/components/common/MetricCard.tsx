@@ -1,4 +1,3 @@
-import { Box, HStack, Text } from '@chakra-ui/react';
 import type { IconType } from 'react-icons';
 
 interface MetricCardProps {
@@ -6,24 +5,26 @@ interface MetricCardProps {
   value: number;
   detail: string;
   icon: IconType;
-  accent?: string;
+  /** Icon color: one of the brand colors, or muted text when left out. */
+  accent?: 'primary' | 'secondary' | 'accent';
 }
 
-const MetricCard = ({ label, value, detail, icon: Icon, accent = 'fg.muted' }: MetricCardProps) => (
-  <Box bg="bg.panel" borderWidth="1px" borderRadius="lg" p={{ base: 4, md: 5 }} minW="0">
-    <HStack justify="space-between" color="fg.muted" fontSize="sm">
-      <Text>{label}</Text>
-      <Box color={accent} aria-hidden="true">
+const MetricCard = ({ label, value, detail, icon: Icon, accent }: MetricCardProps) => (
+  <div className="tf-panel os-p-4 md:os-p-5" style={{ minWidth: 0 }}>
+    <div className="os-flex os-justify-between os-items-center os-text-muted os-text-sm">
+      <span>{label}</span>
+      <span className={accent ? `os-text-${accent}` : undefined} aria-hidden="true">
         <Icon size={18} />
-      </Box>
-    </HStack>
-    <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="semibold" mt={2} lineHeight="1.1">
+      </span>
+    </div>
+    <p
+      className="os-text-2xl md:os-text-3xl os-font-semibold os-mt-2 os-mb-0"
+      style={{ lineHeight: 1.1 }}
+    >
       {value}
-    </Text>
-    <Text color="fg.muted" fontSize="xs" mt={1.5}>
-      {detail}
-    </Text>
-  </Box>
+    </p>
+    <p className="os-text-muted os-text-xs os-mt-1 os-mb-0">{detail}</p>
+  </div>
 );
 
 export default MetricCard;

@@ -1,4 +1,4 @@
-import { Box, Button, Field, Heading, Text, Textarea, VStack } from '@chakra-ui/react';
+import { Button, Field, Stack, Textarea } from '@onesmall/ui';
 import { useEffect, useState, type MouseEvent } from 'react';
 import { LuCopy } from 'react-icons/lu';
 import { isCurrentSession } from '../../api/authenticatedFetch';
@@ -19,6 +19,7 @@ import {
   type Draft,
 } from '../../utils/profileKit';
 import { SessionExpiredError } from '../../utils/session';
+import styles from './ProfileKit.module.css';
 
 interface DraftSpec {
   id: string;
@@ -98,10 +99,10 @@ const ProfileKit = ({ brand, brandsLoaded }: { brand?: BrandProfile; brandsLoade
   let body;
   if (failure && !loaded) {
     body = (
-      <VStack align="start" gap={2}>
-        <Text role="alert" color="fg.error">
+      <Stack gap={2} align="start">
+        <p role="alert" className="os-text-danger os-m-0">
           {failure.replace(/\.$/, '')}. The profile kit needs your resume, skills and goals.
-        </Text>
+        </p>
         <Button
           size="sm"
           variant="outline"
@@ -116,7 +117,7 @@ const ProfileKit = ({ brand, brandsLoaded }: { brand?: BrandProfile; brandsLoade
         >
           Retry loading profile data
         </Button>
-      </VStack>
+      </Stack>
     );
   } else if (!loaded) {
     body = null;
@@ -140,77 +141,75 @@ const ProfileKit = ({ brand, brandsLoaded }: { brand?: BrandProfile; brandsLoade
       { id: 'kit-readme', label: 'GitHub profile README', draft: githubReadme(input), rows: 10 },
     ];
     body = (
-      <Box as="ul" role="list" listStyleType="none" m={0} p={0}>
+      <ul role="list" className="os-list-unstyled os-m-0">
         {specs.map((spec) => (
-          <Box as="li" key={spec.id} py={3} borderTopWidth="1px" borderColor="border.muted">
+          <li key={spec.id} className="os-py-3 os-border-top">
             {'text' in spec.draft ? (
-              <VStack align="stretch" gap={2}>
-                <Field.Root>
-                  <Field.Label>{spec.label}</Field.Label>
+              <Stack gap={2}>
+                <Field
+                  label={spec.label}
+                  hint={
+                    spec.max
+                      ? spec.draft.text.length +
+                        ' of ' +
+                        spec.max +
+                        ' characters' +
+                        (spec.draft.shortened
+                          ? '. Shortened to fit; edit the source text for a complete version.'
+                          : '')
+                      : undefined
+                  }
+                >
                   <Textarea
                     value={spec.draft.text}
                     readOnly
                     rows={spec.rows}
-                    fontFamily={spec.id === 'kit-readme' ? 'mono' : undefined}
+                    className={spec.id === 'kit-readme' ? 'os-font-mono' : undefined}
                   />
-                  {spec.max && (
-                    <Field.HelperText>
-                      {spec.draft.text.length} of {spec.max} characters
-                      {spec.draft.shortened
-                        ? '. Shortened to fit; edit the source text for a complete version.'
-                        : ''}
-                    </Field.HelperText>
-                  )}
-                </Field.Root>
-                <Box>
+                </Field>
+                <div>
                   <Button
                     size="xs"
                     variant="outline"
-                    onClick={(event) =>
+                    onClick={(event: MouseEvent<HTMLButtonElement>) =>
                       void copy(event, spec, (spec.draft as { text: string }).text)
                     }
                     aria-label={'Copy ' + spec.label}
+                    leftIcon={<LuCopy focusable="false" />}
                   >
-                    <LuCopy aria-hidden="true" focusable="false" />
                     Copy
                   </Button>
-                </Box>
-              </VStack>
+                </div>
+              </Stack>
             ) : (
-              <Text fontSize="sm">
-                <Text as="span" fontWeight="semibold">
-                  {spec.label}:
-                </Text>{' '}
-                {spec.draft.missing}
-              </Text>
+              <p className="os-text-sm os-m-0">
+                <span className="os-font-semibold">{spec.label}:</span> {spec.draft.missing}
+              </p>
             )}
-          </Box>
+          </li>
         ))}
-      </Box>
+      </ul>
     );
   }
 
   return (
-    <Box
-      as="section"
-      aria-labelledby="profile-kit-heading"
-      bg="bg.panel"
-      borderWidth="1px"
-      borderRadius="lg"
-      p={{ base: 4, md: 5 }}
-    >
-      <Heading as="h2" id="profile-kit-heading" size="md" mb={1}>
+    <section aria-labelledby="profile-kit-heading" className="tf-panel os-p-4 md:os-p-5">
+      <h2 id="profile-kit-heading" className="tf-h3 os-mt-0 os-mb-1">
         Profile kit
-      </Heading>
-      <Text fontSize="sm" color="fg.muted">
+      </h2>
+      <p className="os-text-sm os-text-muted os-m-0">
         Drafts for LinkedIn and GitHub built from your personal brand, resume, skills and career
         goals. Rule-based: nothing is made up, and nothing is posted for you.
-      </Text>
-      <Text role="status" aria-live="polite" fontSize="sm" color="fg.muted" mt={1} minH={5}>
+      </p>
+      <p
+        role="status"
+        aria-live="polite"
+        className={`os-text-sm os-text-muted os-mt-1 os-mb-0 ${styles.status}`}
+      >
         {status || (!loaded && !failure ? 'Loading your profile data...' : '')}
-      </Text>
+      </p>
       {body}
-    </Box>
+    </section>
   );
 };
 

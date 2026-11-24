@@ -1,4 +1,4 @@
-import { Badge, Heading, HStack, Link } from '@chakra-ui/react';
+import { Badge } from '@onesmall/ui';
 import type { ReactNode } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 
@@ -12,29 +12,23 @@ interface SectionHeaderProps {
 }
 
 const SectionHeader = ({ id, title, count, icon, action, aside }: SectionHeaderProps) => (
-  <HStack justify="space-between" gap={3} mb={4}>
-    <Heading as="h2" id={id} size="md" display="flex" alignItems="center" gap={2}>
+  <div className="os-flex os-justify-between os-items-center os-gap-3 os-mb-4">
+    <h2 id={id} className="tf-h3 os-m-0 os-flex os-items-center os-gap-2">
       {icon}
       {title}
       {count !== undefined && (
-        <Badge variant="subtle" size="sm">
+        <Badge color="neutral" size="sm">
           {count}
         </Badge>
       )}
-    </Heading>
+    </h2>
     {aside}
     {action && (
-      <Link
-        asChild
-        fontSize="sm"
-        color="fg.muted"
-        whiteSpace="nowrap"
-        _hover={{ color: 'accent.teal' }}
-      >
-        <RouterLink to={action.to}>{action.label}</RouterLink>
-      </Link>
+      <RouterLink to={action.to} className="tf-quiet-link os-text-sm">
+        {action.label}
+      </RouterLink>
     )}
-  </HStack>
+  </div>
 );
 
 export default SectionHeader;

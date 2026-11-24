@@ -1,4 +1,3 @@
-import { ChakraProvider } from '@chakra-ui/react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
@@ -6,7 +5,7 @@ import { MemoryRouter, Routes, Route, Link } from 'react-router-dom';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import KnowledgePage from '../../pages/KnowledgePage';
 import KnowledgeDetailPage from '../../pages/KnowledgeDetailPage';
-import { system } from '../../assets/theme/theme';
+import { Provider as UiProvider } from '../../components/ui/provider';
 import { store } from '../../redux/store';
 import { clearAuth, setToken } from '../../redux/slices/authSlice';
 import { setProjects } from '../../redux/slices/projectSlice';
@@ -51,7 +50,7 @@ const deferred = <T,>() => {
 };
 const mount = (path = '/knowledge', state?: unknown) =>
   render(
-    <ChakraProvider value={system}>
+    <UiProvider>
       <Provider store={store}>
         <MemoryRouter initialEntries={[{ pathname: path, state }]}>
           <Link to="/knowledge/s2">Other source</Link>
@@ -61,7 +60,7 @@ const mount = (path = '/knowledge', state?: unknown) =>
           </Routes>
         </MemoryRouter>
       </Provider>
-    </ChakraProvider>,
+    </UiProvider>,
   );
 beforeEach(() => {
   vi.clearAllMocks();

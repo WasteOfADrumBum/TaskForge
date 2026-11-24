@@ -1,32 +1,22 @@
-import { Badge, Box, Heading, Text } from '@chakra-ui/react';
+import { Badge } from '@onesmall/ui';
 import type { ReactNode } from 'react';
 import { runStatusLabel, type RunStatus } from '../../types/run';
+import styles from './Runs.module.css';
 export const RunStatusBadge = ({ status }: { status: RunStatus }) => (
-  <Badge colorPalette={status === 'failed' ? 'red' : status === 'approved' ? 'teal' : 'gray'}>
+  <Badge color={status === 'failed' ? 'danger' : status === 'approved' ? 'primary' : 'neutral'}>
     {runStatusLabel[status]}
   </Badge>
 );
 export const RunSection = ({ title, children }: { title: string; children: ReactNode }) => (
-  <Box
-    as="section"
-    aria-label={title}
-    bg="bg.panel"
-    borderWidth="1px"
-    borderColor="border.muted"
-    borderRadius="lg"
-    p={{ base: 4, md: 5 }}
-    minW="0"
-  >
-    <Heading as="h2" size="md" mb={3}>
-      {title}
-    </Heading>
+  <section aria-label={title} className="tf-panel os-p-4 md:os-p-5 os-min-w-0">
+    <h2 className="tf-h3 os-mt-0 os-mb-3">{title}</h2>
     {children}
-  </Box>
+  </section>
 );
 export const RunText = ({ value }: { value: unknown }) => (
-  <Text whiteSpace="pre-wrap" overflowWrap="anywhere">
+  <p className={'os-m-0 ' + styles.preWrap}>
     {typeof value === 'string' ? value : (JSON.stringify(value, null, 2) ?? 'None recorded.')}
-  </Text>
+  </p>
 );
 export const runDate = (value: string) => {
   const date = new Date(value);

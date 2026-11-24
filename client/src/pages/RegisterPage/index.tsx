@@ -3,10 +3,12 @@ import { useDelayedRequest } from '../../hooks/useDelayedRequest';
 import { UNCERTAIN_CHANGE_MESSAGE } from '../../api/request';
 import { store } from '../../redux/store';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Box, Button, chakra, Field, Heading, HStack, Input, Text, VStack } from '@chakra-ui/react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Button, Field, Input, Stack } from '@onesmall/ui';
+import { useNavigate } from 'react-router-dom';
 import { register } from '../../api/auth';
-import Brand from '../../components/layout/Brand';
+import AuthPageFrame from '../../components/auth/AuthPageFrame';
+import styles from '../../components/auth/AuthPage.module.css';
+import TextLink from '../../components/auth/TextLink';
 import { getRegistrationPasswordError, REGISTRATION_PASSWORD_HELP } from '../../utils/authInput';
 import { toaster } from '../../components/ui/toaster';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks/typedHooks';
@@ -93,87 +95,64 @@ const RegisterPage = () => {
     setRequestMessage(UNCERTAIN_CHANGE_MESSAGE);
   };
   return (
-    <Box minH="100vh" bg="bg.subtle">
-      <HStack
-        as="header"
-        maxW="7xl"
-        mx="auto"
-        px={{ base: 4, md: 6 }}
-        py={5}
-        justify="space-between"
-      >
-        <Brand compact />
-        <Button asChild variant="ghost">
-          <Link to="/login">Sign in</Link>
-        </Button>
-      </HStack>
-      <Box as="main" maxW="md" mx="auto" px={4} py={{ base: 10, md: 20 }}>
-        <chakra.form
-          onSubmit={handleRegister}
-          bg="bg.panel"
-          borderWidth="1px"
-          borderRadius="2xl"
-          p={{ base: 6, md: 8 }}
-          boxShadow="sm"
-        >
-          <VStack align="stretch" gap={6}>
-            <Box>
-              <Heading as="h1" size="2xl">
-                Create your workspace
-              </Heading>
-              <Text color="fg.muted" mt={2}>
-                Start organizing tasks, priorities, due dates, and progress.
-              </Text>
-            </Box>
-            <Field.Root required>
-              <Field.Label>Email</Field.Label>
-              <Input
-                type="email"
-                maxLength={254}
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="you@example.com"
-                size="lg"
-                autoComplete="email"
-              />
-            </Field.Root>
-            <Field.Root required invalid={Boolean(passwordError)}>
-              <Field.Label>Password</Field.Label>
-              <Input
-                ref={passwordInput}
-                type="password"
-                value={password}
-                onChange={(event) => {
-                  setPassword(event.target.value);
-                  setPasswordError(null);
-                }}
-                placeholder="Create a password"
-                size="lg"
-                autoComplete="new-password"
-              />
-              <Field.HelperText fontSize="xs">{REGISTRATION_PASSWORD_HELP}</Field.HelperText>
-              <Field.ErrorText fontSize="xs">{passwordError}</Field.ErrorText>
-            </Field.Root>
-            {requestState.waiting ? (
-              <RequestFeedback message="TaskForge may be waking up. Account creation is still waiting for a response." />
-            ) : requestMessage && !requestState.pending ? (
-              <RequestFeedback message={requestMessage} />
-            ) : null}
-            {requestState.pending && (
-              <Button type="button" variant="outline" onClick={cancelRegistration}>
-                Cancel request
-              </Button>
-            )}
-            <Button type="submit" size="lg" width="full" loading={loading}>
-              Create account
+    <AuthPageFrame>
+      <form onSubmit={handleRegister} className={styles.card}>
+        <Stack gap={6}>
+          <div>
+            <h1 className="tf-h1 os-m-0">Create your workspace</h1>
+            <p className="os-text-muted os-mt-2 os-mb-0">
+              Start organizing tasks, priorities, due dates, and progress.
+            </p>
+          </div>
+          <Field label="Email" required>
+            <Input
+              type="email"
+              maxLength={254}
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="you@example.com"
+              size="lg"
+              autoComplete="email"
+            />
+          </Field>
+          <Field
+            label="Password"
+            required
+            hint={REGISTRATION_PASSWORD_HELP}
+            error={passwordError ?? undefined}
+          >
+            <Input
+              ref={passwordInput}
+              type="password"
+              value={password}
+              onChange={(event) => {
+                setPassword(event.target.value);
+                setPasswordError(null);
+              }}
+              placeholder="Create a password"
+              size="lg"
+              autoComplete="new-password"
+            />
+          </Field>
+          {requestState.waiting ? (
+            <RequestFeedback message="TaskForge may be waking up. Account creation is still waiting for a response." />
+          ) : requestMessage && !requestState.pending ? (
+            <RequestFeedback message={requestMessage} />
+          ) : null}
+          {requestState.pending && (
+            <Button type="button" variant="outline" onClick={cancelRegistration}>
+              Cancel request
             </Button>
-            <Text textAlign="center" color="fg.muted">
-              Already have an account? <Link to="/login">Sign in</Link>
-            </Text>
-          </VStack>
-        </chakra.form>
-      </Box>
-    </Box>
+          )}
+          <Button type="submit" size="lg" fullWidth loading={loading}>
+            Create account
+          </Button>
+          <p className="os-text-center os-text-muted os-m-0 os-max-w-none">
+            Already have an account? <TextLink to="/login">Sign in</TextLink>
+          </p>
+        </Stack>
+      </form>
+    </AuthPageFrame>
   );
 };
 

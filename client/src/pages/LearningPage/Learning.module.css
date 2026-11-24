@@ -1,0 +1,33 @@
+/* Learning page layout helpers that OneSmallUI utilities do not cover. */
+
+/* Long titles, skills and notes wrap anywhere instead of overflowing on phones. */
+.wrap {
+  overflow-wrap: anywhere;
+}
+
+/* Notes keep the line breaks the user typed. */
+.preWrap {
+  white-space: pre-wrap;
+}
+
+/* Form fields that grow to share a wrapping row, with a minimum width. */
+.grow {
+  flex: 1 1 0%;
+  min-width: 12rem;
+}
+.growNarrow {
+  flex: 1 1 0%;
+  min-width: 10rem;
+}
+
+/* A date needs no more than this. */
+.dateInput {
+  max-width: 12rem;
+}
+
+/* An inline text link followed by its icon. */
+.iconLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}

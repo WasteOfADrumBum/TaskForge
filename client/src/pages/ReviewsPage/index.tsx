@@ -1,16 +1,4 @@
-import {
-  Box,
-  Button,
-  Checkbox,
-  Field,
-  Fieldset,
-  Heading,
-  HStack,
-  Link,
-  Text,
-  Textarea,
-  VStack,
-} from '@chakra-ui/react';
+import { Button, Checkbox, Field, FieldGroup, Stack, Textarea } from '@onesmall/ui';
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { LuSave } from 'react-icons/lu';
 import { Link as RouterLink } from 'react-router-dom';
@@ -65,22 +53,22 @@ const plural = (count: number, one: string, many: string) =>
 
 const TaskList = ({ tasks, label }: { tasks: Task[]; label: string }) => (
   <>
-    <Box as="ul" listStyleType="none" m={0} p={0} aria-label={label}>
+    <ul className="os-list-unstyled os-m-0" aria-label={label}>
       {tasks.slice(0, LOOK_BACK_LIMIT).map((task) => (
-        <Box as="li" key={getTaskId(task)} py={1.5} borderTopWidth="1px" borderColor="border.muted">
-          <Text overflowWrap="anywhere">{task.title}</Text>
+        <li key={getTaskId(task)} className="os-py-2 os-border-top">
+          <p className="os-text-break os-m-0">{task.title}</p>
           {task.dueDate && task.status !== 'done' && (
-            <Text fontSize="xs" color="fg.muted">
+            <p className="os-text-xs os-text-muted os-m-0">
               Due {formatCalendarDate(task.dueDate)}
-            </Text>
+            </p>
           )}
-        </Box>
+        </li>
       ))}
-    </Box>
+    </ul>
     {tasks.length > LOOK_BACK_LIMIT && (
-      <Text fontSize="sm" color="fg.muted" mt={2}>
+      <p className="os-text-sm os-text-muted os-mt-2 os-mb-0">
         And {tasks.length - LOOK_BACK_LIMIT} more.
-      </Text>
+      </p>
     )}
   </>
 );
@@ -98,22 +86,15 @@ const Step = ({
   title: string;
   children: ReactNode;
 }) => (
-  <Box
-    as="section"
-    aria-labelledby={id}
-    bg="bg.panel"
-    borderWidth="1px"
-    borderRadius="lg"
-    p={{ base: 4, md: 5 }}
-  >
-    <Text color="fg.muted" fontSize="sm" fontWeight="medium">
+  <section aria-labelledby={id} className="tf-panel os-p-4 md:os-p-5">
+    <p className="os-text-muted os-text-sm os-font-medium os-m-0">
       Step {number} of {total}
-    </Text>
-    <Heading as="h3" id={id} size="md" mb={3}>
+    </p>
+    <h3 id={id} className="tf-h3 os-mt-0 os-mb-3">
       {title}
-    </Heading>
+    </h3>
     {children}
-  </Box>
+  </section>
 );
 
 // Weekly goal check-in: active goals with their targets, and a quick way to mark one achieved.
@@ -136,52 +117,40 @@ function GoalCheckIn({ now }: { now: Date }) {
   };
   return (
     <>
-      <Text
+      <p
         ref={resultRef}
         tabIndex={-1}
         role="status"
         aria-live="polite"
-        fontSize="sm"
-        color="fg.muted"
-        _focusVisible={{ outline: '2px solid', outlineColor: 'accent.teal' }}
+        className="os-text-sm os-text-muted os-m-0"
       >
         {pending ? 'Loading your goals...' : (message ?? '')}
-      </Text>
+      </p>
       {failure && (
-        <Text role="alert" color="fg.error" fontSize="sm">
+        <p role="alert" className="os-text-danger os-text-sm os-m-0">
           {failure}
-        </Text>
+        </p>
       )}
       {error && !pending ? (
-        <VStack align="start" gap={2}>
-          <Text color="fg.error">{error}</Text>
+        <Stack gap={2} align="start">
+          <p className="os-text-danger os-m-0">{error}</p>
           <Button size="sm" variant="outline" onClick={reload}>
             Retry loading goals
           </Button>
-        </VStack>
+        </Stack>
       ) : loaded && active.length ? (
-        <Box as="ul" listStyleType="none" m={0} p={0} aria-label="Active goals">
+        <ul className="os-list-unstyled os-m-0" aria-label="Active goals">
           {active.map((goal) => {
             const target = goalTargetText(goal, now);
             return (
-              <HStack
-                as="li"
+              <li
                 key={getGoalId(goal)}
-                justify="space-between"
-                gap={3}
-                py={2}
-                borderTopWidth="1px"
-                borderColor="border.muted"
-                flexWrap="wrap"
+                className="os-flex os-flex-wrap os-justify-between os-items-center os-gap-3 os-py-2 os-border-top"
               >
-                <Box minW="0">
-                  <Text overflowWrap="anywhere">{goal.title}</Text>
-                  {target && (
-                    <Text fontSize="xs" color="fg.muted">
-                      {target}
-                    </Text>
-                  )}
-                </Box>
+                <div className="os-min-w-0">
+                  <p className="os-text-break os-m-0">{goal.title}</p>
+                  {target && <p className="os-text-xs os-text-muted os-m-0">{target}</p>}
+                </div>
                 <Button
                   size="xs"
                   variant="outline"
@@ -191,35 +160,34 @@ function GoalCheckIn({ now }: { now: Date }) {
                 >
                   Mark achieved
                 </Button>
-              </HStack>
+              </li>
             );
           })}
-        </Box>
+        </ul>
       ) : loaded ? (
-        <Text color="fg.muted">No active goals yet.</Text>
+        <p className="os-text-muted os-m-0">No active goals yet.</p>
       ) : null}
-      <Link asChild fontSize="sm" color="accent.teal" mt={3} display="inline-block">
-        <RouterLink to="/goals">Add or update goals</RouterLink>
-      </Link>
+      <RouterLink to="/goals" className="os-text-sm os-mt-3 os-inline-block">
+        Add or update goals
+      </RouterLink>
     </>
   );
 }
 
 const SubList = ({ id, title, children }: { id: string; title: string; children: ReactNode }) => (
-  <Box mt={3}>
-    <Heading as="h4" id={id} size="sm" mb={1}>
+  <div className="os-mt-3">
+    <h4 id={id} className="os-text-sm os-font-semibold os-mt-0 os-mb-1">
       {title}
-    </Heading>
-    <Box as="ul" role="list" listStyleType="none" m={0} p={0} aria-labelledby={id}>
+    </h4>
+    {/* role="list": Safari drops list semantics from unstyled lists. */}
+    <ul role="list" className="os-list-unstyled os-m-0" aria-labelledby={id}>
       {children}
-    </Box>
-  </Box>
+    </ul>
+  </div>
 );
 
 const SubItem = ({ children }: { children: ReactNode }) => (
-  <Box as="li" py={1.5} borderTopWidth="1px" borderColor="border.muted">
-    {children}
-  </Box>
+  <li className="os-py-2 os-border-top">{children}</li>
 );
 
 // Weekly skill growth: skills added or levelled this week, learning tasks finished, and the
@@ -255,22 +223,20 @@ function SkillGrowthStep({
 
   return (
     <>
-      <Text
+      <p
         ref={statusRef}
         tabIndex={-1}
         role="status"
         aria-live="polite"
-        fontSize="sm"
-        color="fg.muted"
-        _focusVisible={{ outline: '2px solid', outlineColor: 'accent.teal' }}
+        className="os-text-sm os-text-muted os-m-0"
       >
         {status}
-      </Text>
+      </p>
       {error && !pending ? (
-        <VStack align="start" gap={2}>
-          <Text role="alert" color="fg.error">
+        <Stack gap={2} align="start">
+          <p role="alert" className="os-text-danger os-m-0">
             {error}
-          </Text>
+          </p>
           <Button
             size="sm"
             variant="outline"
@@ -282,25 +248,25 @@ function SkillGrowthStep({
           >
             Retry loading skills
           </Button>
-        </VStack>
+        </Stack>
       ) : !loaded || !tasksReady ? null : skills.items.length === 0 && jobs.items.length === 0 ? (
-        <Text color="fg.muted">
+        <p className="os-text-muted os-m-0">
           Add your skills and the jobs you want in Career to track your growth here.
-        </Text>
+        </p>
       ) : (
         <>
           {!changed && (
-            <Text color="fg.muted">
+            <p className="os-text-muted os-m-0">
               No skills added or updated and no learning tasks finished this week.
-            </Text>
+            </p>
           )}
           {growth.added.length > 0 && (
             <SubList id="growth-added" title={'Skills added this week: ' + growth.added.length}>
               {growth.added.map((skill) => (
                 <SubItem key={getRecordId(skill)}>
-                  <Text overflowWrap="anywhere">
+                  <p className="os-text-break os-m-0">
                     {skill.name}, {skillLevelLabel[skill.level].toLowerCase()}
-                  </Text>
+                  </p>
                 </SubItem>
               ))}
             </SubList>
@@ -312,9 +278,9 @@ function SkillGrowthStep({
             >
               {growth.updated.map((skill) => (
                 <SubItem key={getRecordId(skill)}>
-                  <Text overflowWrap="anywhere">
+                  <p className="os-text-break os-m-0">
                     {skill.name}, {skillLevelLabel[skill.level].toLowerCase()}
-                  </Text>
+                  </p>
                 </SubItem>
               ))}
             </SubList>
@@ -326,7 +292,7 @@ function SkillGrowthStep({
             >
               {growth.learned.map((task) => (
                 <SubItem key={getTaskId(task)}>
-                  <Text overflowWrap="anywhere">{task.title}</Text>
+                  <p className="os-text-break os-m-0">{task.title}</p>
                 </SubItem>
               ))}
             </SubList>
@@ -335,22 +301,20 @@ function SkillGrowthStep({
             <SubList id="growth-gaps" title="Skills your open saved jobs need most">
               {growth.topGaps.map((gap) => (
                 <SubItem key={gap.skill}>
-                  <Text overflowWrap="anywhere">
+                  <p className="os-text-break os-m-0">
                     {gap.skill}: needed by {plural(gap.jobs, 'job', 'jobs')}
-                  </Text>
+                  </p>
                 </SubItem>
               ))}
             </SubList>
           ) : growth.hasOpenJobs ? (
-            <Text color="fg.muted" mt={3}>
-              Your skills cover every open saved job.
-            </Text>
+            <p className="os-text-muted os-mt-3 os-mb-0">Your skills cover every open saved job.</p>
           ) : null}
         </>
       )}
-      <Link asChild fontSize="sm" color="accent.teal" mt={3} display="inline-block">
-        <RouterLink to="/career">Update skills and jobs in Career</RouterLink>
-      </Link>
+      <RouterLink to="/career" className="os-text-sm os-mt-3 os-inline-block">
+        Update skills and jobs in Career
+      </RouterLink>
     </>
   );
 }
@@ -488,59 +452,59 @@ function ReviewForm({
     kind === 'daily' ? formatCalendarDate(period) : 'Week of ' + formatCalendarDate(period);
 
   return (
-    <VStack as="form" align="stretch" gap={6} onSubmit={onSubmit} aria-labelledby={ids('heading')}>
-      <Box>
-        <Heading as="h2" id={ids('heading')} size="lg">
+    <Stack as="form" gap={6} onSubmit={onSubmit} aria-labelledby={ids('heading')}>
+      <div>
+        <h2 id={ids('heading')} className="tf-h2 os-m-0">
           {kindLabel[kind]}
-        </Heading>
-        <Text color="fg.muted">{periodLabel}</Text>
-        <Text role="status" aria-live="polite" fontSize="sm" color="fg.muted" mt={1}>
+        </h2>
+        <p className="os-text-muted os-m-0">{periodLabel}</p>
+        <p role="status" aria-live="polite" className="os-text-sm os-text-muted os-mt-1 os-mb-0">
           {status}
-        </Text>
-      </Box>
+        </p>
+      </div>
 
       {loadError && !read.pending && (
-        <VStack align="start" gap={2}>
-          <Text color="fg.error">{loadError}</Text>
+        <Stack gap={2} align="start">
+          <p className="os-text-danger os-m-0">{loadError}</p>
           <Button size="sm" variant="outline" onClick={() => setRefreshKey((key) => key + 1)}>
             Retry loading review
           </Button>
-        </VStack>
+        </Stack>
       )}
 
       {loaded && (
         <>
           <Step id={ids('look-back')} number={1} total={totalSteps} title="Look back">
             {tasksReady && (
-              <Text fontWeight="medium" mb={2}>
+              <p className="os-font-medium os-mt-0 os-mb-2">
                 {text.done}: {data.completed.length}
-              </Text>
+              </p>
             )}
             {!tasksReady ? (
-              <Text color="fg.muted">{tasksPending}</Text>
+              <p className="os-text-muted os-m-0">{tasksPending}</p>
             ) : data.completed.length ? (
               <TaskList tasks={data.completed} label={text.done} />
             ) : (
-              <Text color="fg.muted">{text.none}</Text>
+              <p className="os-text-muted os-m-0">{text.none}</p>
             )}
           </Step>
 
           <Step id={ids('attention')} number={2} total={totalSteps} title="Needs attention">
             {tasksReady && (
-              <Text fontWeight="medium" mb={2}>
+              <p className="os-font-medium os-mt-0 os-mb-2">
                 {text.attention}: {data.attention.length}
-              </Text>
+              </p>
             )}
             {!tasksReady ? (
-              <Text color="fg.muted">{tasksPending}</Text>
+              <p className="os-text-muted os-m-0">{tasksPending}</p>
             ) : data.attention.length ? (
               <TaskList tasks={data.attention} label={text.attention} />
             ) : (
-              <Text color="fg.muted">Nothing is overdue or coming due. Nice.</Text>
+              <p className="os-text-muted os-m-0">Nothing is overdue or coming due. Nice.</p>
             )}
-            <Link asChild fontSize="sm" color="accent.teal" mt={3} display="inline-block">
-              <RouterLink to="/work">Reschedule or update tasks in Work</RouterLink>
-            </Link>
+            <RouterLink to="/work" className="os-text-sm os-mt-3 os-inline-block">
+              Reschedule or update tasks in Work
+            </RouterLink>
           </Step>
 
           {kind === 'weekly' && (
@@ -567,53 +531,52 @@ function ReviewForm({
             title="Choose your focus"
           >
             {!tasksReady ? (
-              <Text color="fg.muted">{tasksPending}</Text>
+              <p className="os-text-muted os-m-0">{tasksPending}</p>
             ) : data.candidates.length ? (
-              <Fieldset.Root>
-                <Fieldset.Legend fontSize="sm" fontWeight="medium">
-                  {text.focus}
-                </Fieldset.Legend>
-                <Fieldset.HelperText fontSize="xs" aria-live="polite">
-                  {liveFocus.length} of {max} chosen
-                </Fieldset.HelperText>
-                <Fieldset.Content>
-                  <VStack align="stretch" gap={2.5}>
-                    {data.candidates.map((task) => {
-                      const id = getTaskId(task);
-                      const checked = liveFocus.includes(id);
-                      return (
-                        <Checkbox.Root
-                          key={id}
-                          checked={checked}
-                          disabled={!checked && liveFocus.length >= max}
-                          onCheckedChange={(details) => toggle(id, details.checked === true)}
-                          alignItems="flex-start"
-                          colorPalette="teal"
-                        >
-                          <Checkbox.HiddenInput />
-                          <Checkbox.Control mt={0.5} />
-                          <Checkbox.Label overflowWrap="anywhere">
-                            {task.title}
-                            {task.dueDate && (
-                              <Text as="span" display="block" fontSize="xs" color="fg.muted">
-                                Due {formatCalendarDate(task.dueDate)}
-                              </Text>
-                            )}
-                          </Checkbox.Label>
-                        </Checkbox.Root>
-                      );
-                    })}
-                  </VStack>
-                </Fieldset.Content>
-              </Fieldset.Root>
+              <FieldGroup
+                legend={text.focus}
+                description={
+                  <span aria-live="polite">
+                    {liveFocus.length} of {max} chosen
+                  </span>
+                }
+              >
+                {data.candidates.map((task) => {
+                  const id = getTaskId(task);
+                  const checked = liveFocus.includes(id);
+                  return (
+                    <Checkbox
+                      key={id}
+                      checked={checked}
+                      disabled={!checked && liveFocus.length >= max}
+                      onChange={(event) => toggle(id, event.target.checked)}
+                      label={
+                        <span className="os-text-break">
+                          {task.title}
+                          {task.dueDate && (
+                            <span className="os-block os-text-xs os-text-muted">
+                              Due {formatCalendarDate(task.dueDate)}
+                            </span>
+                          )}
+                        </span>
+                      }
+                    />
+                  );
+                })}
+              </FieldGroup>
             ) : (
-              <Text color="fg.muted">No open tasks to choose from.</Text>
+              <p className="os-text-muted os-m-0">No open tasks to choose from.</p>
             )}
           </Step>
 
           <Step id={ids('reflect')} number={totalSteps} total={totalSteps} title="Reflect">
-            <Field.Root>
-              <Field.Label>{text.reflect}</Field.Label>
+            <Field
+              label={text.reflect}
+              hint={
+                plural(REVIEW_REFLECTION_MAX - reflection.length, 'character', 'characters') +
+                ' left'
+              }
+            >
               <Textarea
                 value={reflection}
                 onChange={(event) => {
@@ -623,33 +586,27 @@ function ReviewForm({
                 rows={4}
                 maxLength={REVIEW_REFLECTION_MAX}
               />
-              <Field.HelperText>
-                {plural(REVIEW_REFLECTION_MAX - reflection.length, 'character', 'characters')} left
-              </Field.HelperText>
-            </Field.Root>
+            </Field>
           </Step>
 
           {saveError && (
-            <Box
-              role="alert"
-              borderWidth="1px"
-              borderColor="border.error"
-              bg="bg.error"
-              borderRadius="md"
-              p={3}
-            >
-              <Text color="fg.error">{saveError}</Text>
-            </Box>
+            <div role="alert" className="tf-callout-danger os-p-3">
+              <p className="os-text-danger os-m-0">{saveError}</p>
+            </div>
           )}
-          <HStack>
-            <Button type="submit" colorPalette="teal" loading={write.pending}>
-              <LuSave aria-hidden="true" focusable="false" />
+          <div className="os-flex">
+            <Button
+              type="submit"
+              color="primary"
+              loading={write.pending}
+              leftIcon={<LuSave focusable="false" />}
+            >
               Save {kindLabel[kind].toLowerCase()}
             </Button>
-          </HStack>
+          </div>
         </>
       )}
-    </VStack>
+    </Stack>
   );
 }
 
@@ -662,29 +619,27 @@ const ReviewsPage = () => {
   const period = getReviewData([], kind, now).period;
 
   return (
-    <VStack align="stretch" gap={{ base: 6, md: 8 }}>
-      <Box>
-        <Heading as="h1" size={{ base: '2xl', md: '3xl' }}>
-          Reviews
-        </Heading>
-        <Text color="fg.muted" mt={1.5}>
+    <Stack gap={{ base: 6, md: 8 }}>
+      <div>
+        <h1 className="tf-h1 os-m-0">Reviews</h1>
+        <p className="os-text-muted os-mt-2 os-mb-0">
           A few minutes to look back, see what needs attention, and pick your focus. The lists are
           rule-based, not AI.
-        </Text>
-      </Box>
-      <HStack gap={3} flexWrap="wrap" role="group" aria-label="Review type">
+        </p>
+      </div>
+      <div className="os-flex os-flex-wrap os-gap-3" role="group" aria-label="Review type">
         {REVIEW_KINDS.map((option) => (
           <Button
             key={option}
             size="sm"
             variant={kind === option ? 'solid' : 'outline'}
-            aria-pressed={kind === option}
+            pressed={kind === option}
             onClick={() => setKind(option)}
           >
             {kindLabel[option]}
           </Button>
         ))}
-      </HStack>
+      </div>
       {token && (
         // A new kind, period (after midnight or on Monday) or session starts a fresh form.
         <ReviewForm
@@ -695,7 +650,7 @@ const ReviewsPage = () => {
           now={now}
         />
       )}
-    </VStack>
+    </Stack>
   );
 };
 

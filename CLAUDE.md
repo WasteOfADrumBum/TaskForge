@@ -6,7 +6,7 @@ This file guides Claude Code (claude.ai/code) when working in this repository.
 
 TaskForge is a full-stack task manager built as a public portfolio app. It is an npm workspaces monorepo:
 
-- `client/`: React 19 + TypeScript + Vite, Chakra UI v3, Redux Toolkit, React Router v7. Deployed to **Vercel**.
+- `client/`: React 19 + TypeScript + Vite, OneSmallUI (`@onesmall/ui`), Redux Toolkit, React Router v7. Deployed to **Vercel**.
 - `server/`: Express 5 + TypeScript (ESM), Mongoose/MongoDB, JWT auth with bcrypt. Deployed to **Render** (`render.yaml`, free plan, health check at `/health`).
 
 TaskForge is growing into a personal AI orchestration platform. `README.md` is the public, portfolio-facing overview; `docs/architecture.md` describes the system and deployment. Check `docs/roadmap.md` for what actually exists before describing a feature.
@@ -70,7 +70,7 @@ The request flow is `routes → controllers → services → models`:
   - Authenticated, behind `ProtectedRoute` inside `components/layout/AppShell`: `/home` (`CommandCenterPage`), `/work` (`WorkPage`, the task workspace), `/work/projects` (`ProjectsPage`), `/work/projects/:id` (`ProjectDetailPage`), `/workforce` (`WorkforcePage`, the Agent Registry), `/workforce/:id` (`AgentDetailPage`), and `/settings`. `components/work/WorkTabs` switches between Tasks and Projects.
 - `AppShell` owns the sidebar (`Sidebar`; a drawer below `lg`), `TopBar`, and data loading (`hooks/useTaskLoader`, `hooks/useProjectLoader`, `hooks/useAgentLoader`). Pages read tasks, projects, and agents from Redux; they don't fetch them on mount. Project and agent mutations go through `hooks/useProjectActions` and `hooks/useAgentActions`. Project stats and activity come from `utils/projects.ts`, derived from task data.
 - Command Center insights are pure functions in `utils/commandCenter.ts`. They are rule-based; never present them as AI.
-- Theme: `assets/theme/theme.ts` overrides Chakra's dark semantic tokens (`bg.*`, `fg.*`, `border.*`) with the v2 palette and adds `accent.{teal,orange,violet}` and `shell.*`. Use these tokens, not hex values. Dark is the default color mode.
+- Theme: `assets/theme/onesmall-theme.css` sets TaskForge's palette (teal primary, orange secondary, violet accent, near-black dark surfaces) as OneSmallUI `--os-*` tokens for light and dark; `onesmall-theme.test.ts` holds every text pair to 7:1 and every boundary to 3:1. Use these tokens (or OneSmallUI utility classes such as `os-text-muted`), not hex values. Dark is the default color mode; `components/ui/provider.tsx` wraps OneSmallUI's `ThemeProvider` (saved under the `theme` key) and `components/ui/color-mode.tsx` exposes `useColorMode`.
 - Tests: `src/test/renderApp.tsx` renders `AppRoutes` against `stubTaskApi`, an in-memory stub of the task, project, **and agent** APIs (`makeTask`, `makeProject`, `makeAgent`; agents are the third argument, and `requestsTo` for counting calls to an endpoint). jsdom applies only base (mobile) styles, so shell tests navigate through the drawer. `findBy*`/`waitFor` use a 3 s timeout (`setupTests.ts`).
 - Redux store (`redux/store.ts`, `rootreducer.ts`) has four slices:
   - `authSlice`: `token` (seeded from `localStorage.token`), `sessionVersion`, `loading`, `error`. The in-memory version increments on login, logout, and expiration; request and consumer guards compare both token and captured version, including when JWT strings repeat.
@@ -88,7 +88,7 @@ The request flow is `routes → controllers → services → models`:
 - Tasks may come back with `_id` or `id`. Always use `getTaskId(task)` from `types/task.ts`.
 - **Due dates are calendar dates.** The API returns them as UTC midnight (`YYYY-MM-DDT00:00:00.000Z`). Never pass a `dueDate` to `new Date()` to compare or display it, because that shifts the day west of UTC. Use `utils/dates.ts` (`toCalendarDate`, `daysUntilDueDate`, `formatCalendarDate`). In tests, build due dates in that API shape and keep them independent of the time zone.
 - Filtering, sorting, and summary logic lives in `utils/tasks.ts` as pure, tested functions. Keep that logic out of components.
-- UI is Chakra UI v3. `components/ui/*` are Chakra CLI snippets (provider, toaster, color-mode, tooltip). Show user feedback with `toaster`.
+- UI is OneSmallUI (`@onesmall/ui`, pinned exactly). Use its components (Button, Field, Input, Select, Dialog, Badge, Stack, Grid, ...) and `os-*` utility classes; app-wide classes live in `styles/app.css` (`tf-panel`, `tf-h1`/`tf-h2`/`tf-h3`, `tf-callout-danger`, `tf-quiet-link`), anything else in a co-located `Name.module.css` using `var(--os-*)`. OneSmallUI styles bare `h1`-`h6`, `p` and `a`, so give headings a `tf-h*` class and spacing utilities (`os-m-0`, `os-mb-*`). Links: `LinkButton` and `RouterLink` in `components/ui/links.tsx` route client-side (0.6.0 link buttons render plain anchors). Show user feedback with `toaster.create` from `components/ui/toaster.tsx`, bridged to OneSmallUI's toast stack.
 - `client/src/types/task.ts`, `project.ts`, and `agent.ts` duplicate the server types (and agent limits) by hand. Update both sides when a shape changes.
 - `client/vercel.json` rewrites every path to `index.html` for SPA routing.
 

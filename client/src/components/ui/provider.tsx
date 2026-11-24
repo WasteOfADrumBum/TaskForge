@@ -1,13 +1,15 @@
-'use client';
+import { ThemeProvider } from '@onesmall/ui';
+import type { ReactNode } from 'react';
 
-import { ChakraProvider } from '@chakra-ui/react';
-import { system } from '../../assets/theme/theme';
-import { ColorModeProvider, type ColorModeProviderProps } from './color-mode';
+// The saved color mode lives under the same localStorage key next-themes used ("light", "dark" or
+// "system"), so a choice made before the move to OneSmallUI is kept. Dark is the default.
+// OneSmallUI sets `data-os-theme` on <html>, which switches every --os-* token and color-scheme.
+export const THEME_STORAGE_KEY = 'theme';
 
-export function Provider(props: ColorModeProviderProps) {
+export function Provider({ children }: { children?: ReactNode }) {
   return (
-    <ChakraProvider value={system}>
-      <ColorModeProvider defaultTheme="dark" enableSystem {...props} />
-    </ChakraProvider>
+    <ThemeProvider defaultMode="dark" storageKey={THEME_STORAGE_KEY}>
+      {children}
+    </ThemeProvider>
   );
 }

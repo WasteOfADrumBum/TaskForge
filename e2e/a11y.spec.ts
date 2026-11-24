@@ -80,20 +80,30 @@ const checkFocus = async (page: Page, label: string) => {
       .soft(async () => {
         const changed = await page.evaluate(() => {
           const el = document.activeElement as HTMLElement;
-          const look = () => {
-            const st = getComputedStyle(el);
-            const outline =
-              st.outlineStyle !== 'none' &&
-              parseFloat(st.outlineWidth) > 0 &&
-              !/rgba\([^)]*,\s*0\)|transparent/.test(st.outlineColor)
-                ? st.outlineStyle + st.outlineWidth + st.outlineColor
-                : 'none';
-            return [outline, st.boxShadow, st.borderColor, st.backgroundColor].join('|');
-          };
+          // Some controls draw the ring on their wrapper (OneSmallUI's Input and Select style
+          // `.os-input:focus-within`), so measure the control and its immediate parent. Freeze
+          // transitions while measuring, so a fading ring is read at its end state, not mid-fade.
+          const measured = [el, el.parentElement].filter((n): n is HTMLElement => n !== null);
+          const saved = measured.map((n) => n.style.transition);
+          measured.forEach((n) => n.style.setProperty('transition', 'none', 'important'));
+          const look = () =>
+            measured
+              .map((node) => {
+                const st = getComputedStyle(node);
+                const outline =
+                  st.outlineStyle !== 'none' &&
+                  parseFloat(st.outlineWidth) > 0 &&
+                  !/rgba\([^)]*,\s*0\)|transparent/.test(st.outlineColor)
+                    ? st.outlineStyle + st.outlineWidth + st.outlineColor
+                    : 'none';
+                return [outline, st.boxShadow, st.borderColor, st.backgroundColor].join('|');
+              })
+              .join('||');
           const focused = look();
           el.blur();
           const resting = look();
           el.focus({ focusVisible: true } as FocusOptions);
+          measured.forEach((n, i) => (n.style.transition = saved[i]));
           return focused !== resting;
         });
         expect(changed).toBe(true);

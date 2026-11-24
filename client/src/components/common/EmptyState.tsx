@@ -1,4 +1,3 @@
-import { Box, Heading, Text } from '@chakra-ui/react';
 import type { ReactNode } from 'react';
 
 interface EmptyStateProps {
@@ -8,23 +7,20 @@ interface EmptyStateProps {
   children?: ReactNode;
 }
 
+// Kept as TaskForge's own small empty state: pages place it under an h2, so its title is an h3.
 const EmptyState = ({ icon, title, description, children }: EmptyStateProps) => (
-  <Box textAlign="center" py={{ base: 8, md: 10 }} px={4} color="fg.muted">
+  <div className="os-text-center os-py-8 md:os-py-10 os-px-4 os-text-muted">
     {icon && (
-      <Box display="flex" justifyContent="center" mb={3} aria-hidden="true">
+      <div className="os-flex os-justify-center os-mb-3" aria-hidden="true">
         {icon}
-      </Box>
+      </div>
     )}
-    <Heading as="h3" size="sm" color="fg">
+    <h3 className="os-text-base os-font-semibold os-m-0" style={{ color: 'var(--os-text)' }}>
       {title}
-    </Heading>
-    {description && (
-      <Text mt={2} fontSize="sm">
-        {description}
-      </Text>
-    )}
+    </h3>
+    {description && <p className="os-mt-2 os-mb-0 os-mx-auto os-text-sm">{description}</p>}
     {children}
-  </Box>
+  </div>
 );
 
 export default EmptyState;

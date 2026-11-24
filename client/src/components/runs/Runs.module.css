@@ -1,0 +1,5 @@
+/* Recorded run text (input, output, notes): keep line breaks and wrap long tokens. */
+.preWrap {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

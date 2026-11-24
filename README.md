@@ -65,21 +65,21 @@ Captured locally from the production-equivalent `3a8e3c5` release with synthetic
 - **App shell.** A persistent sidebar and top bar (current section, date, refresh, New Task). On phones the sidebar becomes a drawer.
 - **Session-expiration handling.** Expired or rejected sessions sign the user out cleanly and explain why (see below).
 - **Dark-first theme.** A dark command-center look with teal, orange, and violet accents. Light and system modes are available on the Settings page.
-- **Polished UI.** Landing page, auth pages, and workspace built with Chakra UI v3; routes are lazy-loaded.
+- **Polished UI.** Landing page, auth pages, and workspace built with [OneSmallUI](https://github.com/WasteOfADrumBum/one-small-ui), my own accessible React component library (WCAG 2.2 AA, AAA color contrast); routes are lazy-loaded.
 - **Agent Registry (Workforce).** Define private AI workers with a role, description, status (active / paused / disabled), skill tags, and permission identifiers, each with its own detail page. Task assignment shipped in PR #15, with matching client/API source identity verified under KAN-11. You can assign tasks to yourself or to an active agent, and see each agent's assigned and open tasks. Assignment records ownership and does not start a run. Owned run activity supports explicitly selected drafts, fixed context, lifecycle audit and manual handoffs; assignment alone executes nothing. KAN-19 adds owner draft approval/rejection on Agent Detail; approval records a decision without changing tasks.
 
 ## Tech stack
 
-| Layer    | Technology                                                               |
-| -------- | ------------------------------------------------------------------------ |
-| Frontend | React 19, TypeScript, Vite, Chakra UI v3, Redux Toolkit, React Router v7 |
-| API      | Node.js 24, Express 5, TypeScript (ESM), Mongoose                        |
-| Database | MongoDB Atlas                                                            |
-| Auth     | bcrypt password hashing, JSON Web Tokens (`jsonwebtoken`)                |
-| Testing  | Vitest + Testing Library, Jest + supertest, Playwright + real MongoDB    |
-| Quality  | ESLint 9 (flat config), Prettier, TypeScript strict mode, `npm audit`    |
-| CI       | GitHub Actions                                                           |
-| Hosting  | Vercel (frontend), Render (API)                                          |
+| Layer    | Technology                                                                              |
+| -------- | --------------------------------------------------------------------------------------- |
+| Frontend | React 19, TypeScript, Vite, OneSmallUI (`@onesmall/ui`), Redux Toolkit, React Router v7 |
+| API      | Node.js 24, Express 5, TypeScript (ESM), Mongoose                                       |
+| Database | MongoDB Atlas                                                                           |
+| Auth     | bcrypt password hashing, JSON Web Tokens (`jsonwebtoken`)                               |
+| Testing  | Vitest + Testing Library, Jest + supertest, Playwright + real MongoDB                   |
+| Quality  | ESLint 9 (flat config), Prettier, TypeScript strict mode, `npm audit`                   |
+| CI       | GitHub Actions                                                                          |
+| Hosting  | Vercel (frontend), Render (API)                                                         |
 
 ## Architecture
 

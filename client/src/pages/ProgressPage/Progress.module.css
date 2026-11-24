@@ -1,0 +1,25 @@
+/* Sits closer to the range buttons than the page's usual section gap. */
+.status {
+  margin: -1rem 0 0;
+}
+
+.countColumn {
+  width: 6rem;
+}
+
+.barColumn {
+  width: 45%;
+}
+
+/* Decorative completion bars (the count column carries the value). */
+.barTrack {
+  height: 0.625rem;
+  border-radius: var(--os-radius-sm);
+  background-color: var(--os-surface-2);
+}
+
+.barFill {
+  height: 100%;
+  border-radius: var(--os-radius-sm);
+  background-color: var(--os-primary);
+}

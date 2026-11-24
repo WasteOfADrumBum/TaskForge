@@ -1,0 +1,13 @@
+/* Count tiles: the label sits under the number visually, but first in the dt/dd order. */
+.tile {
+  display: flex;
+  flex-direction: column-reverse;
+  padding: 0.75rem 0.5rem;
+  background-color: var(--os-surface-2);
+  border-radius: var(--os-radius-md);
+}
+
+/* Task titles and agent names wrap anywhere instead of overflowing on phones. */
+.anywhere {
+  overflow-wrap: anywhere;
+}

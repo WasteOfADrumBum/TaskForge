@@ -1,4 +1,4 @@
-import { Box, Button, HStack, Link, SimpleGrid, Text, VStack } from '@chakra-ui/react';
+import { Button } from '@onesmall/ui';
 import { useEffect, useMemo, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { isCurrentSession } from '../../api/authenticatedFetch';
@@ -10,6 +10,7 @@ import { FAILURE_WINDOW_DAYS, getAgentActivity } from '../../utils/agentActivity
 import { SessionExpiredError } from '../../utils/session';
 import SectionHeader from '../common/SectionHeader';
 import { RunStatusBadge, runDate } from '../runs/RunDisplay';
+import styles from './AgentActivityPanel.module.css';
 
 function PanelContent({
   token,
@@ -64,33 +65,26 @@ function PanelContent({
   else if (error) status = 'Agent activity could not be loaded.';
 
   return (
-    <Box
-      as="section"
-      aria-labelledby="agent-activity-heading"
-      bg="bg.panel"
-      borderWidth="1px"
-      borderRadius="lg"
-      p={{ base: 4, md: 5 }}
-    >
+    <section aria-labelledby="agent-activity-heading" className="tf-panel os-p-4 md:os-p-5">
       <SectionHeader
         id="agent-activity-heading"
         title="Agent activity"
         action={{ label: 'Open run activity', to: '/workforce/runs' }}
       />
-      <Text role="status" aria-live="polite" fontSize="sm" color="fg.muted">
+      <p role="status" aria-live="polite" className="os-text-sm os-text-muted os-m-0">
         {status}
-      </Text>
+      </p>
       {error && !read.pending && (
-        <VStack align="start" gap={2} mt={1}>
-          <Text fontSize="sm">{error}</Text>
+        <div className="os-flex os-flex-col os-items-start os-gap-2 os-mt-1">
+          <p className="os-text-sm os-m-0">{error}</p>
           <Button size="sm" variant="outline" onClick={() => setRefreshKey((key) => key + 1)}>
             Retry loading activity
           </Button>
-        </VStack>
+        </div>
       )}
       {activity && !error && (
         <>
-          <SimpleGrid as="dl" columns={3} gap={3} textAlign="center">
+          <dl className="os-grid os-grid-cols-3 os-gap-3 os-text-center os-m-0">
             {[
               { label: 'Awaiting your review', value: activity.awaitingReview },
               { label: 'Queued or running', value: activity.inProgress },
@@ -99,64 +93,44 @@ function PanelContent({
                 value: activity.recentFailures,
               },
             ].map((item) => (
-              <Box
-                key={item.label}
-                display="flex"
-                flexDirection="column-reverse"
-                bg="bg.muted"
-                borderRadius="md"
-                py={3}
-                px={2}
-              >
-                <Text as="dt" fontSize="xs" color="fg.muted">
-                  {item.label}
-                </Text>
-                <Text as="dd" fontSize="xl" fontWeight="semibold" m={0}>
-                  {item.value}
-                </Text>
-              </Box>
+              <div key={item.label} className={styles.tile}>
+                <dt className="os-text-xs os-text-muted">{item.label}</dt>
+                <dd className="os-text-xl os-font-semibold os-m-0">{item.value}</dd>
+              </div>
             ))}
-          </SimpleGrid>
+          </dl>
           {!tasksLoaded ? null : activity.recent.length === 0 ? (
-            <Text fontSize="sm" color="fg.muted" mt={4}>
+            <p className="os-text-sm os-text-muted os-mt-4 os-mb-0">
               No runs yet. Start one from a task assigned to an active agent.
-            </Text>
+            </p>
           ) : (
-            <Box as="ul" listStyleType="none" m={0} mt={4} p={0} aria-label="Most recent runs">
+            <ul className="os-list-unstyled os-mt-4 os-mb-0 os-p-0" aria-label="Most recent runs">
               {activity.recent.map((run) => (
-                <Box
-                  as="li"
-                  key={run.id}
-                  py={2.5}
-                  borderTopWidth="1px"
-                  borderColor="border.muted"
-                  minW="0"
-                >
-                  <HStack justify="space-between" gap={3} flexWrap="wrap">
-                    <Link asChild fontWeight="medium" color="accent.teal" overflowWrap="anywhere">
-                      <RouterLink
-                        to={'/workforce/runs/' + encodeURIComponent(run.id)}
-                        // Starts with the visible title (WCAG 2.5.3) and adds agent and status so
-                        // runs on the same task have distinct link names.
-                        aria-label={
-                          run.taskTitle + ', ' + run.agentName + ', ' + runStatusLabel[run.status]
-                        }
-                      >
-                        {run.taskTitle}
-                      </RouterLink>
-                    </Link>
+                <li key={run.id} className="os-py-2 os-border-top os-min-w-0">
+                  <div className="os-flex os-flex-wrap os-justify-between os-items-center os-gap-3">
+                    <RouterLink
+                      to={'/workforce/runs/' + encodeURIComponent(run.id)}
+                      className={'os-font-medium ' + styles.anywhere}
+                      // Starts with the visible title (WCAG 2.5.3) and adds agent and status so
+                      // runs on the same task have distinct link names.
+                      aria-label={
+                        run.taskTitle + ', ' + run.agentName + ', ' + runStatusLabel[run.status]
+                      }
+                    >
+                      {run.taskTitle}
+                    </RouterLink>
                     <RunStatusBadge status={run.status} />
-                  </HStack>
-                  <Text fontSize="sm" color="fg.muted" overflowWrap="anywhere">
+                  </div>
+                  <p className={'os-text-sm os-text-muted os-m-0 ' + styles.anywhere}>
                     {run.agentName} · {runDate(run.at)}
-                  </Text>
-                </Box>
+                  </p>
+                </li>
               ))}
-            </Box>
+            </ul>
           )}
         </>
       )}
-    </Box>
+    </section>
   );
 }
 

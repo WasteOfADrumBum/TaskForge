@@ -1,3 +1,8 @@
+/* OneSmallUI (@onesmall/ui) styles, then TaskForge's palette and app classes on top. */
+@import '@onesmall/ui/styles.css';
+@import './assets/theme/onesmall-theme.css';
+@import './styles/app.css';
+
 /* Figtree, self-hosted (SIL Open Font License, see /fonts/OFL.txt). Variable weight 400-700. */
 @font-face {
   font-family: 'Figtree';
@@ -21,7 +26,7 @@
     U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* No font-family here: Chakra sets the body font (Figtree) from the theme in theme.ts. */
+/* No font-family here: OneSmallUI sets the body font from --os-font-sans (onesmall-theme.css). */
 body {
   margin: 0;
   -webkit-font-smoothing: antialiased;

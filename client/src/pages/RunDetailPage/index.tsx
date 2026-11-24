@@ -1,19 +1,6 @@
 import HandoffPanel, { type HandoffRetryIdentity } from '../../components/runs/HandoffPanel';
 import { useEffect, useRef, useState } from 'react';
-import {
-  Box,
-  Button,
-  chakra,
-  Field,
-  Heading,
-  HStack,
-  Input,
-  Link,
-  NativeSelect,
-  Text,
-  Textarea,
-  VStack,
-} from '@chakra-ui/react';
+import { Button, Checkbox, Field, Input, Select, Stack, Textarea } from '@onesmall/ui';
 import { Link as RouterLink, useLocation, useParams } from 'react-router-dom';
 import GroundedCitations from '../../components/knowledge/GroundedCitations';
 import { groundedAvailability, parseGroundedRun } from '../../utils/askTaskForge';
@@ -228,26 +215,20 @@ function DetailContent({
     }
   };
   return (
-    <VStack align="stretch" gap={5} minW="0">
-      <Link asChild color="accent.teal">
-        <RouterLink to="/workforce/runs">All run activity</RouterLink>
-      </Link>
-      <Heading as="h1" size="2xl">
-        Run detail
-      </Heading>
-      <Text color="fg.muted" overflowWrap="anywhere">
-        Run: {id}
-      </Text>
-      <HStack>
+    <Stack gap={5} className="os-min-w-0">
+      <RouterLink to="/workforce/runs">All run activity</RouterLink>
+      <h1 className="tf-h1 os-m-0">Run detail</h1>
+      <p className="os-text-muted os-text-break os-m-0">Run: {id}</p>
+      <div className="os-flex os-items-center os-gap-2">
         <Button variant="outline" disabled={read.pending || write.pending} onClick={refresh}>
           Refresh run
         </Button>
-      </HStack>
+      </div>
       {read.pending && (
-        <HStack>
-          <Text role="status">
+        <div className="os-flex os-items-center os-gap-2">
+          <p role="status" className="os-m-0">
             {read.waiting ? 'TaskForge is still loading this run...' : 'Loading run...'}
-          </Text>
+          </p>
           <Button
             variant="outline"
             onClick={() => {
@@ -257,36 +238,36 @@ function DetailContent({
           >
             Cancel loading
           </Button>
-        </HStack>
+        </div>
       )}
       {error && (
-        <Text role="alert" color="fg.error">
+        <p role="alert" className="os-text-danger os-m-0">
           {error}
-        </Text>
+        </p>
       )}
       {writeError && (
-        <Text role="alert" color="fg.error">
+        <p role="alert" className="os-text-danger os-m-0">
           {writeError}
-        </Text>
+        </p>
       )}
       {refreshRequired && (
-        <Text>
+        <p className="os-m-0">
           Refresh run before deciding or executing again. The previous request may already have
           changed its state.
-        </Text>
+        </p>
       )}
       {success && (
-        <Text role="status" color="fg.success">
+        <p role="status" className="os-text-success os-m-0">
           {success}
-        </Text>
+        </p>
       )}
       {write.pending && (
-        <HStack>
-          <Text role="status">
+        <div className="os-flex os-items-center os-gap-2">
+          <p role="status" className="os-m-0">
             {write.waiting
               ? 'TaskForge is still waiting for the run operation...'
               : 'Waiting for the run operation...'}
-          </Text>
+          </p>
           <Button
             variant="outline"
             onClick={() => {
@@ -298,58 +279,58 @@ function DetailContent({
           >
             Stop waiting
           </Button>
-        </HStack>
+        </div>
       )}
       {loaded && run && (
         <>
           <RunSection title="Run status">
-            <VStack align="stretch" gap={2}>
-              <RunStatusBadge status={run.status} />
-              <Text>Created {runDate(run.createdAt)}</Text>
+            <Stack gap={2}>
+              <div>
+                <RunStatusBadge status={run.status} />
+              </div>
+              <p className="os-m-0">Created {runDate(run.createdAt)}</p>
               {run.workflow === 'chief-of-staff' && (
-                <Text>Chief of Staff triage: proposals only.</Text>
+                <p className="os-m-0">Chief of Staff triage: proposals only.</p>
               )}
               {run.workflow === 'research' && (
-                <Text>
+                <p className="os-m-0">
                   Supplied-source research: quotes checked against captured text; interpretations
                   require human review. No URLs fetched.
-                </Text>
+                </p>
               )}
               {run.workflow === 'developer' && (
-                <Text>
+                <p className="os-m-0">
                   Developer plan: unexecuted, unverified text only. No repository access or task
                   changes.
-                </Text>
+                </p>
               )}
               {run.workflow === 'knowledge' && (
-                <Text>
+                <p className="os-m-0">
                   Grounded knowledge answer: local model draft from cited private excerpts. Requires
                   human review; no task changes.
-                </Text>
+                </p>
               )}
-              <Text overflowWrap="anywhere">Task: {run.task}</Text>
-              <Text overflowWrap="anywhere">Agent: {run.agent}</Text>
+              <p className="os-text-break os-m-0">Task: {run.task}</p>
+              <p className="os-text-break os-m-0">Agent: {run.agent}</p>
               {run.handoff && (
-                <Box>
-                  <Text>Handoff depth: {run.handoff.ancestors.length}</Text>
-                  <Link asChild color="accent.teal">
-                    <RouterLink to={'/workforce/runs/' + run.handoff.parent}>
-                      View parent run
-                    </RouterLink>
-                  </Link>
-                </Box>
+                <div>
+                  <p className="os-m-0">Handoff depth: {run.handoff.ancestors.length}</p>
+                  <RouterLink to={'/workforce/runs/' + run.handoff.parent}>
+                    View parent run
+                  </RouterLink>
+                </div>
               )}
               {run.failureReason && (
-                <Text color="fg.error">Failure reason: {run.failureReason}</Text>
+                <p className="os-text-danger os-m-0">Failure reason: {run.failureReason}</p>
               )}
               {run.executionMode === 'demo' && (
-                <Text>Simulation: canned output, no model called.</Text>
+                <p className="os-m-0">Simulation: canned output, no model called.</p>
               )}
-              {run.executionMode === 'local' && <Text>Local inference draft.</Text>}
-              <Text color="fg.muted">
+              {run.executionMode === 'local' && <p className="os-m-0">Local inference draft.</p>}
+              <p className="os-text-muted os-m-0">
                 Approval records a decision; it does not apply content to tasks.
-              </Text>
-            </VStack>
+              </p>
+            </Stack>
           </RunSection>
           <RunSection title="Requested work">
             <RunText value={run.input} />
@@ -372,123 +353,110 @@ function DetailContent({
               }
             />
             {run.resultDigest && (
-              <Text mt={3} fontSize="sm" color="fg.muted" overflowWrap="anywhere">
+              <p className="os-mt-3 os-mb-0 os-text-sm os-text-muted os-text-break">
                 Result digest: {run.resultDigest}
-              </Text>
+              </p>
             )}
           </RunSection>
           <RunSection title="Context snapshot">
-            <Text color="fg.muted" mb={3}>
+            <p className="os-text-muted os-mt-0 os-mb-3">
               Stored notes are untrusted source data. A claimed snapshot stays fixed for this run.
-            </Text>
+            </p>
             <RunText value={run.context ?? {}} />
             {run.contextDigest && (
-              <Text mt={3} fontSize="sm" color="fg.muted" overflowWrap="anywhere">
+              <p className="os-mt-3 os-mb-0 os-text-sm os-text-muted os-text-break">
                 Context digest: {run.contextDigest}
-              </Text>
+              </p>
             )}
           </RunSection>
           {run.status === 'queued' && (
             <RunSection title="Execute queued run">
-              <VStack align="stretch" gap={4}>
-                <Field.Root disabled={blocked}>
-                  <Field.Label htmlFor="run-workflow">Run workflow</Field.Label>
-                  <NativeSelect.Root disabled={blocked}>
-                    <NativeSelect.Field
-                      id="run-workflow"
-                      value={workflow}
-                      onChange={(event) => {
-                        const next = event.target.value as RunWorkflow;
-                        setWorkflow(next);
-                        if (next === 'knowledge' && mode === 'demo') setMode('');
-                      }}
-                    >
-                      <option value="draft">Task draft</option>
-                      <option value="chief-of-staff">Chief of Staff triage</option>
-                      <option value="research">Supplied-source research</option>
-                      <option value="developer">Developer text plan</option>
-                      {(knowledgeSupported || workflow === 'knowledge') && (
-                        <option value="knowledge">Grounded knowledge answer (local only)</option>
-                      )}
-                    </NativeSelect.Field>
-                    <NativeSelect.Indicator />
-                  </NativeSelect.Root>
-                  <Field.HelperText>
-                    Chief of Staff proposes priority and an eligible agent for this task. Up to 20
-                    captured candidates; review never applies task changes. Research summarizes
-                    supplied text and owned notes, with quotes and labelled inferences; it does not
-                    browse.
-                  </Field.HelperText>
-                </Field.Root>
+              <Stack gap={4}>
+                <Field
+                  id="run-workflow"
+                  label="Run workflow"
+                  disabled={blocked}
+                  hint="Chief of Staff proposes priority and an eligible agent for this task. Up to 20 captured candidates; review never applies task changes. Research summarizes supplied text and owned notes, with quotes and labelled inferences; it does not browse."
+                >
+                  <Select
+                    value={workflow}
+                    disabled={blocked}
+                    onChange={(event) => {
+                      const next = event.target.value as RunWorkflow;
+                      setWorkflow(next);
+                      if (next === 'knowledge' && mode === 'demo') setMode('');
+                    }}
+                  >
+                    <option value="draft">Task draft</option>
+                    <option value="chief-of-staff">Chief of Staff triage</option>
+                    <option value="research">Supplied-source research</option>
+                    <option value="developer">Developer text plan</option>
+                    {(knowledgeSupported || workflow === 'knowledge') && (
+                      <option value="knowledge">Grounded knowledge answer (local only)</option>
+                    )}
+                  </Select>
+                </Field>
                 {workflow === 'research' && (
-                  <VStack align="stretch" gap={3}>
-                    <Text>
+                  <Stack gap={3}>
+                    <p className="os-m-0">
                       Optional supplied excerpt. Reference URLs are labels only: never fetched or
                       verified. Without an excerpt, research requires task notes, selected project
                       notes, or approved parent output.
-                    </Text>
-                    <Field.Root disabled={blocked}>
-                      <Field.Label htmlFor="source-title">Source label</Field.Label>
+                    </p>
+                    <Field id="source-title" label="Source label" disabled={blocked}>
                       <Input
-                        id="source-title"
                         value={sourceTitle}
                         maxLength={80}
                         onChange={(e) => setSourceTitle(e.target.value)}
                       />
-                    </Field.Root>
-                    <Field.Root disabled={blocked}>
-                      <Field.Label htmlFor="source-text">Supplied source text</Field.Label>
+                    </Field>
+                    <Field id="source-text" label="Supplied source text" disabled={blocked}>
                       <Textarea
-                        id="source-text"
                         value={sourceText}
                         maxLength={4000}
                         onChange={(e) => setSourceText(e.target.value)}
                       />
-                    </Field.Root>
-                    <Field.Root disabled={blocked}>
-                      <Field.Label htmlFor="source-url">
-                        Reference URL (optional, not fetched)
-                      </Field.Label>
+                    </Field>
+                    <Field
+                      id="source-url"
+                      label="Reference URL (optional, not fetched)"
+                      disabled={blocked}
+                      hint={
+                        invalidSource
+                          ? 'Paste source text before supplying a label or reference URL.'
+                          : undefined
+                      }
+                    >
                       <Input
-                        id="source-url"
                         value={sourceUrl}
                         maxLength={2048}
                         onChange={(e) => setSourceUrl(e.target.value)}
                       />
-                      {invalidSource && (
-                        <Field.HelperText>
-                          Paste source text before supplying a label or reference URL.
-                        </Field.HelperText>
-                      )}
-                    </Field.Root>
-                  </VStack>
+                    </Field>
+                  </Stack>
                 )}
-                <Field.Root disabled={blocked}>
-                  <Field.Label htmlFor="run-mode">Execution mode</Field.Label>
-                  <NativeSelect.Root disabled={blocked}>
-                    <NativeSelect.Field
-                      id="run-mode"
-                      value={mode}
-                      onChange={(e) => setMode(e.target.value as typeof mode)}
-                    >
-                      <option value="">Choose a mode</option>
-                      {workflow !== 'knowledge' && (
-                        <option value="demo">Simulation — canned output, no model</option>
-                      )}
-                      {localSupported && <option value="local">Local inference draft</option>}
-                    </NativeSelect.Field>
-                    <NativeSelect.Indicator />
-                  </NativeSelect.Root>
-                </Field.Root>
+                <Field id="run-mode" label="Execution mode" disabled={blocked}>
+                  <Select
+                    value={mode}
+                    disabled={blocked}
+                    onChange={(e) => setMode(e.target.value as typeof mode)}
+                  >
+                    <option value="">Choose a mode</option>
+                    {workflow !== 'knowledge' && (
+                      <option value="demo">Simulation — canned output, no model</option>
+                    )}
+                    {localSupported && <option value="local">Local inference draft</option>}
+                  </Select>
+                </Field>
                 {localSupported && (
-                  <Text color="fg.muted">
+                  <p className="os-text-muted os-m-0">
                     Local inference is configured; availability has not been verified. Execution can
                     still fail.
-                  </Text>
+                  </p>
                 )}
                 {workflow === 'knowledge' && (
-                  <Text
-                    color="fg.muted"
+                  <p
+                    className="os-text-muted os-m-0"
                     role={(provider || providerError) && !knowledgeSupported ? 'alert' : undefined}
                   >
                     {knowledgeSupported
@@ -496,31 +464,30 @@ function DetailContent({
                       : provider || providerError
                         ? 'Grounded answers need a developer-local AI setup with embeddings and structured output. They are unavailable here.'
                         : 'Checking whether grounded answers are available…'}
-                  </Text>
+                  </p>
                 )}
                 {providerError && (
-                  <Text color="fg.muted">
+                  <p className="os-text-muted os-m-0">
                     Local capability information could not be loaded. Simulation remains an explicit
                     choice.
-                  </Text>
+                  </p>
                 )}
-                <chakra.label display="flex" gap={2} alignItems="center">
-                  <chakra.input
-                    type="checkbox"
-                    checked={includeProject}
-                    disabled={blocked}
-                    onChange={(e) => setIncludeProject(e.target.checked)}
-                  />
-                  {workflow === 'knowledge'
-                    ? 'Search this task’s project sources instead'
-                    : 'Include project notes'}
-                </chakra.label>
-                <Text color="fg.muted">
+                <Checkbox
+                  checked={includeProject}
+                  disabled={blocked}
+                  onChange={(e) => setIncludeProject(e.target.checked)}
+                  label={
+                    workflow === 'knowledge'
+                      ? 'Search this task’s project sources instead'
+                      : 'Include project notes'
+                  }
+                />
+                <p className="os-text-muted os-m-0">
                   Project notes require the agent’s current project.read permission. No mode runs
                   automatically.
-                </Text>
+                </p>
                 <Button
-                  colorPalette="teal"
+                  color="primary"
                   disabled={
                     blocked ||
                     !mode ||
@@ -534,14 +501,14 @@ function DetailContent({
                 >
                   Execute draft
                 </Button>
-              </VStack>
+              </Stack>
             </RunSection>
           )}
           {(run.status === 'queued' || run.status === 'running') && (
             <RunSection title="Cancel work">
-              <Text color="fg.muted" mb={3}>
+              <p className="os-text-muted os-mt-0 os-mb-3">
                 Cancellation can race with execution. Refresh to confirm the recorded outcome.
-              </Text>
+              </p>
               <Button variant="outline" disabled={blocked} onClick={() => void change('cancel')}>
                 Cancel run
               </Button>
@@ -549,21 +516,19 @@ function DetailContent({
           )}
           {run.status === 'awaiting-approval' && (
             <RunSection title="Review this draft">
-              <VStack align="stretch" gap={4}>
-                <Text>Decide on the exact input and proposed output shown above.</Text>
-                <Field.Root>
-                  <Field.Label htmlFor="run-review-note">Review note (optional)</Field.Label>
+              <Stack gap={4}>
+                <p className="os-m-0">Decide on the exact input and proposed output shown above.</p>
+                <Field id="run-review-note" label="Review note (optional)">
                   <Textarea
-                    id="run-review-note"
                     value={note}
                     maxLength={2000}
                     disabled={blocked}
                     onChange={(e) => setNote(e.target.value)}
                   />
-                </Field.Root>
-                <HStack flexWrap="wrap">
+                </Field>
+                <div className="os-flex os-flex-wrap os-items-center os-gap-2">
                   <Button
-                    colorPalette="teal"
+                    color="primary"
                     disabled={blocked || !run.resultDigest}
                     onClick={() => void change('approved')}
                   >
@@ -576,21 +541,21 @@ function DetailContent({
                   >
                     Reject draft
                   </Button>
-                </HStack>
-              </VStack>
+                </div>
+              </Stack>
             </RunSection>
           )}
           {run.review && (
             <RunSection title="Human review">
-              <Text>
+              <p className="os-m-0">
                 {run.review.decision === 'approved' ? 'Approved' : 'Rejected'}{' '}
                 {runDate(run.review.at)}
-              </Text>
-              <Text mt={2}>Reviewed version: {run.review.reviewedVersion}</Text>
+              </p>
+              <p className="os-mt-2 os-mb-0">Reviewed version: {run.review.reviewedVersion}</p>
               <RunText value={run.review.note} />
-              <Text mt={3} fontSize="sm" color="fg.muted" overflowWrap="anywhere">
+              <p className="os-mt-3 os-mb-0 os-text-sm os-text-muted os-text-break">
                 Reviewed result digest: {run.review.resultDigest}
-              </Text>
+              </p>
             </RunSection>
           )}
           <HandoffPanel
@@ -608,66 +573,62 @@ function DetailContent({
       )}
       <RunSection title="Lifecycle audit">
         {auditError ? (
-          <Text role="alert" color="fg.error">
+          <p role="alert" className="os-text-danger os-m-0">
             {auditError}
-          </Text>
+          </p>
         ) : (
-          <VStack align="stretch" gap={3}>
+          <Stack gap={3}>
             {audit.map((event) => (
-              <Box
-                key={event.id}
-                borderWidth="1px"
-                borderColor="border.muted"
-                borderRadius="md"
-                p={3}
-              >
-                <Text>
+              <div key={event.id} className="os-border os-rounded-md os-p-3">
+                <p className="os-m-0">
                   {event.kind} · {runDate(event.at)}
-                </Text>
-                <Text fontSize="sm">
+                </p>
+                <p className="os-text-sm os-m-0">
                   {event.from ?? 'New'} → {event.to} · version {event.version}
-                </Text>
-                {event.mode && <Text fontSize="sm">Mode: {event.mode}</Text>}
+                </p>
+                {event.mode && <p className="os-text-sm os-m-0">Mode: {event.mode}</p>}
                 {event.workflow === 'chief-of-staff' && (
-                  <Text fontSize="sm">Workflow: Chief of Staff triage</Text>
+                  <p className="os-text-sm os-m-0">Workflow: Chief of Staff triage</p>
                 )}
                 {event.workflow === 'research' && (
-                  <Text fontSize="sm">Workflow: supplied-source research</Text>
+                  <p className="os-text-sm os-m-0">Workflow: supplied-source research</p>
                 )}
                 {event.workflow === 'developer' && (
-                  <Text fontSize="sm">Workflow: Developer text plan</Text>
+                  <p className="os-text-sm os-m-0">Workflow: Developer text plan</p>
                 )}
                 {event.workflow === 'knowledge' && (
-                  <Text fontSize="sm">Workflow: grounded knowledge answer</Text>
+                  <p className="os-text-sm os-m-0">Workflow: grounded knowledge answer</p>
                 )}
-                {event.reason && <Text fontSize="sm">Reason: {event.reason}</Text>}
+                {event.reason && <p className="os-text-sm os-m-0">Reason: {event.reason}</p>}
                 {event.parentRun && (
-                  <Text fontSize="sm" overflowWrap="anywhere">
+                  <p className="os-text-sm os-text-break os-m-0">
                     Handoff parent: {event.parentRun}
-                  </Text>
+                  </p>
                 )}
                 {event.sourceResultDigest && (
-                  <Text fontSize="sm" overflowWrap="anywhere">
+                  <p className="os-text-sm os-text-break os-m-0">
                     Approved source digest: {event.sourceResultDigest}
-                  </Text>
+                  </p>
                 )}
                 {event.contextDigest && (
-                  <Text fontSize="sm" overflowWrap="anywhere">
+                  <p className="os-text-sm os-text-break os-m-0">
                     Context digest: {event.contextDigest}
-                  </Text>
+                  </p>
                 )}
                 {event.resultDigest && (
-                  <Text fontSize="sm" overflowWrap="anywhere">
+                  <p className="os-text-sm os-text-break os-m-0">
                     Result digest: {event.resultDigest}
-                  </Text>
+                  </p>
                 )}
-              </Box>
+              </div>
             ))}
-            {loaded && !read.pending && !audit.length && <Text>No lifecycle events loaded.</Text>}
-          </VStack>
+            {loaded && !read.pending && !audit.length && (
+              <p className="os-m-0">No lifecycle events loaded.</p>
+            )}
+          </Stack>
         )}
       </RunSection>
-    </VStack>
+    </Stack>
   );
 }
 export default function RunDetailPage() {

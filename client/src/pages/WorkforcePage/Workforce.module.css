@@ -1,0 +1,4 @@
+/* Reserves a line for the agent count so the list doesn't jump when it appears. */
+.summary {
+  min-height: 1.25em;
+}

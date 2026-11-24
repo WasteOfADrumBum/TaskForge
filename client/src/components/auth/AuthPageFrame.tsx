@@ -1,21 +1,25 @@
 import type { ReactNode } from 'react';
-import { Box, Button, HStack } from '@chakra-ui/react';
-import { Link } from 'react-router-dom';
 import Brand from '../layout/Brand';
+import { LinkButton } from '../ui/links';
+import styles from './AuthPage.module.css';
 
-// Shared header and main landmark for the public account pages (sign-in recovery).
-const AuthPageFrame = ({ children }: { children: ReactNode }) => (
-  <Box minH="100vh" bg="bg.subtle">
-    <HStack as="header" maxW="7xl" mx="auto" px={{ base: 4, md: 6 }} py={5} justify="space-between">
+// Shared header and main landmark for the public account pages (sign-in and recovery).
+const AuthPageFrame = ({
+  children,
+  headerAction = { label: 'Sign in', to: '/login' },
+}: {
+  children: ReactNode;
+  headerAction?: { label: string; to: string };
+}) => (
+  <div className={styles.page}>
+    <header className={styles.header}>
       <Brand compact />
-      <Button asChild variant="ghost">
-        <Link to="/login">Sign in</Link>
-      </Button>
-    </HStack>
-    <Box as="main" maxW="md" mx="auto" px={4} py={{ base: 10, md: 20 }}>
-      {children}
-    </Box>
-  </Box>
+      <LinkButton to={headerAction.to} variant="ghost">
+        {headerAction.label}
+      </LinkButton>
+    </header>
+    <main className={styles.main}>{children}</main>
+  </div>
 );
 
 export default AuthPageFrame;

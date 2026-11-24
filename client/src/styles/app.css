@@ -1,0 +1,66 @@
+/*
+ * TaskForge's few app-wide classes on top of OneSmallUI (tf- prefix). Everything else is a
+ * OneSmallUI component, a OneSmallUI utility class (os-*), or a co-located Name.module.css.
+ * Colors always come from --os-* tokens (see assets/theme/onesmall-theme.css).
+ */
+
+/* A bordered panel on the surface color: cards, form panels, sections. */
+.tf-panel {
+  background-color: var(--os-surface);
+  border: 1px solid var(--os-border);
+  border-radius: var(--os-radius-lg);
+}
+
+/* Error and status blocks: tinted background, colored border, readable text. */
+.tf-callout-danger {
+  background-color: var(--os-danger-soft);
+  border: 1px solid var(--os-danger);
+  border-radius: var(--os-radius-md);
+  color: var(--os-text);
+}
+
+/* Page title row: h1 plus an optional action, wrapping on phones. */
+.tf-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/*
+ * Heading sizes TaskForge uses (OneSmallUI's element sizes are larger). These set size and weight
+ * only: spacing always comes from os-m-* / os-mb-* utilities on the element, because these classes
+ * are unlayered and would otherwise override them.
+ */
+.tf-h1 {
+  font-size: var(--os-text-2xl);
+  font-weight: 700;
+  line-height: 1.2;
+}
+.tf-h2 {
+  font-size: var(--os-text-lg);
+  font-weight: 600;
+  line-height: 1.3;
+}
+.tf-h3 {
+  font-size: var(--os-text-base);
+  font-weight: 600;
+  line-height: 1.4;
+}
+@media (min-width: 768px) {
+  .tf-h1 {
+    font-size: var(--os-text-3xl);
+  }
+}
+
+/* A visually quiet text link (navigation asides such as "View all"). Still underlined on hover. */
+.tf-quiet-link {
+  color: var(--os-text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.tf-quiet-link:hover {
+  color: var(--os-primary-text);
+  text-decoration: underline;
+}

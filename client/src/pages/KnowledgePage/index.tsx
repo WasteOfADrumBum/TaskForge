@@ -1,17 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import {
-  Box,
-  Button,
-  Field,
-  Heading,
-  HStack,
-  Input,
-  Link,
-  NativeSelect,
-  Text,
-  VStack,
-} from '@chakra-ui/react';
+import { Button, Field, Input, Select, Stack } from '@onesmall/ui';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { LinkButton } from '../../components/ui/links';
+import styles from '../../components/knowledge/Knowledge.module.css';
 import KnowledgeForm from '../../components/knowledge/KnowledgeForm';
 import { createKnowledgeSource, getKnowledgeSources, searchKnowledge } from '../../api/knowledge';
 import { isCurrentSession } from '../../api/authenticatedFetch';
@@ -135,41 +126,47 @@ function Content({ token, sessionVersion }: { token: string; sessionVersion: num
   };
   const blocked = read.pending || write.pending || needsRefresh || !loaded;
   return (
-    <VStack align="stretch" gap={6} maxW="960px" w="full">
-      <Heading as="h1">Knowledge</Heading>
-      <Text color="fg.muted">
+    <Stack gap={6} className={styles.page}>
+      <h1 className="tf-h1 os-m-0">Knowledge</h1>
+      <p className="os-text-muted os-m-0">
         Private notes and text documents. Keyword search uses stored text; no AI model is called. AI
         answers grounded in your sources need a developer-local setup.
-      </Text>
-      <Box>
-        <Button asChild colorPalette="teal" variant="outline">
-          <RouterLink to="/knowledge/ask">Ask TaskForge</RouterLink>
-        </Button>
-      </Box>
-      <HStack flexWrap="wrap">
+      </p>
+      <div>
+        <LinkButton to="/knowledge/ask" color="primary" variant="outline">
+          Ask TaskForge
+        </LinkButton>
+      </div>
+      <div className="os-flex os-flex-wrap os-items-center os-gap-2">
         <Button variant="outline" disabled={read.pending || write.pending} onClick={reload}>
           Refresh sources
         </Button>
-        <Text>
+        <p className="os-m-0">
           {loaded && !read.pending
             ? sources.length + ' / 50 active sources'
             : 'Source count unavailable'}
-        </Text>
-      </HStack>
-      {read.pending && <Text role="status">Loading sources…</Text>}
-      {error && <Text role="alert">{error}</Text>}
+        </p>
+      </div>
+      {read.pending && (
+        <p role="status" className="os-m-0">
+          Loading sources…
+        </p>
+      )}
+      {error && (
+        <p role="alert" className="os-m-0">
+          {error}
+        </p>
+      )}
       {read.waiting && (
         <Button variant="outline" onClick={read.cancel}>
           Stop waiting for sources
         </Button>
       )}
-      <Box borderWidth="1px" borderColor="border" borderRadius="lg" p={{ base: 4, md: 6 }}>
-        <Heading size="md" mb={4}>
-          Add a private source
-        </Heading>
+      <div className="tf-panel os-p-4 md:os-p-6">
+        <h2 className="tf-h2 os-mt-0 os-mb-4">Add a private source</h2>
         <KnowledgeForm input={input} setInput={setInput} disabled={blocked || uncertain} />
         <Button
-          mt={4}
+          className="os-mt-4"
           disabled={blocked || !validKnowledgeInput(input) || (!uncertain && sources.length >= 50)}
           onClick={() => void save()}
         >
@@ -177,12 +174,12 @@ function Content({ token, sessionVersion }: { token: string; sessionVersion: num
         </Button>
         {uncertain && (
           <>
-            <Text mt={3}>
+            <p className="os-mt-3 os-mb-0">
               The earlier save may already exist. Review My sources before retrying or starting
               another source.
-            </Text>
+            </p>
             <Button
-              mt={3}
+              className="os-mt-3"
               variant="outline"
               disabled={blocked}
               onClick={() => {
@@ -197,13 +194,13 @@ function Content({ token, sessionVersion }: { token: string; sessionVersion: num
           </>
         )}
         {writeError && (
-          <Text role="alert" mt={3}>
+          <p role="alert" className="os-mt-3 os-mb-0">
             {writeError}
-          </Text>
+          </p>
         )}
         {write.waiting && (
           <Button
-            mt={3}
+            className="os-mt-3"
             variant="outline"
             onClick={() => {
               write.cancel();
@@ -215,13 +212,14 @@ function Content({ token, sessionVersion }: { token: string; sessionVersion: num
             Stop waiting for save
           </Button>
         )}
-      </Box>
-      <Box borderWidth="1px" borderColor="border" borderRadius="lg" p={{ base: 4, md: 6 }}>
-        <Heading size="md" mb={4}>
-          Keyword search
-        </Heading>
-        <Field.Root disabled={search.pending || read.pending || write.pending}>
-          <Field.Label>Search knowledge</Field.Label>
+      </div>
+      <div className="tf-panel os-p-4 md:os-p-6">
+        <h2 className="tf-h2 os-mt-0 os-mb-4">Keyword search</h2>
+        <Field
+          label="Search knowledge"
+          disabled={search.pending || read.pending || write.pending}
+          hint="Up to 120 bytes and 8 words; at most 10 results."
+        >
           <Input
             value={query}
             onChange={(event) => {
@@ -229,85 +227,90 @@ function Content({ token, sessionVersion }: { token: string; sessionVersion: num
               setResults(null);
             }}
           />
-          <Field.HelperText>Up to 120 bytes and 8 words; at most 10 results.</Field.HelperText>
-        </Field.Root>
-        <Field.Root
-          mt={3}
+        </Field>
+        <Field
+          label="Search project"
+          className="os-mt-3"
           disabled={!projects.loaded || search.pending || read.pending || write.pending}
         >
-          <Field.Label>Search project</Field.Label>
-          <NativeSelect.Root>
-            <NativeSelect.Field
-              value={project ?? ''}
-              onChange={(event) => {
-                setProject(event.target.value || null);
-                setResults(null);
-              }}
-            >
-              <option value="">All my sources</option>
-              {projects.items.map((item) => (
-                <option key={getProjectId(item)} value={getProjectId(item)}>
-                  {item.name}
-                </option>
-              ))}
-            </NativeSelect.Field>
-          </NativeSelect.Root>
-        </Field.Root>
+          <Select
+            value={project ?? ''}
+            onChange={(event) => {
+              setProject(event.target.value || null);
+              setResults(null);
+            }}
+          >
+            <option value="">All my sources</option>
+            {projects.items.map((item) => (
+              <option key={getProjectId(item)} value={getProjectId(item)}>
+                {item.name}
+              </option>
+            ))}
+          </Select>
+        </Field>
         <Button
-          mt={3}
+          className="os-mt-3"
           disabled={search.pending || read.pending || write.pending || !validKnowledgeQuery(query)}
           onClick={() => void find()}
         >
           Search sources
         </Button>
-        {search.pending && <Text role="status">Searching…</Text>}
+        {search.pending && (
+          <p role="status" className="os-m-0">
+            Searching…
+          </p>
+        )}
         {search.waiting && (
           <Button variant="outline" onClick={search.cancel}>
             Stop waiting for search
           </Button>
         )}
-        {searchError && <Text role="alert">{searchError}</Text>}
+        {searchError && (
+          <p role="alert" className="os-m-0">
+            {searchError}
+          </p>
+        )}
         {results && (
-          <VStack align="stretch" mt={4}>
-            {results.results.length === 0 && <Text>No matching sources.</Text>}
+          <Stack gap={2} className="os-mt-4">
+            {results.results.length === 0 && <p className="os-m-0">No matching sources.</p>}
             {results.results.map((hit) => (
-              <Box key={hit.sourceId} borderTopWidth="1px" borderColor="border" pt={3}>
-                <Link asChild color="accent.teal" overflowWrap="anywhere">
-                  <RouterLink
-                    to={'/knowledge/' + encodeURIComponent(hit.sourceId)}
-                    state={{ citation: hit }}
-                  >
-                    {hit.title} — version {hit.version}
-                  </RouterLink>
-                </Link>
-                <Text fontSize="sm" color="fg.muted">
+              <div key={hit.sourceId} className="os-border-top os-pt-3">
+                <RouterLink
+                  to={'/knowledge/' + encodeURIComponent(hit.sourceId)}
+                  state={{ citation: hit }}
+                  className={styles.anywhere}
+                >
+                  {hit.title} — version {hit.version}
+                </RouterLink>
+                <p className="os-text-sm os-text-muted os-m-0">
                   {hit.matchedInContent
                     ? 'Text match; exact source excerpt'
                     : 'Title match; source excerpt shown for context'}
-                </Text>
-                <Text whiteSpace="pre-wrap" overflowWrap="anywhere">
-                  {hit.citation.quote}
-                </Text>
-              </Box>
+                </p>
+                <p className={'os-m-0 ' + styles.preWrap}>{hit.citation.quote}</p>
+              </div>
             ))}
-          </VStack>
+          </Stack>
         )}
-      </Box>
-      <Heading size="md">My sources</Heading>
-      {loaded && !sources.length && <Text>No sources yet. Add a private note above.</Text>}
+      </div>
+      <h2 className="tf-h2 os-m-0">My sources</h2>
+      {loaded && !sources.length && (
+        <p className="os-m-0">No sources yet. Add a private note above.</p>
+      )}
       {sources.map((source) => (
-        <Box key={source.id} borderWidth="1px" borderColor="border" borderRadius="md" p={4}>
-          <Link asChild color="accent.teal" overflowWrap="anywhere">
-            <RouterLink to={'/knowledge/' + encodeURIComponent(source.id)}>
-              {source.title}
-            </RouterLink>
-          </Link>
-          <Text fontSize="sm" color="fg.muted">
+        <div key={source.id} className="tf-panel os-p-4">
+          <RouterLink
+            to={'/knowledge/' + encodeURIComponent(source.id)}
+            className={styles.anywhere}
+          >
+            {source.title}
+          </RouterLink>
+          <p className="os-text-sm os-text-muted os-m-0">
             {source.kind === 'note' ? 'Note' : 'Text document'} · Version {source.version}
-          </Text>
-        </Box>
+          </p>
+        </div>
       ))}
-    </VStack>
+    </Stack>
   );
 }
 export default function KnowledgePage() {

@@ -1,15 +1,5 @@
 import { isCurrentSession } from '../../api/authenticatedFetch';
-import {
-  Badge,
-  Box,
-  Button,
-  Heading,
-  HStack,
-  Link,
-  SimpleGrid,
-  Text,
-  VStack,
-} from '@chakra-ui/react';
+import { Badge, Button, Grid, Stack } from '@onesmall/ui';
 import { useMemo, useState, type ReactNode } from 'react';
 import { LuArrowLeft, LuBotOff, LuListChecks, LuPencil, LuPlus, LuTrash2 } from 'react-icons/lu';
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
@@ -27,6 +17,7 @@ import { AGENT_PERMISSIONS, getAgentId, type Agent } from '../../types/agent';
 import { getProjectId } from '../../types/project';
 import { getTaskId } from '../../types/task';
 import { getTasksForAgent } from '../../utils/assignees';
+import styles from './AgentDetail.module.css';
 
 const dateFormat = new Intl.DateTimeFormat('en-US', {
   month: 'short',
@@ -40,22 +31,16 @@ const dateFormat = new Intl.DateTimeFormat('en-US', {
 const statusOrder = { 'in-progress': 0, todo: 1, done: 2 } as const;
 
 const BackLink = () => (
-  <Link asChild fontSize="sm" color="fg.muted" _hover={{ color: 'accent.teal' }}>
-    <RouterLink to="/workforce">
-      <LuArrowLeft aria-hidden="true" />
-      All agents
-    </RouterLink>
-  </Link>
+  <RouterLink
+    to="/workforce"
+    className="tf-quiet-link os-text-sm os-inline-flex os-items-center os-gap-1"
+  >
+    <LuArrowLeft aria-hidden="true" />
+    All agents
+  </RouterLink>
 );
 
-const panelProps = {
-  as: 'section',
-  bg: 'bg.panel',
-  borderWidth: '1px',
-  borderRadius: 'lg',
-  p: { base: 4, md: 5 },
-  minW: '0',
-} as const;
+const panelClass = 'tf-panel os-p-4 md:os-p-5 os-min-w-0';
 
 const AgentDetailPage = () => {
   const token = useAppSelector((state) => state.auth.token);
@@ -90,26 +75,24 @@ const AgentDetailPage = () => {
 
   // Loading, load-error, and not-found states share the page layout: back link and heading.
   const statePage = (heading: string, body: ReactNode) => (
-    <Box>
-      <Box mb={{ base: 5, md: 6 }}>
+    <div>
+      <div className="os-mb-6">
         <BackLink />
-        <Heading as="h1" size={{ base: '2xl', md: '3xl' }} mt={3}>
-          {heading}
-        </Heading>
-      </Box>
+        <h1 className="tf-h1 os-mt-3 os-mb-0">{heading}</h1>
+      </div>
       {body}
-    </Box>
+    </div>
   );
 
   if (!loaded) {
     return statePage(
       'Agent',
       loadError ? (
-        <Box borderWidth="1px" borderColor="border.error" bg="bg.error" borderRadius="md" p={3}>
-          <Text color="fg.error">{loadError}</Text>
-        </Box>
+        <div className="tf-callout-danger os-p-3">
+          <p className="os-text-danger os-m-0">{loadError}</p>
+        </div>
       ) : (
-        <Text color="fg.muted">Loading agent...</Text>
+        <p className="os-text-muted os-m-0">Loading agent...</p>
       ),
     );
   }
@@ -117,13 +100,13 @@ const AgentDetailPage = () => {
   if (!agent) {
     return statePage(
       'Agent not found',
-      <Box bg="bg.panel" borderWidth="1px" borderRadius="lg">
+      <div className="tf-panel">
         <EmptyState
           icon={<LuBotOff size={24} />}
           title="This agent doesn't exist"
           description="It may have been deleted, or the link is wrong."
         />
-      </Box>,
+      </div>,
     );
   }
 
@@ -144,24 +127,18 @@ const AgentDetailPage = () => {
   };
 
   return (
-    <Box>
-      <Box mb={{ base: 5, md: 6 }}>
+    <div>
+      <div className="os-mb-6">
         <BackLink />
-        <HStack mt={3} gap={3} flexWrap="wrap" align="center">
-          <Heading as="h1" size={{ base: '2xl', md: '3xl' }} minW="0" wordBreak="break-word">
-            {agent.name}
-          </Heading>
+        <div className="os-flex os-flex-wrap os-items-center os-gap-3 os-mt-3">
+          <h1 className="tf-h1 os-m-0 os-min-w-0 os-text-break">{agent.name}</h1>
           <AgentStatusBadge status={agent.status} />
-        </HStack>
-        <Text color="accent.violet" mt={1}>
-          {agent.role}
-        </Text>
+        </div>
+        <p className="os-text-accent os-mt-1 os-mb-0">{agent.role}</p>
         {agent.description && (
-          <Text color="fg.muted" mt={2} whiteSpace="pre-wrap">
-            {agent.description}
-          </Text>
+          <p className={'os-text-muted os-mt-2 os-mb-0 ' + styles.preWrap}>{agent.description}</p>
         )}
-        <HStack mt={4} gap={2} flexWrap="wrap">
+        <div className="os-flex os-flex-wrap os-items-center os-gap-2 os-mt-4">
           <Button
             size="sm"
             variant="outline"
@@ -170,8 +147,8 @@ const AgentDetailPage = () => {
               setEditing(true);
             }}
             disabled={editing}
+            leftIcon={<LuPencil />}
           >
-            <LuPencil />
             Edit agent
           </Button>
           {agent.status === 'active' && (
@@ -179,25 +156,25 @@ const AgentDetailPage = () => {
               size="sm"
               variant="outline"
               onClick={() => navigate('/work', { state: { newTask: Date.now(), agentId: id } })}
+              leftIcon={<LuPlus />}
             >
-              <LuPlus />
               Assign a new task
             </Button>
           )}
           <Button
             size="sm"
             variant="ghost"
-            colorPalette="red"
+            color="danger"
             onClick={() => setDeleteTarget(agent)}
+            leftIcon={<LuTrash2 />}
           >
-            <LuTrash2 />
             Delete
           </Button>
-        </HStack>
-      </Box>
+        </div>
+      </div>
 
       {editing && (
-        <Box mb={6} maxW="2xl">
+        <div className={'os-mb-6 ' + styles.formWrap}>
           <AgentForm
             agent={agent}
             saving={saving}
@@ -208,12 +185,12 @@ const AgentDetailPage = () => {
               setEditing(false);
             }}
           />
-        </Box>
+        </div>
       )}
 
-      <SimpleGrid columns={{ base: 1, xl: 3 }} gap={6} alignItems="start">
-        <VStack align="stretch" gap={6} gridColumn={{ xl: 'span 2' }} minW="0">
-          <Box {...panelProps} aria-labelledby="agent-assignments-heading">
+      <Grid columns={{ base: 1, xl: 3 }} gap={6} className="os-items-start">
+        <Stack gap={6} className="xl:os-col-span-2 os-min-w-0">
+          <section className={panelClass} aria-labelledby="agent-assignments-heading">
             <SectionHeader
               id="agent-assignments-heading"
               title="Assigned tasks"
@@ -221,23 +198,21 @@ const AgentDetailPage = () => {
               action={{ label: 'Open Work', to: '/work' }}
             />
             {agent.status !== 'active' && (
-              <Text fontSize="sm" color="fg.muted" mb={3}>
+              <p className="os-text-sm os-text-muted os-mt-0 os-mb-3">
                 This agent is {agent.status}. It keeps existing assignments but can’t take new ones.
-              </Text>
+              </p>
             )}
             {!tasksReady ? (
-              <Box>
-                <Text color={tasksError ? 'fg.error' : 'fg.muted'}>
+              <div>
+                <p className={(tasksError ? 'os-text-danger' : 'os-text-muted') + ' os-m-0'}>
                   {tasksError ? 'Assigned tasks unavailable.' : 'Loading assigned tasks...'}
-                </Text>
+                </p>
                 {tasksError && (
-                  <Text color="fg.error" fontSize="sm" mt={1}>
-                    {tasksError}
-                  </Text>
+                  <p className="os-text-danger os-text-sm os-mt-1 os-mb-0">{tasksError}</p>
                 )}
-              </Box>
+              </div>
             ) : assignedTasks.length ? (
-              <Box as="ul" listStyleType="none" m={0} p={0} aria-label="Assigned tasks">
+              <ul className="os-list-unstyled os-m-0" aria-label="Assigned tasks">
                 {assignedTasks.map((task) => (
                   <PriorityTaskRow
                     key={getTaskId(task)}
@@ -245,7 +220,7 @@ const AgentDetailPage = () => {
                     project={task.project ? projectsById.get(task.project) : undefined}
                   />
                 ))}
-              </Box>
+              </ul>
             ) : (
               <EmptyState
                 icon={<LuListChecks size={24} />}
@@ -257,77 +232,68 @@ const AgentDetailPage = () => {
                 }
               />
             )}
-          </Box>
+          </section>
 
-          <Box {...panelProps} aria-labelledby="agent-skills-heading">
+          <section className={panelClass} aria-labelledby="agent-skills-heading">
             <SectionHeader id="agent-skills-heading" title="Skills" count={agent.skills.length} />
             <SkillTags skills={agent.skills} />
-          </Box>
+          </section>
 
-          <Box {...panelProps} aria-labelledby="agent-permissions-heading">
+          <section className={panelClass} aria-labelledby="agent-permissions-heading">
             <SectionHeader
               id="agent-permissions-heading"
               title="Permissions"
               count={agent.permissions.length}
             />
-            <Text fontSize="sm" color="fg.muted" mb={3}>
+            <p className="os-text-sm os-text-muted os-mt-0 os-mb-3">
               Drafts require Read tasks and Draft artifacts. Update permissions do not enable
               automatic changes.
-            </Text>
-            <Box as="ul" listStyleType="none" m={0} p={0}>
+            </p>
+            <ul className="os-list-unstyled os-m-0">
               {AGENT_PERMISSIONS.map((item) => {
                 const granted = agent.permissions.includes(item.id);
                 return (
-                  <HStack
-                    as="li"
+                  <li
                     key={item.id}
-                    justify="space-between"
-                    gap={3}
-                    py={2.5}
-                    borderTopWidth="1px"
-                    borderColor="border.muted"
+                    className="os-flex os-justify-between os-items-center os-gap-3 os-py-2 os-border-top"
                   >
-                    <Box minW="0">
+                    <div className="os-min-w-0">
                       {/* Full-strength text either way: dimming failed contrast (KAN-76), and the
                           badge already names the state in words. */}
-                      <Text fontSize="sm" fontWeight="medium">
-                        {item.label}
-                      </Text>
-                      <Text fontSize="xs" color="fg.muted">
+                      <p className="os-text-sm os-font-medium os-m-0">{item.label}</p>
+                      <p className="os-text-xs os-text-muted os-m-0">
                         {item.id} · {item.description}
-                      </Text>
-                    </Box>
+                      </p>
+                    </div>
                     <Badge
                       size="sm"
-                      variant={granted ? 'subtle' : 'outline'}
-                      colorPalette={granted ? 'teal' : 'gray'}
-                      flexShrink={0}
+                      variant={granted ? 'soft' : 'outline'}
+                      color={granted ? 'primary' : 'neutral'}
+                      className="os-shrink-0"
                     >
                       {granted ? 'Allowed' : 'Not allowed'}
                     </Badge>
-                  </HStack>
+                  </li>
                 );
               })}
-            </Box>
-          </Box>
+            </ul>
+          </section>
 
           <ApprovalPanel key={id + ':' + sessionVersion} agentId={id} />
 
-          <Box {...panelProps} aria-labelledby="agent-runs-heading">
+          <section className={panelClass} aria-labelledby="agent-runs-heading">
             <SectionHeader id="agent-runs-heading" title="Run activity" />
-            <Text fontSize="sm" color="fg.muted" mb={3}>
+            <p className="os-text-sm os-text-muted os-mt-0 os-mb-3">
               View recorded attempts, results, context and review decisions. Assignment alone starts
               no work.
-            </Text>
-            <Link asChild color="accent.teal">
-              <RouterLink to="/workforce/runs">View run activity</RouterLink>
-            </Link>
-          </Box>
-        </VStack>
+            </p>
+            <RouterLink to="/workforce/runs">View run activity</RouterLink>
+          </section>
+        </Stack>
 
-        <Box {...panelProps} aria-labelledby="agent-details-heading">
+        <section className={panelClass} aria-labelledby="agent-details-heading">
           <SectionHeader id="agent-details-heading" title="Details" />
-          <SimpleGrid as="dl" columns={1} gap={4}>
+          <dl className="os-grid os-gap-4 os-m-0">
             {[
               ['Status', <AgentStatusBadge key="status" status={agent.status} />],
               ['Role', agent.role],
@@ -342,18 +308,14 @@ const AgentDetailPage = () => {
               ['Created', agent.createdAt ? dateFormat.format(new Date(agent.createdAt)) : '—'],
               ['Updated', agent.updatedAt ? dateFormat.format(new Date(agent.updatedAt)) : '—'],
             ].map(([label, value]) => (
-              <Box key={String(label)}>
-                <Text as="dt" fontSize="xs" color="fg.muted">
-                  {label}
-                </Text>
-                <Box as="dd" fontWeight="semibold" m={0} wordBreak="break-word">
-                  {value}
-                </Box>
-              </Box>
+              <div key={String(label)}>
+                <dt className="os-text-xs os-text-muted os-font-normal">{label}</dt>
+                <dd className="os-font-semibold os-m-0 os-text-break">{value}</dd>
+              </div>
             ))}
-          </SimpleGrid>
-        </Box>
-      </SimpleGrid>
+          </dl>
+        </section>
+      </Grid>
 
       <DeleteAgentDialog
         agent={deleteTarget}
@@ -364,7 +326,7 @@ const AgentDetailPage = () => {
         }}
         onConfirm={() => void confirmDelete()}
       />
-    </Box>
+    </div>
   );
 };
 

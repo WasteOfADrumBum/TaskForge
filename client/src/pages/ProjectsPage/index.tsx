@@ -1,11 +1,12 @@
 import { isCurrentSession } from '../../api/authenticatedFetch';
-import { Box, Heading, SimpleGrid, Text } from '@chakra-ui/react';
+import { Grid } from '@onesmall/ui';
 import { useMemo, useState } from 'react';
 import { LuFolderKanban } from 'react-icons/lu';
 import EmptyState from '../../components/common/EmptyState';
 import DeleteProjectDialog from '../../components/projects/DeleteProjectDialog';
 import ProjectCard from '../../components/projects/ProjectCard';
 import ProjectForm from '../../components/projects/ProjectForm';
+import workStyles from '../../components/work/Work.module.css';
 import WorkTabs from '../../components/work/WorkTabs';
 import { useProjectActions } from '../../hooks/useProjectActions';
 import { useToday } from '../../hooks/useToday';
@@ -54,26 +55,16 @@ const ProjectsPage = () => {
   };
 
   return (
-    <Box>
-      <Box mb={{ base: 5, md: 6 }}>
-        <Text
-          color="accent.teal"
-          fontSize="xs"
-          fontWeight="semibold"
-          letterSpacing="widest"
-          textTransform="uppercase"
-        >
-          Work
-        </Text>
-        <Heading as="h1" size={{ base: '2xl', md: '3xl' }} mt={1.5}>
-          Projects
-        </Heading>
-        <Text color="fg.muted" mt={1.5}>
+    <div>
+      <div className={workStyles.pageHeader}>
+        <p className={workStyles.eyebrow}>Work</p>
+        <h1 className="tf-h1 os-m-0 os-mt-1">Projects</h1>
+        <p className="os-text-muted os-mt-1 os-mb-0">
           Group related tasks and track progress toward a goal.
-        </Text>
-      </Box>
+        </p>
+      </div>
       <WorkTabs />
-      <SimpleGrid columns={{ base: 1, xl: 3 }} gap={6} alignItems="start">
+      <Grid columns={{ base: 1, xl: 3 }} gap={6} className="os-items-start">
         <ProjectForm
           key={editing ? getProjectId(editing) : 'new'}
           project={editing ?? undefined}
@@ -82,52 +73,38 @@ const ProjectsPage = () => {
           onSubmit={handleSubmit}
           onCancel={editing ? cancelEdit : undefined}
         />
-        <Box
-          as="section"
-          aria-labelledby="project-list-heading"
-          gridColumn={{ xl: 'span 2' }}
-          minW="0"
-        >
-          <Heading as="h2" id="project-list-heading" size="lg" mb={1}>
+        <section aria-labelledby="project-list-heading" className="xl:os-col-span-2 os-min-w-0">
+          <h2 id="project-list-heading" className="tf-h2 os-m-0 os-mb-1">
             Your Projects
-          </Heading>
-          <Text color="fg.muted" fontSize="sm" mb={4} minH="1.25em">
+          </h2>
+          <p className={'os-text-muted os-text-sm os-mt-0 os-mb-4 ' + workStyles.reserveLine}>
             {loaded && `${projects.length} ${projects.length === 1 ? 'project' : 'projects'}`}
-          </Text>
+          </p>
           {loadError && (
-            <Box
-              borderWidth="1px"
-              borderColor="border.error"
-              bg="bg.error"
-              borderRadius="md"
-              p={3}
-              mb={4}
-            >
-              <Text color="fg.error">{loadError}</Text>
-            </Box>
+            <div className="tf-callout-danger os-p-3 os-mb-4">
+              <p className="os-text-danger os-m-0">{loadError}</p>
+            </div>
           )}
           {!loaded && loading && (
-            <Box bg="bg.panel" borderWidth="1px" borderRadius="lg" p={8} textAlign="center">
-              <Text color="fg.muted">Loading your projects...</Text>
-            </Box>
+            <div className="tf-panel os-p-8 os-text-center">
+              <p className="os-text-muted os-m-0 os-max-w-none">Loading your projects...</p>
+            </div>
           )}
           {loaded && projects.length === 0 && (
-            <Box bg="bg.panel" borderWidth="1px" borderRadius="lg">
+            <div className="tf-panel">
               <EmptyState
                 icon={<LuFolderKanban size={24} />}
                 title="No projects yet"
                 description="Create a project to group related tasks and see progress at a glance."
               />
-            </Box>
+            </div>
           )}
           {projects.length > 0 && (
-            <SimpleGrid
+            <Grid
               as="ul"
-              listStyleType="none"
-              m={0}
-              p={0}
               columns={{ base: 1, md: 2 }}
               gap={4}
+              className="os-list-unstyled os-m-0 os-p-0"
             >
               {sorted.map((project) => (
                 <ProjectCard
@@ -138,10 +115,10 @@ const ProjectsPage = () => {
                   onDelete={setDeleteTarget}
                 />
               ))}
-            </SimpleGrid>
+            </Grid>
           )}
-        </Box>
-      </SimpleGrid>
+        </section>
+      </Grid>
       <DeleteProjectDialog
         project={deleteTarget}
         taskCount={deleteTarget ? getStatsForProject(stats, getProjectId(deleteTarget)).total : 0}
@@ -151,7 +128,7 @@ const ProjectsPage = () => {
         }}
         onConfirm={() => void confirmDelete()}
       />
-    </Box>
+    </div>
   );
 };
 

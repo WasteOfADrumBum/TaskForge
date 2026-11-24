@@ -1,0 +1,4 @@
+/* Holds one line of space so the drafts below do not jump as messages come and go. */
+.status {
+  min-height: 1.25rem;
+}

@@ -1,14 +1,4 @@
-import {
-  Box,
-  Button,
-  Field,
-  Heading,
-  HStack,
-  NativeSelect,
-  Text,
-  Textarea,
-  VStack,
-} from '@chakra-ui/react';
+import { Button, Field, Select, Stack, Textarea } from '@onesmall/ui';
 import { useEffect, useRef, useState } from 'react';
 import { isCurrentSession } from '../../api/authenticatedFetch';
 import { getRunApprovals, reviewRunDraft } from '../../api/runs';
@@ -16,6 +6,7 @@ import { useDelayedRequest } from '../../hooks/useDelayedRequest';
 import { useAppSelector } from '../../redux/hooks/typedHooks';
 import { getRunId, type AgentRun, type ReviewDecision } from '../../types/run';
 import { SessionExpiredError } from '../../utils/session';
+import styles from './Runs.module.css';
 
 const outputText = (result: unknown) => {
   if (result && typeof result === 'object' && 'text' in result && typeof result.text === 'string')
@@ -126,32 +117,24 @@ function ApprovalPanelContent({ agentId }: { agentId: string }) {
   };
   const headingId = 'draft-approvals-' + agentId;
   return (
-    <Box
-      as="section"
-      aria-labelledby={headingId}
-      bg="bg.panel"
-      borderWidth="1px"
-      borderColor="border.muted"
-      borderRadius="lg"
-      p={{ base: 4, md: 5 }}
-    >
-      <HStack justify="space-between" align="start" gap={3}>
-        <Heading as="h2" size="md" id={headingId}>
+    <section aria-labelledby={headingId} className="tf-panel os-p-4 md:os-p-5">
+      <div className="os-flex os-justify-between os-items-start os-gap-3">
+        <h2 id={headingId} className="tf-h3 os-m-0">
           Drafts awaiting review
-        </Heading>
+        </h2>
         <Button size="sm" variant="outline" disabled={saving || pending} onClick={refresh}>
           Refresh drafts
         </Button>
-      </HStack>
-      <Text fontSize="sm" color="fg.muted" mt={2}>
+      </div>
+      <p className="os-text-sm os-text-muted os-mt-2 os-mb-0">
         Review this exact draft before deciding. Approval records your decision; it does not apply
         content to tasks.
-      </Text>
+      </p>
       {pending && (
-        <HStack mt={3}>
-          <Text role="status">
+        <div className="os-flex os-items-center os-gap-2 os-mt-3">
+          <p role="status" className="os-m-0">
             {waiting ? 'TaskForge is still loading drafts...' : 'Loading drafts...'}
-          </Text>
+          </p>
           <Button
             size="sm"
             variant="outline"
@@ -163,87 +146,78 @@ function ApprovalPanelContent({ agentId }: { agentId: string }) {
           >
             Cancel loading
           </Button>
-        </HStack>
+        </div>
       )}
       {error && (
-        <Box role="alert" mt={3} color="fg.error">
-          <Text>{error}</Text>
-          {refreshRequired && <Text>Refresh drafts before deciding again.</Text>}
-        </Box>
+        <div role="alert" className="os-mt-3 os-text-danger">
+          <p className="os-m-0">{error}</p>
+          {refreshRequired && <p className="os-m-0">Refresh drafts before deciding again.</p>}
+        </div>
       )}
       {success && (
-        <Text role="status" mt={3} color="fg.success">
+        <p role="status" className="os-mt-3 os-mb-0 os-text-success">
           {success}
-        </Text>
+        </p>
       )}
       {saving && (
-        <Text role="status" mt={3}>
+        <p role="status" className="os-mt-3 os-mb-0">
           Saving decision...
-        </Text>
+        </p>
       )}
       {loaded && !pending && !error && !runs.length && (
-        <Text mt={3} color="fg.muted">
-          No drafts awaiting review.
-        </Text>
+        <p className="os-mt-3 os-mb-0 os-text-muted">No drafts awaiting review.</p>
       )}
       {!pending && selected && (
-        <VStack align="stretch" gap={4} mt={4}>
-          <Field.Root disabled={saving || refreshRequired}>
-            <Field.Label htmlFor="approval-draft-select">Pending draft</Field.Label>
-            <NativeSelect.Root disabled={saving}>
-              <NativeSelect.Field
-                id="approval-draft-select"
-                value={selectedId}
-                onChange={(event) => {
-                  setSelectedId(event.target.value);
-                  setNote('');
-                }}
-              >
-                {runs.map((run, index) => (
-                  <option key={getRunId(run)} value={getRunId(run)}>
-                    Draft {index + 1}: {run.input.slice(0, 60)}
-                  </option>
-                ))}
-              </NativeSelect.Field>
-              <NativeSelect.Indicator />
-            </NativeSelect.Root>
-            <Field.HelperText>Latest 100 pending drafts for this agent.</Field.HelperText>
-          </Field.Root>
-          <Text fontWeight="medium">
+        <Stack gap={4} className="os-mt-4">
+          <Field
+            id="approval-draft-select"
+            label="Pending draft"
+            hint="Latest 100 pending drafts for this agent."
+            disabled={saving || refreshRequired}
+          >
+            <Select
+              value={selectedId}
+              disabled={saving || refreshRequired}
+              onChange={(event) => {
+                setSelectedId(event.target.value);
+                setNote('');
+              }}
+            >
+              {runs.map((run, index) => (
+                <option key={getRunId(run)} value={getRunId(run)}>
+                  Draft {index + 1}: {run.input.slice(0, 60)}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <p className="os-font-medium os-m-0">
             {selected.executionMode === 'demo'
               ? 'Simulation: canned output, no model called.'
               : 'Local inference draft.'}
-          </Text>
-          <Box>
-            <Heading as="h3" size="sm">
-              Requested work
-            </Heading>
-            <Text mt={2} whiteSpace="pre-wrap" overflowWrap="anywhere">
-              {selected.input}
-            </Text>
-          </Box>
-          <Box>
-            <Heading as="h3" size="sm">
-              Proposed output
-            </Heading>
-            <Text mt={2} whiteSpace="pre-wrap" overflowWrap="anywhere">
-              {outputText(selected.result)}
-            </Text>
-          </Box>
-          <Field.Root>
-            <Field.Label htmlFor="approval-note">Review note (optional)</Field.Label>
+          </p>
+          <div>
+            <h3 className="os-text-sm os-font-semibold os-m-0">Requested work</h3>
+            <p className={'os-mt-2 os-mb-0 ' + styles.preWrap}>{selected.input}</p>
+          </div>
+          <div>
+            <h3 className="os-text-sm os-font-semibold os-m-0">Proposed output</h3>
+            <p className={'os-mt-2 os-mb-0 ' + styles.preWrap}>{outputText(selected.result)}</p>
+          </div>
+          <Field
+            id="approval-note"
+            label="Review note (optional)"
+            hint="Up to 2000 characters. Saved with this decision."
+          >
             <Textarea
-              id="approval-note"
               value={note}
               maxLength={2000}
               disabled={saving || refreshRequired}
               onChange={(event) => setNote(event.target.value)}
             />
-            <Field.HelperText>Up to 2000 characters. Saved with this decision.</Field.HelperText>
-          </Field.Root>
-          <HStack flexWrap="wrap">
+          </Field>
+          <div className="os-flex os-flex-wrap os-items-center os-gap-2">
             <Button
-              colorPalette="teal"
+              color="primary"
               disabled={saving || refreshRequired || !selected.resultDigest}
               onClick={() => void decide('approved')}
             >
@@ -256,10 +230,10 @@ function ApprovalPanelContent({ agentId }: { agentId: string }) {
             >
               Reject draft
             </Button>
-          </HStack>
-        </VStack>
+          </div>
+        </Stack>
       )}
-    </Box>
+    </section>
   );
 }
 

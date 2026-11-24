@@ -1,4 +1,4 @@
-import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
+import { Provider as UiProvider } from '../ui/provider';
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
@@ -48,7 +48,7 @@ afterEach(() => {
 const renderSession = (withDashboard = false) => {
   render(
     <Provider store={store}>
-      <ChakraProvider value={defaultSystem}>
+      <UiProvider>
         <MemoryRouter initialEntries={['/home']}>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
@@ -63,7 +63,7 @@ const renderSession = (withDashboard = false) => {
             </Route>
           </Routes>
         </MemoryRouter>
-      </ChakraProvider>
+      </UiProvider>
     </Provider>,
   );
 };
@@ -177,11 +177,11 @@ describe('session expiration flow', () => {
     store.dispatch(setError('Invalid credentials'));
     render(
       <Provider store={store}>
-        <ChakraProvider value={defaultSystem}>
+        <UiProvider>
           <MemoryRouter>
             <LoginPage />
           </MemoryRouter>
-        </ChakraProvider>
+        </UiProvider>
       </Provider>,
     );
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();

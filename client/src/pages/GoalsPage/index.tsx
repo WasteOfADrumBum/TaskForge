@@ -1,16 +1,4 @@
-import {
-  Badge,
-  Box,
-  Button,
-  Field,
-  Heading,
-  HStack,
-  Input,
-  NativeSelect,
-  Text,
-  Textarea,
-  VStack,
-} from '@chakra-ui/react';
+import { Badge, Button, Field, Input, Select, Stack, Textarea } from '@onesmall/ui';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { LuPlus } from 'react-icons/lu';
 import { useGoals } from '../../hooks/useGoals';
@@ -28,6 +16,7 @@ import {
   type GoalStatus,
 } from '../../types/goal';
 import { goalTargetText } from '../../utils/goals';
+import styles from './Goals.module.css';
 
 const sectionTitle: Record<GoalStatus, string> = {
   active: 'Active goals',
@@ -66,35 +55,31 @@ const GoalRow = ({
   const target = goalTargetText(goal, now);
   const area = goal.area && goal.area !== 'general' ? goalAreaLabel[goal.area] + ' goal' : null;
   return (
-    <Box as="li" py={3} borderTopWidth="1px" borderColor="border.muted">
-      <Text fontWeight="medium" overflowWrap="anywhere">
-        {goal.title}
-      </Text>
+    <li className="os-py-3 os-border-top">
+      <p className="os-font-medium os-text-break os-m-0">{goal.title}</p>
       {goal.description && (
-        <Text fontSize="sm" color="fg.muted" overflowWrap="anywhere" whiteSpace="pre-wrap">
+        <p className={`os-text-sm os-text-muted os-text-break os-m-0 ${styles.preWrap}`}>
           {goal.description}
-        </Text>
+        </p>
       )}
       {(area || target) && (
-        <Text fontSize="sm" color="fg.muted">
+        <p className="os-text-sm os-text-muted os-m-0">
           {[area, target].filter(Boolean).join(' · ')}
-        </Text>
+        </p>
       )}
-      <HStack gap={2} mt={2} flexWrap="wrap">
-        <NativeSelect.Root size="xs" width="auto">
-          <NativeSelect.Field
-            value={goal.area ?? 'general'}
-            onChange={(event) => onArea(event.target.value as GoalArea)}
-            aria-label={'Area for ' + goal.title}
-          >
-            {GOAL_AREAS.map((option) => (
-              <option key={option} value={option}>
-                {goalAreaLabel[option]}
-              </option>
-            ))}
-          </NativeSelect.Field>
-          <NativeSelect.Indicator />
-        </NativeSelect.Root>
+      <div className="os-flex os-flex-wrap os-items-center os-gap-2 os-mt-2">
+        <Select
+          size="xs"
+          value={goal.area ?? 'general'}
+          onChange={(event) => onArea(event.target.value as GoalArea)}
+          aria-label={'Area for ' + goal.title}
+        >
+          {GOAL_AREAS.map((option) => (
+            <option key={option} value={option}>
+              {goalAreaLabel[option]}
+            </option>
+          ))}
+        </Select>
         {goal.status === 'active' ? (
           <>
             <Button
@@ -131,7 +116,7 @@ const GoalRow = ({
           <>
             <Button
               size="xs"
-              colorPalette="red"
+              color="danger"
               disabled={busy}
               onClick={onDelete}
               ref={confirmRef}
@@ -160,8 +145,8 @@ const GoalRow = ({
             Delete
           </Button>
         )}
-      </HStack>
-    </Box>
+      </div>
+    </li>
   );
 };
 
@@ -232,109 +217,92 @@ const GoalsPage = () => {
   else if (error) status = 'Your goals could not be loaded.';
 
   return (
-    <VStack align="stretch" gap={{ base: 6, md: 8 }}>
-      <Box>
-        <Heading as="h1" size={{ base: '2xl', md: '3xl' }}>
-          Goals
-        </Heading>
-        <Text color="fg.muted" mt={1.5}>
+    <Stack gap={{ base: 6, md: 8 }}>
+      <div>
+        <h1 className="tf-h1 os-m-0">Goals</h1>
+        <p className="os-text-muted os-mt-2 os-mb-0">
           What you are working toward. Check in on them in your weekly review.
-        </Text>
-        <Text
+        </p>
+        <p
           ref={statusRef}
           tabIndex={-1}
           role="status"
           aria-live="polite"
-          fontSize="sm"
-          color="fg.muted"
-          mt={1}
-          _focusVisible={{ outline: '2px solid', outlineColor: 'accent.teal' }}
+          className="os-text-sm os-text-muted os-mt-1 os-mb-0"
         >
           {status}
-        </Text>
-      </Box>
+        </p>
+      </div>
 
-      <Box
-        as="form"
+      <form
         onSubmit={onSubmit}
         aria-labelledby="new-goal-heading"
-        bg="bg.panel"
-        borderWidth="1px"
-        borderRadius="lg"
-        p={{ base: 4, md: 5 }}
+        className="tf-panel os-p-4 md:os-p-5"
       >
-        <Heading as="h2" id="new-goal-heading" size="md" mb={4}>
+        <h2 id="new-goal-heading" className="tf-h3 os-mt-0 os-mb-4">
           Add a goal
-        </Heading>
-        <VStack align="stretch" gap={4}>
-          <Field.Root required invalid={formError === 'Give the goal a title.'}>
-            <Field.Label>
-              Title
-              <Field.RequiredIndicator />
-            </Field.Label>
+        </h2>
+        <Stack gap={4}>
+          <Field label="Title" required>
             <Input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               maxLength={GOAL_TITLE_MAX}
+              invalid={formError === 'Give the goal a title.'}
             />
-          </Field.Root>
-          <Field.Root>
-            <Field.Label>Why it matters (optional)</Field.Label>
+          </Field>
+          <Field label="Why it matters (optional)">
             <Textarea
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               rows={2}
               maxLength={GOAL_DESCRIPTION_MAX}
             />
-          </Field.Root>
-          <Field.Root>
-            <Field.Label>Area</Field.Label>
-            <NativeSelect.Root maxW="12rem">
-              <NativeSelect.Field
-                value={area}
-                onChange={(event) => setArea(event.target.value as GoalArea)}
-              >
-                {GOAL_AREAS.map((option) => (
-                  <option key={option} value={option}>
-                    {goalAreaLabel[option]}
-                  </option>
-                ))}
-              </NativeSelect.Field>
-              <NativeSelect.Indicator />
-            </NativeSelect.Root>
-          </Field.Root>
-          <Field.Root>
-            <Field.Label>Target date (optional)</Field.Label>
+          </Field>
+          <Field label="Area">
+            <Select
+              value={area}
+              onChange={(event) => setArea(event.target.value as GoalArea)}
+              className={styles.narrow}
+            >
+              {GOAL_AREAS.map((option) => (
+                <option key={option} value={option}>
+                  {goalAreaLabel[option]}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Target date (optional)">
             <Input
               type="date"
               value={targetDate}
               onChange={(event) => setTargetDate(event.target.value)}
-              maxW="12rem"
+              className={styles.narrow}
             />
-          </Field.Root>
+          </Field>
           {formError && (
-            <Text role="alert" color="fg.error">
+            <p role="alert" className="os-text-danger os-m-0">
               {formError}
-            </Text>
+            </p>
           )}
-          <HStack>
+          <div className="os-flex">
             <Button
               type="submit"
-              colorPalette="teal"
+              color="primary"
               loading={isBusy('new')}
               // Adding before the list loads could be overwritten by that first load.
               disabled={!loaded}
+              leftIcon={<LuPlus focusable="false" />}
             >
-              <LuPlus aria-hidden="true" focusable="false" />
               Add goal
             </Button>
-          </HStack>
-        </VStack>
-      </Box>
+          </div>
+        </Stack>
+      </form>
 
       {error && !pending && (
-        <VStack align="start" gap={2}>
-          <Text color="fg.error">{error}</Text>
+        <Stack gap={2} align="start">
+          <p className="os-text-danger os-m-0">{error}</p>
           <Button
             size="sm"
             variant="outline"
@@ -345,12 +313,12 @@ const GoalsPage = () => {
           >
             Retry loading goals
           </Button>
-        </VStack>
+        </Stack>
       )}
       {actionError && (
-        <Text role="alert" color="fg.error">
+        <p role="alert" className="os-text-danger os-m-0">
           {actionError}
-        </Text>
+        </p>
       )}
 
       {loaded &&
@@ -358,23 +326,19 @@ const GoalsPage = () => {
           const items = goals.filter((goal) => goal.status === group);
           if (group !== 'active' && items.length === 0) return null;
           return (
-            <Box
+            <section
               key={group}
-              as="section"
               aria-labelledby={'goals-' + group}
-              bg="bg.panel"
-              borderWidth="1px"
-              borderRadius="lg"
-              p={{ base: 4, md: 5 }}
+              className="tf-panel os-p-4 md:os-p-5"
             >
-              <Heading as="h2" id={'goals-' + group} size="md" mb={2}>
+              <h2 id={'goals-' + group} className="tf-h3 os-mt-0 os-mb-2">
                 {sectionTitle[group]}{' '}
-                <Badge variant="subtle" size="sm">
+                <Badge color="neutral" size="sm">
                   {items.length}
                 </Badge>
-              </Heading>
+              </h2>
               {items.length ? (
-                <Box as="ul" listStyleType="none" m={0} p={0}>
+                <ul className="os-list-unstyled os-m-0">
                   {items.map((goal) => (
                     <GoalRow
                       key={getGoalId(goal)}
@@ -386,14 +350,14 @@ const GoalsPage = () => {
                       onDelete={() => void removeGoal(goal)}
                     />
                   ))}
-                </Box>
+                </ul>
               ) : (
-                <Text color="fg.muted">No active goals yet. Add one above.</Text>
+                <p className="os-text-muted os-m-0">No active goals yet. Add one above.</p>
               )}
-            </Box>
+            </section>
           );
         })}
-    </VStack>
+    </Stack>
   );
 };
 

@@ -1,16 +1,4 @@
-import {
-  Box,
-  Button,
-  chakra,
-  Field,
-  Heading,
-  HStack,
-  Input,
-  NativeSelect,
-  Text,
-  Textarea,
-  VStack,
-} from '@chakra-ui/react';
+import { Button, Field, Input, Select, Stack, Textarea } from '@onesmall/ui';
 import { useState, type FormEvent } from 'react';
 import { LuSave } from 'react-icons/lu';
 import {
@@ -48,35 +36,29 @@ const ProjectForm = ({ project, saving, error, onSubmit, onCancel }: ProjectForm
   };
 
   return (
-    <chakra.form
+    <form
       aria-labelledby={headingId}
       onSubmit={handleSubmit}
-      bg="bg.panel"
-      borderWidth="1px"
-      borderRadius="lg"
-      p={{ base: 4, md: 6 }}
-      minW="0"
+      className="tf-panel os-p-4 md:os-p-6 os-min-w-0"
     >
-      <Heading as="h2" id={headingId} size="lg" mb={1}>
+      <h2 id={headingId} className="tf-h2 os-m-0 os-mb-1">
         {editing ? 'Edit Project' : 'Create Project'}
-      </Heading>
-      <Text color="fg.muted" mb={6}>
+      </h2>
+      <p className="os-text-muted os-mt-0 os-mb-6">
         {editing
           ? 'Rename the project, update its description, or change its status.'
           : 'Group related tasks. Projects start as Active.'}
-      </Text>
-      <VStack align="stretch" gap={5}>
-        <Field.Root required>
-          <Field.Label>Name</Field.Label>
+      </p>
+      <Stack gap={5}>
+        <Field label="Name" required>
           <Input
             value={name}
             onChange={(event) => setName(event.target.value)}
             placeholder="What are you working toward?"
             maxLength={120}
           />
-        </Field.Root>
-        <Field.Root>
-          <Field.Label>Description</Field.Label>
+        </Field>
+        <Field label="Description">
           <Textarea
             value={description}
             onChange={(event) => setDescription(event.target.value)}
@@ -84,31 +66,26 @@ const ProjectForm = ({ project, saving, error, onSubmit, onCancel }: ProjectForm
             rows={3}
             maxLength={2000}
           />
-        </Field.Root>
-        <Field.Root>
-          <Field.Label>Status</Field.Label>
-          <NativeSelect.Root>
-            <NativeSelect.Field
-              value={status}
-              onChange={(event) => setStatus(event.target.value as ProjectStatus)}
-            >
-              {PROJECT_STATUSES.map((value) => (
-                <option key={value} value={value}>
-                  {projectStatusLabel[value]}
-                </option>
-              ))}
-            </NativeSelect.Field>
-            <NativeSelect.Indicator />
-          </NativeSelect.Root>
-        </Field.Root>
+        </Field>
+        <Field label="Status">
+          <Select
+            value={status}
+            onChange={(event) => setStatus(event.target.value as ProjectStatus)}
+          >
+            {PROJECT_STATUSES.map((value) => (
+              <option key={value} value={value}>
+                {projectStatusLabel[value]}
+              </option>
+            ))}
+          </Select>
+        </Field>
         {error && (
-          <Box borderWidth="1px" borderColor="border.error" bg="bg.error" borderRadius="md" p={3}>
-            <Text color="fg.error">{error}</Text>
-          </Box>
+          <div className="tf-callout-danger os-p-3">
+            <p className="os-text-danger os-m-0">{error}</p>
+          </div>
         )}
-        <HStack>
-          <Button type="submit" colorPalette="teal" loading={saving}>
-            <LuSave />
+        <div className="os-flex os-gap-2">
+          <Button type="submit" color="primary" loading={saving} leftIcon={<LuSave />}>
             {editing ? 'Save Project' : 'Create Project'}
           </Button>
           {onCancel && (
@@ -116,9 +93,9 @@ const ProjectForm = ({ project, saving, error, onSubmit, onCancel }: ProjectForm
               Cancel
             </Button>
           )}
-        </HStack>
-      </VStack>
-    </chakra.form>
+        </div>
+      </Stack>
+    </form>
   );
 };
 
