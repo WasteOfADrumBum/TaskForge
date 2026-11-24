@@ -1,0 +1,31 @@
+/* On phones the badges wrap under the title, lined up with it past the status icon. */
+.badges {
+  flex-shrink: 0;
+  margin-inline-start: 1.875rem;
+}
+@media (min-width: 576px) {
+  .badges {
+    margin-inline-start: 0;
+  }
+}
+
+.icon {
+  padding-top: 0.125rem;
+}
+
+/* Project link: muted like the other details, teal on hover. */
+.projectLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--os-text-muted);
+  text-decoration: none;
+}
+.projectLink:hover {
+  color: var(--os-primary-text);
+  text-decoration: underline;
+}
+
+.capitalize {
+  text-transform: capitalize;
+}

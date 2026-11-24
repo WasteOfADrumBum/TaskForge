@@ -1,10 +1,9 @@
-import { ChakraProvider } from '@chakra-ui/react';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ApprovalPanel from './ApprovalPanel';
-import { system } from '../../assets/theme/theme';
+import { Provider as UiProvider } from '../ui/provider';
 import { getRunApprovals, reviewRunDraft } from '../../api/runs';
 import { UNCERTAIN_CHANGE_MESSAGE } from '../../api/request';
 import { store } from '../../redux/store';
@@ -37,9 +36,9 @@ const deferred = <T,>() => {
 };
 const panel = (agentId = 'agent-1') => (
   <Provider store={store}>
-    <ChakraProvider value={system}>
+    <UiProvider>
       <ApprovalPanel agentId={agentId} />
-    </ChakraProvider>
+    </UiProvider>
   </Provider>
 );
 beforeEach(() => {

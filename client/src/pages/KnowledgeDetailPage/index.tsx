@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Button, Heading, HStack, Link, Text, VStack } from '@chakra-ui/react';
+import { Button, Stack } from '@onesmall/ui';
 import { Link as RouterLink, useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   deleteKnowledgeSource,
@@ -9,6 +9,7 @@ import {
 import { isCurrentSession } from '../../api/authenticatedFetch';
 import { UNCERTAIN_CHANGE_MESSAGE } from '../../api/request';
 import KnowledgeForm from '../../components/knowledge/KnowledgeForm';
+import styles from '../../components/knowledge/Knowledge.module.css';
 import { useDelayedRequest } from '../../hooks/useDelayedRequest';
 import { useAppSelector } from '../../redux/hooks/typedHooks';
 import type { KnowledgeHit, KnowledgeInput, KnowledgeSource } from '../../types/knowledge';
@@ -126,31 +127,47 @@ function Content({
     }
   };
   return (
-    <VStack align="stretch" gap={5} maxW="960px" w="full">
-      <Link asChild color="accent.teal">
+    <Stack gap={5} className={styles.page}>
+      <div>
         <RouterLink to="/knowledge">Back to Knowledge</RouterLink>
-      </Link>
-      <Heading as="h1">Knowledge source</Heading>
+      </div>
+      <h1 className="tf-h1 os-m-0">Knowledge source</h1>
       <Button
-        alignSelf="start"
+        className="os-self-start"
         variant="outline"
         disabled={read.pending || write.pending}
         onClick={reload}
       >
         Refresh source (discard edits)
       </Button>
-      {read.pending && <Text role="status">Loading source…</Text>}
+      {read.pending && (
+        <p role="status" className="os-m-0">
+          Loading source…
+        </p>
+      )}
       {read.waiting && (
-        <Button alignSelf="start" onClick={read.cancel}>
+        <Button className="os-self-start" onClick={read.cancel}>
           Stop waiting for source
         </Button>
       )}
-      {error && <Text role="alert">{error}</Text>}
-      {writeError && <Text role="alert">{writeError}</Text>}
-      {success && <Text role="status">{success}</Text>}
+      {error && (
+        <p role="alert" className="os-m-0">
+          {error}
+        </p>
+      )}
+      {writeError && (
+        <p role="alert" className="os-m-0">
+          {writeError}
+        </p>
+      )}
+      {success && (
+        <p role="status" className="os-m-0">
+          {success}
+        </p>
+      )}
       {write.waiting && (
         <Button
-          alignSelf="start"
+          className="os-self-start"
           variant="outline"
           onClick={() => {
             write.cancel();
@@ -164,36 +181,30 @@ function Content({
       )}
       {source && input && (
         <>
-          <Heading size="lg" overflowWrap="anywhere">
-            {source.title}
-          </Heading>
-          <Text color="fg.muted">
+          <h2 className={'tf-h2 os-m-0 ' + styles.anywhere}>{source.title}</h2>
+          <p className="os-text-muted os-m-0">
             {source.kind === 'note' ? 'Note' : 'Text document'} · Version {source.version} · Private
             source text; no AI model called
-          </Text>
+          </p>
           {hit && (
-            <Box role="status" borderWidth="1px" borderColor="border" p={4} borderRadius="md">
-              <Text>
+            <div role="status" className="os-border os-rounded-md os-p-4">
+              <p className="os-m-0">
                 {isCurrentKnowledgeCitation(source, hit)
                   ? 'Citation verified against this current source version.'
                   : 'Citation is stale or invalid. Search again for a current excerpt.'}
-              </Text>
+              </p>
               {isCurrentKnowledgeCitation(source, hit) && (
-                <Text whiteSpace="pre-wrap" overflowWrap="anywhere">
-                  {hit.citation.quote}
-                </Text>
+                <p className={'os-m-0 ' + styles.preWrap}>{hit.citation.quote}</p>
               )}
-            </Box>
+            </div>
           )}
-          <Box borderWidth="1px" borderColor="border" borderRadius="lg" p={4}>
-            <Text whiteSpace="pre-wrap" overflowWrap="anywhere">
-              {source.content}
-            </Text>
-          </Box>
+          <div className="tf-panel os-p-4">
+            <p className={'os-m-0 ' + styles.preWrap}>{source.content}</p>
+          </div>
           {source.version >= 100 && (
-            <Text>Editing limit reached. You can still delete this source.</Text>
+            <p className="os-m-0">Editing limit reached. You can still delete this source.</p>
           )}
-          <HStack flexWrap="wrap">
+          <div className="os-flex os-flex-wrap os-items-center os-gap-2">
             <Button
               disabled={blocked || source.version >= 100}
               onClick={() => {
@@ -213,25 +224,25 @@ function Content({
             >
               Delete source
             </Button>
-          </HStack>
+          </div>
           {editing && (
-            <Box borderWidth="1px" borderColor="border" p={4} borderRadius="lg">
+            <div className="tf-panel os-p-4">
               <KnowledgeForm input={input} setInput={setInput} disabled={blocked} />
               <Button
-                mt={4}
+                className="os-mt-4"
                 disabled={blocked || !validKnowledgeInput(input)}
                 onClick={() => void change('save')}
               >
                 Save changes
               </Button>
-            </Box>
+            </div>
           )}
           {confirmDelete && (
-            <Box borderWidth="1px" borderColor="border" p={4} borderRadius="md">
-              <Text>
+            <div className="os-border os-rounded-md os-p-4">
+              <p className="os-m-0">
                 Delete this source and its text? Audit metadata remains. This cannot be undone.
-              </Text>
-              <HStack mt={3}>
+              </p>
+              <div className="os-flex os-flex-wrap os-items-center os-gap-2 os-mt-3">
                 <Button disabled={blocked} onClick={() => void change('delete')}>
                   Confirm delete source
                 </Button>
@@ -242,12 +253,12 @@ function Content({
                 >
                   Keep source
                 </Button>
-              </HStack>
-            </Box>
+              </div>
+            </div>
           )}
         </>
       )}
-    </VStack>
+    </Stack>
   );
 }
 export default function KnowledgeDetailPage() {

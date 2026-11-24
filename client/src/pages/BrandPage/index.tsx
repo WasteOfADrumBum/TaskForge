@@ -1,18 +1,4 @@
-import {
-  Box,
-  Button,
-  chakra,
-  Field,
-  Heading,
-  HStack,
-  Image,
-  Input,
-  Link,
-  NativeSelect,
-  Text,
-  Textarea,
-  VStack,
-} from '@chakra-ui/react';
+import { Button, Field, Input, Select, Stack, Textarea } from '@onesmall/ui';
 import { useEffect, useRef, useState, type FormEvent, type RefObject } from 'react';
 import { LuDownload, LuExternalLink, LuPlus, LuSave } from 'react-icons/lu';
 import { isCurrentSession } from '../../api/authenticatedFetch';
@@ -54,13 +40,9 @@ import {
 } from '../../utils/brand';
 import ProfileKit from '../../components/brand/ProfileKit';
 import { SessionExpiredError } from '../../utils/session';
+import styles from './Brand.module.css';
 
-const panel = {
-  bg: 'bg.panel',
-  borderWidth: '1px',
-  borderRadius: 'lg',
-  p: { base: 4, md: 5 },
-} as const;
+const panel = 'tf-panel os-p-4 md:os-p-5';
 const timeFormat = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' });
 
 // Repeated rows carry a stable key so React keeps focus and input state on the right row.
@@ -136,37 +118,37 @@ const ListSection = ({
   addRef: RefObject<HTMLButtonElement | null>;
   children: React.ReactNode;
 }) => (
-  <Box as="fieldset" borderWidth="1px" borderColor="border.muted" borderRadius="md" p={3}>
-    <Text as="legend" fontWeight="semibold" px={1} id={id}>
+  <fieldset className={styles.listSection}>
+    <legend className={`os-font-semibold ${styles.legend}`} id={id}>
       {title}
-    </Text>
-    <Text fontSize="sm" color="fg.muted" mb={2}>
-      {hint}
-    </Text>
+    </legend>
+    <p className="os-text-sm os-text-muted os-mt-0 os-mb-2">{hint}</p>
     {count > 0 && (
-      <Box as="ul" role="list" listStyleType="none" m={0} p={0}>
+      <ul role="list" className="os-list-unstyled os-m-0">
         {children}
-      </Box>
+      </ul>
     )}
     {count < max ? (
-      <Button size="xs" variant="outline" mt={2} onClick={onAdd} ref={addRef}>
-        <LuPlus aria-hidden="true" focusable="false" />
+      <Button
+        size="xs"
+        variant="outline"
+        className="os-mt-2"
+        onClick={onAdd}
+        ref={addRef}
+        leftIcon={<LuPlus focusable="false" />}
+      >
         {addLabel}
       </Button>
     ) : (
-      <Text fontSize="sm" color="fg.muted" mt={2}>
+      <p className="os-text-sm os-text-muted os-mt-2 os-mb-0">
         That is the most this profile can hold.
-      </Text>
+      </p>
     )}
-  </Box>
+  </fieldset>
 );
 
-const rowStyle = {
-  as: 'li',
-  py: 3,
-  borderTopWidth: '1px',
-  borderColor: 'border.muted',
-} as const;
+const rowClass = 'os-py-3 os-border-top';
+const rowFields = 'os-flex os-flex-wrap os-items-end os-gap-3';
 
 const BrandPage = () => {
   const token = useAppSelector((state) => state.auth.token);
@@ -383,34 +365,29 @@ const BrandPage = () => {
 
   const kindLabel = brandKindLabel[kind];
   return (
-    <VStack align="stretch" gap={{ base: 6, md: 8 }}>
-      <Box>
-        <Heading as="h1" size={{ base: '2xl', md: '3xl' }}>
-          Brand Studio
-        </Heading>
-        <Text color="fg.muted" mt={1.5}>
+    <Stack gap={{ base: 6, md: 8 }}>
+      <div>
+        <h1 className="tf-h1 os-m-0">Brand Studio</h1>
+        <p className="os-text-muted os-mt-2 os-mb-0">
           Your TaskForge and personal brands: colors, fonts, logos, voice and writing style. Text
           only, kept private to your account. Contrast checks are rule-based.
-        </Text>
-        <Text
+        </p>
+        <p
           ref={statusRef}
           tabIndex={-1}
           role="status"
           aria-live="polite"
-          fontSize="sm"
-          color="fg.muted"
-          mt={1}
-          _focusVisible={{ outline: '2px solid', outlineColor: 'accent.teal' }}
+          className="os-text-sm os-text-muted os-mt-1 os-mb-0"
         >
           {status}
-        </Text>
-      </Box>
+        </p>
+      </div>
 
       {loadError && !read.pending ? (
-        <VStack align="start" gap={2}>
-          <Text role="alert" color="fg.error">
+        <Stack gap={2} align="start">
+          <p role="alert" className="os-text-danger os-m-0">
             {loadError}
-          </Text>
+          </p>
           <Button
             size="sm"
             variant="outline"
@@ -422,75 +399,71 @@ const BrandPage = () => {
           >
             Retry loading brands
           </Button>
-        </VStack>
+        </Stack>
       ) : draft ? (
         <>
-          <Box {...panel}>
-            <Field.Root maxW="20rem">
-              <Field.Label>Brand profile</Field.Label>
+          <div className={panel}>
+            <Field
+              label="Brand profile"
+              hint="Unsaved edits stay when you switch profiles."
+              className={styles.profileField}
+            >
               {/* A save in flight belongs to the profile on screen, so switching waits for it. */}
-              <NativeSelect.Root disabled={write.pending}>
-                <NativeSelect.Field
-                  value={kind}
-                  onChange={(event) => {
-                    setSaveError(null);
-                    setInvalidField(null);
-                    setKind(event.target.value as BrandKind);
-                  }}
-                >
-                  {BRAND_KINDS.map((option) => (
-                    <option key={option} value={option}>
-                      {brandKindLabel[option]}
-                    </option>
-                  ))}
-                </NativeSelect.Field>
-                <NativeSelect.Indicator />
-              </NativeSelect.Root>
-              <Field.HelperText>Unsaved edits stay when you switch profiles.</Field.HelperText>
-            </Field.Root>
+              <Select
+                disabled={write.pending}
+                value={kind}
+                onChange={(event) => {
+                  setSaveError(null);
+                  setInvalidField(null);
+                  setKind(event.target.value as BrandKind);
+                }}
+              >
+                {BRAND_KINDS.map((option) => (
+                  <option key={option} value={option}>
+                    {brandKindLabel[option]}
+                  </option>
+                ))}
+              </Select>
+            </Field>
             {saved && (
               <Button
                 size="sm"
                 variant="outline"
-                mt={4}
+                className="os-mt-4"
                 onClick={() => downloadText(brandGuideFileName(saved), brandGuideMarkdown(saved))}
+                leftIcon={<LuDownload focusable="false" />}
               >
-                <LuDownload aria-hidden="true" focusable="false" />
                 Download saved brand guide
               </Button>
             )}
-          </Box>
+          </div>
 
-          <chakra.form
+          <form
             onSubmit={onSubmit}
             noValidate
             aria-labelledby="brand-form-heading"
-            {...panel}
+            className={panel}
           >
-            <Heading as="h2" id="brand-form-heading" size="md" mb={4}>
+            <h2 id="brand-form-heading" className="tf-h3 os-mt-0 os-mb-4">
               Edit {kindLabel} brand
-            </Heading>
-            <VStack align="stretch" gap={5}>
-              <Field.Root required invalid={invalidField === 'brand-name'}>
-                <Field.Label>
-                  Brand name
-                  <Field.RequiredIndicator />
-                </Field.Label>
+            </h2>
+            <Stack gap={5}>
+              <Field label="Brand name" required>
                 <Input
                   data-field="brand-name"
                   value={draft.name}
                   onChange={(event) => setField('name', event.target.value)}
                   maxLength={BRAND_NAME_MAX}
+                  invalid={invalidField === 'brand-name'}
                 />
-              </Field.Root>
-              <Field.Root>
-                <Field.Label>Tagline (optional)</Field.Label>
+              </Field>
+              <Field label="Tagline (optional)">
                 <Input
                   value={draft.tagline}
                   onChange={(event) => setField('tagline', event.target.value)}
                   maxLength={BRAND_TAGLINE_MAX}
                 />
-              </Field.Root>
+              </Field>
 
               <ListSection
                 id="brand-colors"
@@ -506,15 +479,11 @@ const BrandPage = () => {
                   const number = index + 1;
                   const hex = normalizeHex(color.hex);
                   return (
-                    <Box {...rowStyle} key={color.key}>
-                      <HStack gap={3} align="end" flexWrap="wrap">
-                        <Field.Root
-                          flex="1"
-                          minW="10rem"
-                          invalid={invalidField === 'color-name-' + color.key}
-                        >
-                          <Field.Label>Color {number} name</Field.Label>
+                    <li className={rowClass} key={color.key}>
+                      <div className={rowFields}>
+                        <Field label={'Color ' + number + ' name'} className={styles.grow10}>
                           <Input
+                            invalid={invalidField === 'color-name-' + color.key}
                             data-field={'color-name-' + color.key}
                             value={color.name}
                             onChange={(event) =>
@@ -522,10 +491,10 @@ const BrandPage = () => {
                             }
                             maxLength={BRAND_COLOR_NAME_MAX}
                           />
-                        </Field.Root>
-                        <Field.Root w="9rem" invalid={invalidField === 'color-hex-' + color.key}>
-                          <Field.Label>Color {number} hex</Field.Label>
+                        </Field>
+                        <Field label={'Color ' + number + ' hex'} className={styles.w9}>
                           <Input
+                            invalid={invalidField === 'color-hex-' + color.key}
                             data-field={'color-hex-' + color.key}
                             value={color.hex}
                             onChange={(event) =>
@@ -535,7 +504,7 @@ const BrandPage = () => {
                             spellCheck={false}
                             autoComplete="off"
                           />
-                        </Field.Root>
+                        </Field>
                         <Button
                           size="xs"
                           variant="ghost"
@@ -544,31 +513,27 @@ const BrandPage = () => {
                         >
                           Remove
                         </Button>
-                      </HStack>
+                      </div>
                       {hex ? (
-                        <HStack gap={2} mt={2} align="start">
-                          <Box
+                        <div className="os-flex os-items-start os-gap-2 os-mt-2">
+                          {/* The swatch shows the user's own brand color, so it is data, not theme. */}
+                          <span
                             aria-hidden="true"
-                            flexShrink={0}
-                            w={6}
-                            h={6}
-                            borderRadius="sm"
-                            borderWidth="1px"
-                            borderColor="border"
+                            className={styles.swatch}
                             style={{ backgroundColor: hex }}
                           />
-                          <Text fontSize="sm">
+                          <p className="os-text-sm os-m-0">
                             {hex}: {contrastText(contrastCheck(hex))}
-                          </Text>
-                        </HStack>
+                          </p>
+                        </div>
                       ) : (
                         color.hex.trim() && (
-                          <Text fontSize="sm" color="fg.muted" mt={2}>
+                          <p className="os-text-sm os-text-muted os-mt-2 os-mb-0">
                             Not a six-digit hex code yet.
-                          </Text>
+                          </p>
                         )
                       )}
-                    </Box>
+                    </li>
                   );
                 })}
               </ListSection>
@@ -590,36 +555,29 @@ const BrandPage = () => {
                 {draft.fonts.map((font, index) => {
                   const number = index + 1;
                   return (
-                    <Box {...rowStyle} key={font.key}>
-                      <HStack gap={3} align="end" flexWrap="wrap">
-                        <Field.Root w="10rem" invalid={invalidField === 'font-role-' + font.key}>
-                          <Field.Label>Font {number} role</Field.Label>
-                          <NativeSelect.Root>
-                            <NativeSelect.Field
-                              data-field={'font-role-' + font.key}
-                              value={font.role}
-                              onChange={(event) =>
-                                setRow('fonts', font.key, {
-                                  role: event.target.value as BrandFontRole,
-                                })
-                              }
-                            >
-                              {BRAND_FONT_ROLES.map((option) => (
-                                <option key={option} value={option}>
-                                  {brandFontRoleLabel[option]}
-                                </option>
-                              ))}
-                            </NativeSelect.Field>
-                            <NativeSelect.Indicator />
-                          </NativeSelect.Root>
-                        </Field.Root>
-                        <Field.Root
-                          flex="1"
-                          minW="10rem"
-                          invalid={invalidField === 'font-family-' + font.key}
-                        >
-                          <Field.Label>Font {number} family</Field.Label>
+                    <li className={rowClass} key={font.key}>
+                      <div className={rowFields}>
+                        <Field label={'Font ' + number + ' role'} className={styles.w10}>
+                          <Select
+                            data-field={'font-role-' + font.key}
+                            invalid={invalidField === 'font-role-' + font.key}
+                            value={font.role}
+                            onChange={(event) =>
+                              setRow('fonts', font.key, {
+                                role: event.target.value as BrandFontRole,
+                              })
+                            }
+                          >
+                            {BRAND_FONT_ROLES.map((option) => (
+                              <option key={option} value={option}>
+                                {brandFontRoleLabel[option]}
+                              </option>
+                            ))}
+                          </Select>
+                        </Field>
+                        <Field label={'Font ' + number + ' family'} className={styles.grow10}>
                           <Input
+                            invalid={invalidField === 'font-family-' + font.key}
                             data-field={'font-family-' + font.key}
                             value={font.family}
                             onChange={(event) =>
@@ -627,7 +585,7 @@ const BrandPage = () => {
                             }
                             maxLength={BRAND_FONT_FAMILY_MAX}
                           />
-                        </Field.Root>
+                        </Field>
                         <Button
                           size="xs"
                           variant="ghost"
@@ -636,8 +594,8 @@ const BrandPage = () => {
                         >
                           Remove
                         </Button>
-                      </HStack>
-                    </Box>
+                      </div>
+                    </li>
                   );
                 })}
               </ListSection>
@@ -658,11 +616,11 @@ const BrandPage = () => {
                   const href = url ? safeLogoHref(url) : null;
                   const label = logo.label.trim() || 'Logo ' + number;
                   return (
-                    <Box {...rowStyle} key={logo.key}>
-                      <HStack gap={3} align="end" flexWrap="wrap">
-                        <Field.Root w="12rem" invalid={invalidField === 'logo-label-' + logo.key}>
-                          <Field.Label>Logo {number} label</Field.Label>
+                    <li className={rowClass} key={logo.key}>
+                      <div className={rowFields}>
+                        <Field label={'Logo ' + number + ' label'} className={styles.w12}>
                           <Input
+                            invalid={invalidField === 'logo-label-' + logo.key}
                             data-field={'logo-label-' + logo.key}
                             value={logo.label}
                             onChange={(event) =>
@@ -670,14 +628,10 @@ const BrandPage = () => {
                             }
                             maxLength={BRAND_LOGO_LABEL_MAX}
                           />
-                        </Field.Root>
-                        <Field.Root
-                          flex="1"
-                          minW="12rem"
-                          invalid={invalidField === 'logo-url-' + logo.key}
-                        >
-                          <Field.Label>Logo {number} link</Field.Label>
+                        </Field>
+                        <Field label={'Logo ' + number + ' link'} className={styles.grow12}>
                           <Input
+                            invalid={invalidField === 'logo-url-' + logo.key}
                             data-field={'logo-url-' + logo.key}
                             value={logo.url}
                             onChange={(event) =>
@@ -687,7 +641,7 @@ const BrandPage = () => {
                             spellCheck={false}
                             autoComplete="off"
                           />
-                        </Field.Root>
+                        </Field>
                         <Button
                           size="xs"
                           variant="ghost"
@@ -696,73 +650,66 @@ const BrandPage = () => {
                         >
                           Remove
                         </Button>
-                      </HStack>
+                      </div>
                       {href && isSitePath(href) ? (
                         // Only a saved path is loaded, so typing never requests each keystroke.
                         savedLogoUrls.has(href) ? (
-                          <Image
+                          <img
                             src={href}
                             alt={label}
                             loading="lazy"
-                            maxH={12}
-                            maxW="12rem"
-                            mt={2}
+                            className={`os-block os-mt-2 ${styles.logo}`}
                           />
                         ) : (
-                          <Text fontSize="sm" color="fg.muted" mt={2}>
+                          <p className="os-text-sm os-text-muted os-mt-2 os-mb-0">
                             The preview appears after you save.
-                          </Text>
+                          </p>
                         )
                       ) : href ? (
-                        <Link
+                        <a
                           href={href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          fontSize="sm"
-                          color="accent.teal"
-                          mt={2}
-                          display="inline-flex"
+                          className="os-text-sm os-mt-2 os-inline-flex os-items-center os-gap-1"
                           aria-label={'Open ' + label + ' (opens in a new tab)'}
                         >
                           Open {label}
                           <LuExternalLink aria-hidden="true" focusable="false" />
-                        </Link>
+                        </a>
                       ) : (
                         url && (
-                          <Text fontSize="sm" color="fg.muted" mt={2}>
+                          <p className="os-text-sm os-text-muted os-mt-2 os-mb-0">
                             Use a full https link or a path that starts with /.
-                          </Text>
+                          </p>
                         )
                       )}
-                    </Box>
+                    </li>
                   );
                 })}
               </ListSection>
 
-              <Field.Root>
-                <Field.Label>Brand voice (optional)</Field.Label>
+              <Field
+                label="Brand voice (optional)"
+                hint="How the brand sounds, for example plain and warm."
+              >
                 <Textarea
                   value={draft.voice}
                   onChange={(event) => setField('voice', event.target.value)}
                   rows={3}
                   maxLength={BRAND_TEXT_MAX}
                 />
-                <Field.HelperText>
-                  How the brand sounds, for example plain and warm.
-                </Field.HelperText>
-              </Field.Root>
-              <Field.Root>
-                <Field.Label>Writing style (optional)</Field.Label>
+              </Field>
+              <Field
+                label="Writing style (optional)"
+                hint="Rules for written copy, for example short sentences."
+              >
                 <Textarea
                   value={draft.writingStyle}
                   onChange={(event) => setField('writingStyle', event.target.value)}
                   rows={3}
                   maxLength={BRAND_TEXT_MAX}
                 />
-                <Field.HelperText>
-                  Rules for written copy, for example short sentences.
-                </Field.HelperText>
-              </Field.Root>
+              </Field>
 
               <ListSection
                 id="brand-prompts"
@@ -777,15 +724,11 @@ const BrandPage = () => {
                 {draft.imagePrompts.map((prompt, index) => {
                   const number = index + 1;
                   return (
-                    <Box {...rowStyle} key={prompt.key}>
-                      <HStack gap={3} align="end" flexWrap="wrap">
-                        <Field.Root
-                          flex="1"
-                          minW="12rem"
-                          invalid={invalidField === 'prompt-' + prompt.key}
-                        >
-                          <Field.Label>Image prompt {number}</Field.Label>
+                    <li className={rowClass} key={prompt.key}>
+                      <div className={rowFields}>
+                        <Field label={'Image prompt ' + number} className={styles.grow12}>
                           <Input
+                            invalid={invalidField === 'prompt-' + prompt.key}
                             data-field={'prompt-' + prompt.key}
                             value={prompt.text}
                             onChange={(event) =>
@@ -793,7 +736,7 @@ const BrandPage = () => {
                             }
                             maxLength={BRAND_PROMPT_MAX}
                           />
-                        </Field.Root>
+                        </Field>
                         <Button
                           size="xs"
                           variant="ghost"
@@ -802,30 +745,34 @@ const BrandPage = () => {
                         >
                           Remove
                         </Button>
-                      </HStack>
-                    </Box>
+                      </div>
+                    </li>
                   );
                 })}
               </ListSection>
 
               {saveError && (
-                <Text role="alert" color="fg.error">
+                <p role="alert" className="os-text-danger os-m-0">
                   {saveError}
-                </Text>
+                </p>
               )}
-              <Box>
-                <Button type="submit" colorPalette="teal" loading={write.pending}>
-                  <LuSave aria-hidden="true" focusable="false" />
+              <div>
+                <Button
+                  type="submit"
+                  color="primary"
+                  loading={write.pending}
+                  leftIcon={<LuSave focusable="false" />}
+                >
                   Save brand
                 </Button>
-              </Box>
-            </VStack>
-          </chakra.form>
+              </div>
+            </Stack>
+          </form>
 
           <ProfileKit brand={data?.saved.personal} brandsLoaded={loaded} />
         </>
       ) : null}
-    </VStack>
+    </Stack>
   );
 };
 

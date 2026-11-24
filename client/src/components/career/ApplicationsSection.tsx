@@ -1,4 +1,4 @@
-import { Box, Button, HStack, Heading, Text } from '@chakra-ui/react';
+import { Button } from '@onesmall/ui';
 import { useToday } from '../../hooks/useToday';
 import { getRecordId, jobStatusLabel, type SavedJob } from '../../types/career';
 import type { Task } from '../../types/task';
@@ -9,6 +9,7 @@ import {
   getApplications,
   hasFollowUpTask,
 } from '../../utils/applications';
+import styles from './Career.module.css';
 
 const countLabel = { applied: 'Applied', interviewing: 'Interviewing', offer: 'Offers' } as const;
 
@@ -34,60 +35,41 @@ const ApplicationsSection = ({
   const now = useToday();
   const { counts, active } = getApplications(jobs, now);
   return (
-    <Box
-      as="section"
-      aria-labelledby="applications-heading"
-      bg="bg.panel"
-      borderWidth="1px"
-      borderRadius="lg"
-      p={{ base: 4, md: 5 }}
-    >
-      <Heading as="h2" id="applications-heading" size="md" mb={1}>
+    <section aria-labelledby="applications-heading" className="tf-panel os-p-4 md:os-p-5">
+      <h2 id="applications-heading" className="tf-h2 os-m-0 os-mb-1">
         Applications
-      </Heading>
-      <Text fontSize="sm" color="fg.muted" mb={3}>
+      </h2>
+      <p className="os-text-sm os-text-muted os-m-0 os-mb-3">
         Saved jobs you have applied to, are interviewing for, or have an offer from. An application
         still at Applied after {FOLLOW_UP_DAYS} days is due a follow-up. Change a status in Saved
         jobs.
-      </Text>
+      </p>
       {jobsFailed ? (
-        <Text color="fg.muted">
+        <p className="os-text-muted os-m-0">
           Applications need your saved jobs. Use the retry in Saved jobs.
-        </Text>
+        </p>
       ) : !jobsLoaded ? (
-        <Text color="fg.muted">Loading your applications...</Text>
+        <p className="os-text-muted os-m-0">Loading your applications...</p>
       ) : (
         <>
-          <Box
-            as="ul"
+          <ul
             role="list"
-            listStyleType="none"
-            m={0}
-            p={0}
-            mb={3}
-            display="flex"
-            flexWrap="wrap"
-            gap={4}
+            className="os-list-unstyled os-m-0 os-p-0 os-mb-3 os-flex os-flex-wrap os-gap-4"
             aria-label="Applications by status"
           >
             {APPLICATION_STATUSES.map((status) => (
-              <Box as="li" key={status}>
-                <Text fontSize="sm" color="fg.muted">
+              <li key={status}>
+                <p className="os-text-sm os-text-muted os-m-0">
                   {countLabel[status]}:{' '}
-                  <Text as="span" fontWeight="semibold" color="fg">
-                    {counts[status]}
-                  </Text>
-                </Text>
-              </Box>
+                  <span className="os-font-semibold os-text-default">{counts[status]}</span>
+                </p>
+              </li>
             ))}
-          </Box>
+          </ul>
           {active.length ? (
-            <Box
-              as="ul"
+            <ul
               role="list"
-              listStyleType="none"
-              m={0}
-              p={0}
+              className="os-list-unstyled os-m-0 os-p-0"
               aria-label="Active applications"
             >
               {active.map((application) => {
@@ -95,30 +77,22 @@ const ApplicationsSection = ({
                 const since = applicationSinceText(application);
                 const added = tasksLoaded && hasFollowUpTask(tasks, job);
                 return (
-                  <Box
-                    as="li"
-                    key={getRecordId(job)}
-                    py={2}
-                    borderTopWidth="1px"
-                    borderColor="border.muted"
-                  >
-                    <Text fontWeight="medium" overflowWrap="anywhere">
+                  <li key={getRecordId(job)} className="os-py-2 os-border-top">
+                    <p className={`os-font-medium os-m-0 os-max-w-none ${styles.wrap}`}>
                       {job.title}
                       {job.company ? ' at ' + job.company : ''}
-                    </Text>
-                    <Text fontSize="sm" color="fg.muted">
+                    </p>
+                    <p className="os-text-sm os-text-muted os-m-0">
                       {jobStatusLabel[application.status]}
                       {since ? '. ' + since : ''}
-                    </Text>
+                    </p>
                     {application.needsFollowUp && (
-                      <HStack gap={3} mt={1} flexWrap="wrap">
-                        <Text fontSize="sm">
+                      <div className="os-flex os-items-center os-flex-wrap os-gap-3 os-mt-1">
+                        <p className="os-text-sm os-m-0">
                           No update in {application.days} days. Time to follow up.
-                        </Text>
+                        </p>
                         {added ? (
-                          <Text fontSize="xs" color="fg.muted">
-                            Follow-up task added
-                          </Text>
+                          <p className="os-text-xs os-text-muted os-m-0">Follow-up task added</p>
                         ) : (
                           <Button
                             size="xs"
@@ -131,20 +105,20 @@ const ApplicationsSection = ({
                             Add follow-up task
                           </Button>
                         )}
-                      </HStack>
+                      </div>
                     )}
-                  </Box>
+                  </li>
                 );
               })}
-            </Box>
+            </ul>
           ) : (
-            <Text color="fg.muted">
+            <p className="os-text-muted os-m-0">
               No active applications. Set a saved job to Applied when you apply.
-            </Text>
+            </p>
           )}
         </>
       )}
-    </Box>
+    </section>
   );
 };
 

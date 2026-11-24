@@ -1,0 +1,9 @@
+/* The agent description keeps its line breaks. */
+.preWrap {
+  white-space: pre-wrap;
+}
+
+/* The edit form keeps a readable width instead of spanning the page. */
+.formWrap {
+  max-width: 42rem;
+}

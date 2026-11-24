@@ -1,15 +1,5 @@
 import { isCurrentSession } from '../../api/authenticatedFetch';
-import {
-  Box,
-  Button,
-  Heading,
-  HStack,
-  Link,
-  Progress,
-  SimpleGrid,
-  Text,
-  VStack,
-} from '@chakra-ui/react';
+import { Button, Grid, Progress, Stack } from '@onesmall/ui';
 import { useMemo, useState, type ReactNode } from 'react';
 import {
   LuArrowLeft,
@@ -27,6 +17,7 @@ import DeleteProjectDialog from '../../components/projects/DeleteProjectDialog';
 import ProjectForm from '../../components/projects/ProjectForm';
 import ProjectStatusBadge from '../../components/projects/ProjectStatusBadge';
 import PriorityTaskRow from '../../components/tasks/PriorityTaskRow';
+import workStyles from '../../components/work/Work.module.css';
 import WorkTabs from '../../components/work/WorkTabs';
 import { useProjectActions } from '../../hooks/useProjectActions';
 import { useToday } from '../../hooks/useToday';
@@ -39,6 +30,7 @@ import {
   getStatsForProject,
   getTasksForProject,
 } from '../../utils/projects';
+import styles from './ProjectDetail.module.css';
 
 const dateFormat = new Intl.DateTimeFormat('en-US', {
   month: 'short',
@@ -54,12 +46,10 @@ const timeFormat = new Intl.DateTimeFormat('en-US', {
 const statusOrder = { 'in-progress': 0, todo: 1, done: 2 } as const;
 
 const BackLink = () => (
-  <Link asChild fontSize="sm" color="fg.muted" _hover={{ color: 'accent.teal' }}>
-    <RouterLink to="/work/projects">
-      <LuArrowLeft aria-hidden="true" />
-      All projects
-    </RouterLink>
-  </Link>
+  <RouterLink to="/work/projects" className={styles.backLink}>
+    <LuArrowLeft aria-hidden="true" />
+    All projects
+  </RouterLink>
 );
 
 const ProjectDetailPage = () => {
@@ -93,27 +83,25 @@ const ProjectDetailPage = () => {
 
   // Loading, load-error, and not-found states share the page layout: back link, heading, tabs.
   const statePage = (heading: string, body: ReactNode) => (
-    <Box>
-      <Box mb={{ base: 5, md: 6 }}>
+    <div>
+      <div className={workStyles.pageHeader}>
         <BackLink />
-        <Heading as="h1" size={{ base: '2xl', md: '3xl' }} mt={3}>
-          {heading}
-        </Heading>
-      </Box>
+        <h1 className="tf-h1 os-m-0 os-mt-3">{heading}</h1>
+      </div>
       <WorkTabs />
       {body}
-    </Box>
+    </div>
   );
 
   if (!loaded) {
     return statePage(
       'Project',
       loadError ? (
-        <Box borderWidth="1px" borderColor="border.error" bg="bg.error" borderRadius="md" p={3}>
-          <Text color="fg.error">{loadError}</Text>
-        </Box>
+        <div className="tf-callout-danger os-p-3">
+          <p className="os-text-danger os-m-0">{loadError}</p>
+        </div>
       ) : (
-        <Text color="fg.muted">Loading project...</Text>
+        <p className="os-text-muted os-m-0">Loading project...</p>
       ),
     );
   }
@@ -121,13 +109,13 @@ const ProjectDetailPage = () => {
   if (!project) {
     return statePage(
       'Project not found',
-      <Box bg="bg.panel" borderWidth="1px" borderRadius="lg">
+      <div className="tf-panel">
         <EmptyState
           icon={<LuFolderX size={24} />}
           title="This project doesn't exist"
           description="It may have been deleted, or the link is wrong."
         />
-      </Box>,
+      </div>,
     );
   }
 
@@ -148,27 +136,25 @@ const ProjectDetailPage = () => {
   };
 
   return (
-    <Box>
-      <Box mb={{ base: 5, md: 6 }}>
+    <div>
+      <div className={workStyles.pageHeader}>
         <BackLink />
-        <HStack mt={3} gap={3} flexWrap="wrap" align="center">
-          <Heading as="h1" size={{ base: '2xl', md: '3xl' }} minW="0" wordBreak="break-word">
-            {project.name}
-          </Heading>
+        <div className="os-flex os-flex-wrap os-items-center os-gap-3 os-mt-3">
+          <h1 className={'tf-h1 os-m-0 ' + styles.title}>{project.name}</h1>
           <ProjectStatusBadge status={project.status} />
-        </HStack>
+        </div>
         {project.description && (
-          <Text color="fg.muted" mt={2} whiteSpace="pre-wrap">
+          <p className={'os-text-muted os-mt-2 os-mb-0 ' + styles.description}>
             {project.description}
-          </Text>
+          </p>
         )}
-        <HStack mt={4} gap={2} flexWrap="wrap">
+        <div className="os-flex os-flex-wrap os-gap-2 os-mt-4">
           <Button
             size="sm"
-            colorPalette="teal"
+            color="primary"
             onClick={() => navigate('/work', { state: { newTask: Date.now(), projectId: id } })}
+            leftIcon={<LuPlus />}
           >
-            <LuPlus />
             New task in project
           </Button>
           <Button
@@ -179,25 +165,25 @@ const ProjectDetailPage = () => {
               setEditing(true);
             }}
             disabled={editing}
+            leftIcon={<LuPencil />}
           >
-            <LuPencil />
             Edit project
           </Button>
           <Button
             size="sm"
             variant="ghost"
-            colorPalette="red"
+            color="danger"
             onClick={() => setDeleteTarget(project)}
+            leftIcon={<LuTrash2 />}
           >
-            <LuTrash2 />
             Delete
           </Button>
-        </HStack>
-      </Box>
+        </div>
+      </div>
       <WorkTabs />
 
       {editing && (
-        <Box mb={6} maxW="2xl">
+        <div className={'os-mb-6 ' + styles.formWrap}>
           <ProjectForm
             project={project}
             saving={saving}
@@ -208,19 +194,12 @@ const ProjectDetailPage = () => {
               setEditing(false);
             }}
           />
-        </Box>
+        </div>
       )}
 
-      <SimpleGrid columns={{ base: 1, xl: 3 }} gap={6} alignItems="start">
-        <VStack align="stretch" gap={6} gridColumn={{ xl: 'span 2' }} minW="0">
-          <Box
-            as="section"
-            aria-labelledby="project-tasks-heading"
-            bg="bg.panel"
-            borderWidth="1px"
-            borderRadius="lg"
-            p={{ base: 4, md: 5 }}
-          >
+      <Grid columns={{ base: 1, xl: 3 }} gap={6} className="os-items-start">
+        <Stack gap={6} className="xl:os-col-span-2 os-min-w-0">
+          <section aria-labelledby="project-tasks-heading" className="tf-panel os-p-4 md:os-p-5">
             <SectionHeader
               id="project-tasks-heading"
               title="Tasks"
@@ -228,11 +207,11 @@ const ProjectDetailPage = () => {
               action={{ label: 'Open Work', to: '/work' }}
             />
             {projectTasks.length ? (
-              <Box as="ul" listStyleType="none" m={0} p={0}>
+              <ul className="os-list-unstyled os-m-0 os-p-0">
                 {projectTasks.map((task) => (
                   <PriorityTaskRow key={getTaskId(task)} task={task} />
                 ))}
-              </Box>
+              </ul>
             ) : (
               <EmptyState
                 icon={<LuInbox size={24} />}
@@ -240,76 +219,47 @@ const ProjectDetailPage = () => {
                 description="Add one with “New task in project”, or pick this project when editing a task."
               />
             )}
-          </Box>
+          </section>
 
-          <Box
-            as="section"
-            aria-labelledby="project-activity-heading"
-            bg="bg.panel"
-            borderWidth="1px"
-            borderRadius="lg"
-            p={{ base: 4, md: 5 }}
-          >
+          <section aria-labelledby="project-activity-heading" className="tf-panel os-p-4 md:os-p-5">
             <SectionHeader id="project-activity-heading" title="Recent activity" />
             {activity.length ? (
-              <Box as="ol" listStyleType="none" m={0} p={0}>
+              <ol className="os-list-unstyled os-m-0 os-p-0">
                 {activity.map((item) => (
-                  <HStack
-                    as="li"
-                    key={item.id}
-                    align="flex-start"
-                    gap={3}
-                    py={2.5}
-                    borderTopWidth="1px"
-                    borderColor="border.muted"
-                  >
-                    <Box
-                      boxSize="2"
-                      mt={1.5}
-                      borderRadius="sm"
-                      bg={item.kind === 'project' ? 'accent.violet' : 'accent.teal'}
-                      flexShrink={0}
-                      aria-hidden="true"
-                    />
-                    <Box minW="0">
-                      <Text fontSize="sm" lineClamp={2}>
-                        {item.label}
-                      </Text>
-                      <Text fontSize="xs" color="fg.muted">
+                  <li key={item.id} className={styles.activityItem}>
+                    <div className={styles.marker} data-kind={item.kind} aria-hidden="true" />
+                    <div className="os-min-w-0">
+                      <p className="os-text-sm os-line-clamp-2 os-m-0">{item.label}</p>
+                      <p className="os-text-xs os-text-muted os-m-0">
                         <time dateTime={item.at}>{timeFormat.format(new Date(item.at))}</time>
-                      </Text>
-                    </Box>
-                  </HStack>
+                      </p>
+                    </div>
+                  </li>
                 ))}
-              </Box>
+              </ol>
             ) : (
               <EmptyState icon={<LuClock size={24} />} title="No activity yet" />
             )}
-          </Box>
-        </VStack>
+          </section>
+        </Stack>
 
-        <Box
-          as="section"
+        <section
           aria-labelledby="project-details-heading"
-          bg="bg.panel"
-          borderWidth="1px"
-          borderRadius="lg"
-          p={{ base: 4, md: 5 }}
-          minW="0"
+          className="tf-panel os-p-4 md:os-p-5 os-min-w-0"
         >
           <SectionHeader id="project-details-heading" title="Details" />
-          <Progress.Root value={stats.completion} colorPalette="teal" size="sm">
-            <HStack justify="space-between" mb={2}>
-              <Progress.Label fontSize="sm" color="fg.muted">
-                Completion
-              </Progress.Label>
-              <Progress.ValueText fontSize="sm" />
-            </HStack>
-            <Progress.Track aria-label={project.name + ' completion'}>
-              <Progress.Range />
-            </Progress.Track>
-          </Progress.Root>
-          <SimpleGrid as="dl" columns={2} gap={4} mt={5}>
+          <div className="os-flex os-justify-between os-mb-2 os-text-sm">
+            <span className="os-text-muted">Completion</span>
+            <span>{stats.completion}%</span>
+          </div>
+          <Progress
+            value={stats.completion}
+            size="sm"
+            color="primary"
+            label={project.name + ' completion'}
+            hideLabel
+          />
+          <Grid as="dl" columns={2} gap={4} className="os-mt-5 os-mb-0">
             {[
               ['Open tasks', String(stats.open)],
               ['Done', String(stats.done)],
@@ -318,18 +268,14 @@ const ProjectDetailPage = () => {
               ['Created', project.createdAt ? dateFormat.format(new Date(project.createdAt)) : '—'],
               ['Updated', project.updatedAt ? dateFormat.format(new Date(project.updatedAt)) : '—'],
             ].map(([label, value]) => (
-              <Box key={label}>
-                <Text as="dt" fontSize="xs" color="fg.muted">
-                  {label}
-                </Text>
-                <Text as="dd" fontWeight="semibold" m={0}>
-                  {value}
-                </Text>
-              </Box>
+              <div key={label}>
+                <dt className="os-text-xs os-text-muted">{label}</dt>
+                <dd className="os-font-semibold os-m-0">{value}</dd>
+              </div>
             ))}
-          </SimpleGrid>
-        </Box>
-      </SimpleGrid>
+          </Grid>
+        </section>
+      </Grid>
 
       <DeleteProjectDialog
         project={deleteTarget}
@@ -340,7 +286,7 @@ const ProjectDetailPage = () => {
         }}
         onConfirm={() => void confirmDelete()}
       />
-    </Box>
+    </div>
   );
 };
 

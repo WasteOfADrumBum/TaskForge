@@ -1,4 +1,4 @@
-import { Badge, Box, HStack, Link, Text } from '@chakra-ui/react';
+import { Badge, type BadgeProps } from '@onesmall/ui';
 import {
   LuCalendarDays,
   LuCircle,
@@ -11,6 +11,7 @@ import { getProjectId, type Project } from '../../types/project';
 import type { Task, TaskStatus } from '../../types/task';
 import type { PriorityReason } from '../../utils/commandCenter';
 import { formatCalendarDate } from '../../utils/dates';
+import styles from './PriorityTaskRow.module.css';
 
 const reasonLabel: Record<PriorityReason, string> = {
   overdue: 'Overdue',
@@ -18,11 +19,11 @@ const reasonLabel: Record<PriorityReason, string> = {
   'high-priority': 'High priority',
   'due-soon': 'Due soon',
 };
-const reasonPalette: Record<PriorityReason, string> = {
-  overdue: 'red',
-  'due-today': 'orange',
-  'high-priority': 'orange',
-  'due-soon': 'purple',
+const reasonPalette: Record<PriorityReason, BadgeProps['color']> = {
+  overdue: 'danger',
+  'due-today': 'secondary',
+  'high-priority': 'secondary',
+  'due-soon': 'accent',
 };
 const statusLabel: Record<TaskStatus, string> = {
   todo: 'To Do',
@@ -44,60 +45,40 @@ interface PriorityTaskRowProps {
 }
 
 const PriorityTaskRow = ({ task, reason, project }: PriorityTaskRowProps) => (
-  <HStack
-    as="li"
-    gap={3}
-    py={3.5}
-    borderTopWidth="1px"
-    borderColor="border.muted"
-    align="flex-start"
-    flexWrap={{ base: 'wrap', sm: 'nowrap' }}
-  >
-    <Box color={task.status === 'todo' ? 'fg.muted' : 'accent.teal'} pt={0.5} aria-hidden="true">
+  <li className="os-flex os-items-start os-gap-3 os-py-3 os-border-top os-flex-wrap sm:os-flex-nowrap">
+    <span
+      className={(task.status === 'todo' ? 'os-text-muted ' : 'os-text-primary ') + styles.icon}
+      aria-hidden="true"
+    >
       <StatusIcon status={task.status} />
-    </Box>
-    <Box flex="1" minW="0">
-      <Text fontSize="sm" fontWeight="medium" lineClamp={2}>
-        {task.title}
-      </Text>
-      <HStack gap={3} mt={1} color="fg.muted" fontSize="xs" flexWrap="wrap">
-        <Text>{statusLabel[task.status]}</Text>
+    </span>
+    <div className="os-flex-1 os-min-w-0">
+      <p className="os-text-sm os-font-medium os-line-clamp-2 os-m-0">{task.title}</p>
+      <div className="os-flex os-flex-wrap os-items-center os-gap-3 os-mt-1 os-text-muted os-text-xs">
+        <span>{statusLabel[task.status]}</span>
         {task.dueDate && (
-          <HStack gap={1}>
+          <span className="os-flex os-items-center os-gap-1">
             <LuCalendarDays aria-hidden="true" />
-            <Text>Due {formatCalendarDate(task.dueDate)}</Text>
-          </HStack>
+            <span>Due {formatCalendarDate(task.dueDate)}</span>
+          </span>
         )}
         {project && (
-          <Link
-            asChild
-            color="fg.muted"
-            display="inline-flex"
-            alignItems="center"
-            gap={1}
-            _hover={{ color: 'accent.teal' }}
-          >
-            <RouterLink to={'/work/projects/' + getProjectId(project)}>
-              <LuFolderKanban aria-hidden="true" />
-              {project.name}
-            </RouterLink>
-          </Link>
+          <RouterLink to={'/work/projects/' + getProjectId(project)} className={styles.projectLink}>
+            <LuFolderKanban aria-hidden="true" />
+            {project.name}
+          </RouterLink>
         )}
-      </HStack>
-    </Box>
-    <HStack gap={2} flexShrink={0} ml={{ base: 7, sm: 0 }}>
-      {reason && (
-        <Badge colorPalette={reasonPalette[reason]} variant="subtle">
-          {reasonLabel[reason]}
-        </Badge>
-      )}
+      </div>
+    </div>
+    <div className={'os-flex os-items-center os-gap-2 ' + styles.badges}>
+      {reason && <Badge color={reasonPalette[reason]}>{reasonLabel[reason]}</Badge>}
       {reason !== 'high-priority' && (
-        <Badge variant="outline" textTransform="capitalize">
+        <Badge color="neutral" variant="outline" className={styles.capitalize}>
           {task.priority}
         </Badge>
       )}
-    </HStack>
-  </HStack>
+    </div>
+  </li>
 );
 
 export default PriorityTaskRow;

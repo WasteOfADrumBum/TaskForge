@@ -1,11 +1,10 @@
-import { ChakraProvider } from '@chakra-ui/react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import RunDetailPage from '../../pages/RunDetailPage';
-import { system } from '../../assets/theme/theme';
+import { Provider as UiProvider } from '../ui/provider';
 import { store } from '../../redux/store';
 import { clearAuth, setToken } from '../../redux/slices/authSlice';
 import * as api from '../../api/runs';
@@ -102,14 +101,14 @@ function SourceTarget() {
 const show = (state?: unknown) =>
   render(
     <Provider store={store}>
-      <ChakraProvider value={system}>
+      <UiProvider>
         <MemoryRouter initialEntries={[{ pathname: '/workforce/runs/run-1', state }]}>
           <Routes>
             <Route path="/workforce/runs/:id" element={<RunDetailPage />} />
             <Route path="/knowledge/:id" element={<SourceTarget />} />
           </Routes>
         </MemoryRouter>
-      </ChakraProvider>
+      </UiProvider>
     </Provider>,
   );
 const settled = async () => {

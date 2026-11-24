@@ -1,11 +1,10 @@
-import { ChakraProvider } from '@chakra-ui/react';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import AskPage from '../../pages/AskPage';
-import { system } from '../../assets/theme/theme';
+import { Provider as UiProvider } from '../../components/ui/provider';
 import { store } from '../../redux/store';
 import { clearAuth, setToken } from '../../redux/slices/authSlice';
 import { setProjects } from '../../redux/slices/projectSlice';
@@ -77,7 +76,7 @@ function SourceTarget() {
 }
 const mount = () =>
   render(
-    <ChakraProvider value={system}>
+    <UiProvider>
       <Provider store={store}>
         <MemoryRouter initialEntries={['/knowledge/ask']}>
           <Routes>
@@ -89,7 +88,7 @@ const mount = () =>
           </Routes>
         </MemoryRouter>
       </Provider>
-    </ChakraProvider>,
+    </UiProvider>,
   );
 
 beforeEach(() => {

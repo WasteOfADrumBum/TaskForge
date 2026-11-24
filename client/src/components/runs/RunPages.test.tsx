@@ -1,4 +1,3 @@
-import { ChakraProvider } from '@chakra-ui/react';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
@@ -6,7 +5,7 @@ import { MemoryRouter, Routes, Route, Link } from 'react-router-dom';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import RunActivityPage from '../../pages/RunActivityPage';
 import RunDetailPage from '../../pages/RunDetailPage';
-import { system } from '../../assets/theme/theme';
+import { Provider as UiProvider } from '../ui/provider';
 import { store } from '../../redux/store';
 import { clearAuth, setToken } from '../../redux/slices/authSlice';
 import { setTasks } from '../../redux/slices/taskSlice';
@@ -84,7 +83,7 @@ const seed = () => {
 const show = (start = '/workforce/runs/run-1') =>
   render(
     <Provider store={store}>
-      <ChakraProvider value={system}>
+      <UiProvider>
         <MemoryRouter initialEntries={[start]}>
           <Link to="/workforce/runs/run-2">Next run</Link>
           <Routes>
@@ -92,7 +91,7 @@ const show = (start = '/workforce/runs/run-1') =>
             <Route path="/workforce/runs/:id" element={<RunDetailPage />} />
           </Routes>
         </MemoryRouter>
-      </ChakraProvider>
+      </UiProvider>
     </Provider>,
   );
 beforeEach(() => {

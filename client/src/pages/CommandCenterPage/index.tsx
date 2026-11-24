@@ -1,14 +1,4 @@
-import {
-  Badge,
-  Box,
-  Heading,
-  HStack,
-  Link,
-  Progress,
-  SimpleGrid,
-  Text,
-  VStack,
-} from '@chakra-ui/react';
+import { Badge, Progress, Stack } from '@onesmall/ui';
 import { useMemo } from 'react';
 import {
   LuCircleCheck,
@@ -44,13 +34,8 @@ import {
   getTodaysPriorities,
 } from '../../utils/commandCenter';
 import { getTaskSummary } from '../../utils/tasks';
+import styles from './CommandCenter.module.css';
 
-const toneColor = { teal: 'accent.teal', orange: 'accent.orange', violet: 'accent.violet' };
-const toneBg = {
-  teal: 'accent.tealSubtle',
-  orange: 'accent.orangeSubtle',
-  violet: 'accent.violetSubtle',
-};
 const timeFormat = new Intl.DateTimeFormat('en-US', {
   month: 'short',
   day: 'numeric',
@@ -98,21 +83,13 @@ const CommandCenterPage = () => {
   ).length;
 
   return (
-    <VStack align="stretch" gap={{ base: 6, md: 8 }}>
-      <Box>
-        <Text
-          color="accent.teal"
-          fontSize="xs"
-          fontWeight="semibold"
-          letterSpacing="widest"
-          textTransform="uppercase"
-        >
+    <Stack gap={{ base: 6, md: 8 }}>
+      <div>
+        <p className={'os-text-primary os-text-xs os-font-semibold os-m-0 ' + styles.eyebrow}>
           Your daily brief
-        </Text>
-        <Heading as="h1" size={{ base: '2xl', md: '3xl' }} mt={1.5}>
-          {greeting}.
-        </Heading>
-        <Text color="fg.muted" mt={1.5}>
+        </p>
+        <h1 className="tf-h1 os-mt-2 os-mb-0">{greeting}.</h1>
+        <p className="os-text-muted os-mt-2 os-mb-0">
           {initialLoad ? (
             'Loading your workspace...'
           ) : (
@@ -124,16 +101,19 @@ const CommandCenterPage = () => {
               {open} open {open === 1 ? 'task' : 'tasks'} in your workspace.
             </>
           )}
-        </Text>
-      </Box>
+        </p>
+      </div>
 
       {error && (
-        <Box borderWidth="1px" borderColor="border.error" bg="bg.error" borderRadius="md" p={3}>
-          <Text color="fg.error">{error}</Text>
-        </Box>
+        <div className="tf-callout-danger os-p-3">
+          <p className="os-text-danger os-m-0">{error}</p>
+        </div>
       )}
 
-      <SimpleGrid as="section" aria-label="Task metrics" columns={{ base: 2, xl: 4 }} gap={4}>
+      <section
+        aria-label="Task metrics"
+        className="os-grid os-grid-cols-2 xl:os-grid-cols-4 os-gap-4"
+      >
         <MetricCard
           label="Open tasks"
           value={open}
@@ -162,18 +142,11 @@ const CommandCenterPage = () => {
           icon={LuTriangleAlert}
           accent="secondary"
         />
-      </SimpleGrid>
+      </section>
 
-      <SimpleGrid columns={{ base: 1, xl: 3 }} gap={{ base: 6, md: 6 }} alignItems="start">
-        <VStack align="stretch" gap={6} gridColumn={{ xl: 'span 2' }} minW="0">
-          <Box
-            as="section"
-            aria-labelledby="priorities-heading"
-            bg="bg.panel"
-            borderWidth="1px"
-            borderRadius="lg"
-            p={{ base: 4, md: 5 }}
-          >
+      <div className="os-grid os-grid-cols-1 xl:os-grid-cols-3 os-gap-6 os-items-start">
+        <Stack gap={6} className="xl:os-col-span-2 os-min-w-0">
+          <section aria-labelledby="priorities-heading" className="tf-panel os-p-4 md:os-p-5">
             <SectionHeader
               id="priorities-heading"
               title="Today's priorities"
@@ -181,13 +154,13 @@ const CommandCenterPage = () => {
               action={{ label: 'View all work', to: '/work' }}
             />
             {initialLoad ? (
-              <Text color="fg.muted">Loading priorities...</Text>
+              <p className="os-text-muted os-m-0">Loading priorities...</p>
             ) : priorities.length ? (
-              <Box as="ul" listStyleType="none" m={0} p={0}>
+              <ul className="os-list-unstyled os-m-0 os-p-0">
                 {priorities.map(({ task, reason }) => (
                   <PriorityTaskRow key={getTaskId(task)} task={task} reason={reason} />
                 ))}
-              </Box>
+              </ul>
             ) : (
               <EmptyState
                 icon={<LuCircleCheck size={24} />}
@@ -195,50 +168,38 @@ const CommandCenterPage = () => {
                 description="No overdue, due-soon, or high-priority open tasks. Open Work to choose your next task."
               />
             )}
-          </Box>
+          </section>
 
-          <Box
-            as="section"
-            aria-labelledby="activity-heading"
-            bg="bg.panel"
-            borderWidth="1px"
-            borderRadius="lg"
-            p={{ base: 4, md: 5 }}
-          >
+          <section aria-labelledby="activity-heading" className="tf-panel os-p-4 md:os-p-5">
             <SectionHeader id="activity-heading" title="Recent task changes" />
             {initialLoad ? (
-              <Text color="fg.muted">Loading recent changes...</Text>
+              <p className="os-text-muted os-m-0">Loading recent changes...</p>
             ) : activity.length ? (
-              <Box as="ol" listStyleType="none" m={0} p={0}>
+              <ol className="os-list-unstyled os-m-0 os-p-0">
                 {activity.map(({ task, action, at }) => (
-                  <HStack
-                    as="li"
+                  <li
                     key={getTaskId(task) + at}
-                    align="flex-start"
-                    gap={3}
-                    py={2.5}
-                    borderTopWidth="1px"
-                    borderColor="border.muted"
+                    className="os-flex os-items-start os-gap-3 os-py-2 os-border-top"
                   >
-                    <Box
-                      boxSize="2"
-                      mt={1.5}
-                      borderRadius="sm"
-                      bg={action === 'created' ? 'accent.teal' : 'accent.violet'}
-                      flexShrink={0}
+                    <span
+                      className={
+                        styles.dot +
+                        ' ' +
+                        (action === 'created' ? styles.dotCreated : styles.dotUpdated)
+                      }
                       aria-hidden="true"
                     />
-                    <Box minW="0">
-                      <Text fontSize="sm" lineClamp={2}>
+                    <div className="os-min-w-0">
+                      <p className="os-text-sm os-line-clamp-2 os-m-0">
                         {action === 'created' ? 'Created' : 'Updated'} &ldquo;{task.title}&rdquo;
-                      </Text>
-                      <Text fontSize="xs" color="fg.muted">
+                      </p>
+                      <p className="os-text-xs os-text-muted os-m-0">
                         <time dateTime={at}>{timeFormat.format(new Date(at))}</time>
-                      </Text>
-                    </Box>
-                  </HStack>
+                      </p>
+                    </div>
+                  </li>
                 ))}
-              </Box>
+              </ol>
             ) : (
               <EmptyState
                 icon={<LuClock size={24} />}
@@ -246,18 +207,14 @@ const CommandCenterPage = () => {
                 description="Task creations and updates will appear here."
               />
             )}
-          </Box>
-        </VStack>
+          </section>
+        </Stack>
 
-        <VStack align="stretch" gap={6} minW="0">
+        <Stack gap={6} className="os-min-w-0">
           {activeProjects.length > 0 && (
-            <Box
-              as="section"
+            <section
               aria-labelledby="active-projects-heading"
-              bg="bg.panel"
-              borderWidth="1px"
-              borderRadius="lg"
-              p={{ base: 4, md: 5 }}
+              className="tf-panel os-p-4 md:os-p-5"
             >
               <SectionHeader
                 id="active-projects-heading"
@@ -265,94 +222,65 @@ const CommandCenterPage = () => {
                 count={activeProjects.length}
                 action={{ label: 'All projects', to: '/work/projects' }}
               />
-              <Box as="ul" listStyleType="none" m={0} p={0}>
+              <ul className="os-list-unstyled os-m-0 os-p-0">
                 {activeProjects.slice(0, 4).map((project) => {
                   const stats = getStatsForProject(projectStats, getProjectId(project));
                   return (
-                    <Box
-                      as="li"
-                      key={getProjectId(project)}
-                      py={3}
-                      borderTopWidth="1px"
-                      borderColor="border.muted"
-                    >
-                      <HStack justify="space-between" gap={3} mb={1.5}>
-                        <Link
-                          asChild
-                          fontSize="sm"
-                          fontWeight="medium"
-                          color="fg"
-                          minW="0"
-                          _hover={{ color: 'accent.teal' }}
+                    <li key={getProjectId(project)} className="os-py-3 os-border-top">
+                      <div className="os-flex os-justify-between os-items-center os-gap-3 os-mb-2">
+                        <RouterLink
+                          to={'/work/projects/' + getProjectId(project)}
+                          className={'os-text-sm os-font-medium ' + styles.projectLink}
                         >
-                          <RouterLink to={'/work/projects/' + getProjectId(project)}>
-                            <Text as="span" truncate>
-                              {project.name}
-                            </Text>
-                          </RouterLink>
-                        </Link>
-                        <Text fontSize="xs" color="fg.muted" flexShrink={0}>
+                          <span className="os-block os-truncate">{project.name}</span>
+                        </RouterLink>
+                        <span className="os-text-xs os-text-muted os-shrink-0">
                           {stats.total ? `${stats.open} open` : 'No tasks'}
-                        </Text>
-                      </HStack>
+                        </span>
+                      </div>
                       {isProjectAtRisk(project, stats) && (
-                        <Box mb={1.5}>
+                        <div className="os-mb-2">
                           <ProjectRiskBadge overdue={stats.overdue} />
-                        </Box>
+                        </div>
                       )}
                       {stats.total > 0 && (
-                        <Progress.Root value={stats.completion} size="xs" colorPalette="teal">
-                          <Progress.Track aria-label={project.name + ' completion'}>
-                            <Progress.Range />
-                          </Progress.Track>
-                        </Progress.Root>
+                        <Progress
+                          value={stats.completion}
+                          label={project.name + ' completion'}
+                          hideLabel
+                          size="sm"
+                          height="0.25rem"
+                          color="primary"
+                        />
                       )}
-                    </Box>
+                    </li>
                   );
                 })}
-              </Box>
-            </Box>
+              </ul>
+            </section>
           )}
 
           {agentSummary.total > 0 && (
-            <Box
-              as="section"
-              aria-labelledby="workforce-heading"
-              bg="bg.panel"
-              borderWidth="1px"
-              borderRadius="lg"
-              p={{ base: 4, md: 5 }}
-            >
+            <section aria-labelledby="workforce-heading" className="tf-panel os-p-4 md:os-p-5">
               <SectionHeader
                 id="workforce-heading"
                 title="Workforce"
                 count={agentSummary.total}
                 action={{ label: 'Open Workforce', to: '/workforce' }}
               />
-              <SimpleGrid as="dl" columns={3} gap={3} textAlign="center">
+              <dl className="os-grid os-grid-cols-3 os-gap-3 os-text-center os-m-0">
                 {[
                   { label: 'Active', value: agentSummary.active },
                   { label: 'Paused', value: agentSummary.paused },
                   { label: 'Disabled', value: agentSummary.disabled },
                 ].map((item) => (
-                  <Box
-                    key={item.label}
-                    display="flex"
-                    flexDirection="column-reverse"
-                    bg="bg.muted"
-                    borderRadius="md"
-                    py={3}
-                  >
-                    <Text as="dt" fontSize="xs" color="fg.muted">
-                      {item.label}
-                    </Text>
-                    <Text as="dd" fontSize="xl" fontWeight="semibold" m={0}>
-                      {item.value}
-                    </Text>
-                  </Box>
+                  <div key={item.label} className={styles.tile}>
+                    <dt className="os-text-xs os-text-muted">{item.label}</dt>
+                    <dd className="os-text-xl os-font-semibold os-m-0">{item.value}</dd>
+                  </div>
                 ))}
-              </SimpleGrid>
-              <Box as="dl" mt={4} fontSize="sm">
+              </dl>
+              <dl className="os-mt-4 os-mb-0 os-text-sm">
                 {[
                   {
                     label: 'Agents with open tasks',
@@ -362,123 +290,88 @@ const CommandCenterPage = () => {
                   { label: 'Open tasks on you', value: assignmentSummary.openOnMe },
                   { label: 'Unassigned open tasks', value: assignmentSummary.openUnassigned },
                 ].map((item) => (
-                  <HStack
+                  <div
                     key={item.label}
-                    justify="space-between"
-                    py={1.5}
-                    borderTopWidth="1px"
-                    borderColor="border.muted"
+                    className="os-flex os-justify-between os-items-center os-gap-2 os-py-2 os-border-top"
                   >
-                    <Text as="dt" color="fg.muted">
-                      {item.label}
-                    </Text>
-                    <Text as="dd" fontWeight="semibold" m={0}>
+                    <dt className="os-text-muted">{item.label}</dt>
+                    <dd className="os-font-semibold os-m-0">
                       {tasksReady ? item.value : error ? 'Unavailable' : 'Loading...'}
-                    </Text>
-                  </HStack>
+                    </dd>
+                  </div>
                 ))}
-              </Box>
-              <Text fontSize="xs" color="fg.muted" mt={3}>
+              </dl>
+              <p className="os-text-xs os-text-muted os-mt-3 os-mb-0">
                 Assignments record who owns the work. Assignments do not start runs.
-              </Text>
-            </Box>
+              </p>
+            </section>
           )}
 
           {agentSummary.total > 0 && <AgentActivityPanel now={now} />}
 
-          <Box
-            as="section"
-            aria-labelledby="summary-heading"
-            bg="bg.panel"
-            borderWidth="1px"
-            borderRadius="lg"
-            p={{ base: 4, md: 5 }}
-          >
+          <section aria-labelledby="summary-heading" className="tf-panel os-p-4 md:os-p-5">
             <SectionHeader id="summary-heading" title="Task summary" />
-            <Progress.Root value={completion} colorPalette="teal" size="sm">
-              <HStack justify="space-between" mb={2}>
-                <Progress.Label fontSize="sm" color="fg.muted">
-                  Completion
-                </Progress.Label>
-                <Progress.ValueText fontSize="sm" />
-              </HStack>
-              <Progress.Track>
-                <Progress.Range />
-              </Progress.Track>
-            </Progress.Root>
-            <SimpleGrid as="dl" columns={3} gap={3} mt={5} textAlign="center">
+            <Progress
+              value={completion}
+              label="Completion"
+              showValue
+              size="sm"
+              color="primary"
+              className="os-text-sm"
+            />
+            <dl className="os-grid os-grid-cols-3 os-gap-3 os-mt-5 os-mb-0 os-text-center">
               {[
                 { label: 'To do', value: summary.todo },
                 { label: 'In progress', value: summary.inProgress },
                 { label: 'Done', value: summary.done },
               ].map((item) => (
-                <Box
-                  key={item.label}
-                  display="flex"
-                  flexDirection="column-reverse"
-                  bg="bg.muted"
-                  borderRadius="md"
-                  py={3}
-                >
-                  <Text as="dt" fontSize="xs" color="fg.muted">
-                    {item.label}
-                  </Text>
-                  <Text as="dd" fontSize="xl" fontWeight="semibold" m={0}>
-                    {item.value}
-                  </Text>
-                </Box>
+                <div key={item.label} className={styles.tile}>
+                  <dt className="os-text-xs os-text-muted">{item.label}</dt>
+                  <dd className="os-text-xl os-font-semibold os-m-0">{item.value}</dd>
+                </div>
               ))}
-            </SimpleGrid>
-          </Box>
+            </dl>
+          </section>
 
-          <Box as="section" aria-labelledby="recommendations-heading">
+          <section aria-labelledby="recommendations-heading">
             <SectionHeader
               id="recommendations-heading"
               title="Recommended next"
               icon={<LuSignpost aria-hidden="true" />}
               aside={
-                <Badge variant="outline" size="sm" title="Generated from task data by fixed rules">
+                <Badge
+                  color="neutral"
+                  variant="outline"
+                  size="sm"
+                  title="Generated from task data by fixed rules"
+                >
                   Rule based
                 </Badge>
               }
             />
             {recommendations.length ? (
-              <VStack as="ul" listStyleType="none" align="stretch" gap={3} m={0} p={0}>
+              <Stack as="ul" gap={3} className="os-list-unstyled os-m-0 os-p-0">
                 {recommendations.map((item) => (
-                  <Box as="li" key={item.id}>
-                    <Link
-                      asChild
-                      display="block"
-                      borderWidth="1px"
-                      borderRadius="md"
-                      borderLeftWidth="3px"
-                      borderLeftColor={toneColor[item.tone]}
-                      bg={toneBg[item.tone]}
-                      p={4}
-                      textDecoration="none"
-                      _hover={{ borderColor: toneColor[item.tone] }}
+                  <li key={item.id}>
+                    <RouterLink
+                      to="/work"
+                      className={styles.recommendation + ' ' + styles[item.tone]}
                     >
-                      <RouterLink to="/work">
-                        <Text fontSize="sm" fontWeight="semibold" color="fg">
-                          {item.title}
-                        </Text>
-                        <Text fontSize="sm" color="fg.muted" mt={1}>
-                          {item.reason}
-                        </Text>
-                      </RouterLink>
-                    </Link>
-                  </Box>
+                      <p className="os-text-sm os-font-semibold os-m-0">{item.title}</p>
+                      <p className="os-text-sm os-text-muted os-mt-1 os-mb-0">{item.reason}</p>
+                    </RouterLink>
+                  </li>
                 ))}
-              </VStack>
+              </Stack>
             ) : (
-              <Text color="fg.muted" fontSize="sm">
+              <p className="os-text-muted os-text-sm os-m-0">
                 No recommendations right now. Your open work is on track.
-              </Text>
+              </p>
             )}
-          </Box>
-        </VStack>
-      </SimpleGrid>
-    </VStack>
+          </section>
+        </Stack>
+      </div>
+    </Stack>
   );
 };
 

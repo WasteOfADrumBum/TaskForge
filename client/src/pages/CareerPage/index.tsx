@@ -1,18 +1,4 @@
-import {
-  Badge,
-  Box,
-  chakra,
-  Button,
-  Field,
-  Heading,
-  HStack,
-  Input,
-  Link,
-  NativeSelect,
-  Text,
-  Textarea,
-  VStack,
-} from '@chakra-ui/react';
+import { Badge, Button, Field, Input, Select, Stack, Textarea } from '@onesmall/ui';
 import { useRef, useState, type FormEvent } from 'react';
 import { LuExternalLink, LuPlus } from 'react-icons/lu';
 import {
@@ -59,13 +45,7 @@ import {
   toSkillSlug,
 } from '../../utils/career';
 import { SessionExpiredError } from '../../utils/session';
-
-const panel = {
-  bg: 'bg.panel',
-  borderWidth: '1px',
-  borderRadius: 'lg',
-  p: { base: 4, md: 5 },
-} as const;
+import styles from './Career.module.css';
 
 const CareerPage = () => {
   const dispatch = useAppDispatch();
@@ -233,138 +213,112 @@ const CareerPage = () => {
     status = skills.waiting || jobs.waiting ? 'Still loading...' : 'Loading your career data...';
 
   return (
-    <VStack align="stretch" gap={{ base: 6, md: 8 }}>
-      <Box>
-        <Heading as="h1" size={{ base: '2xl', md: '3xl' }}>
-          Career
-        </Heading>
-        <Text color="fg.muted" mt={1.5}>
+    <Stack gap={{ base: 6, md: 8 }}>
+      <div>
+        <h1 className="tf-h1 os-m-0">Career</h1>
+        <p className="os-text-muted os-m-0 os-mt-2">
           Your skills and the jobs you are looking at. Skill gaps compare a job&apos;s required
           skills with yours by exact name. They are rule-based, not AI.
-        </Text>
-        <Text
+        </p>
+        <p
           ref={statusRef}
           tabIndex={-1}
           role="status"
           aria-live="polite"
-          fontSize="sm"
-          color="fg.muted"
-          mt={1}
-          _focusVisible={{ outline: '2px solid', outlineColor: 'accent.teal' }}
+          className="os-text-sm os-text-muted os-m-0 os-mt-1"
         >
           {status}
-        </Text>
+        </p>
         {actionError && (
-          <Text role="alert" color="fg.error" mt={1}>
+          <p role="alert" className="os-text-danger os-m-0 os-mt-1">
             {actionError}
-          </Text>
+          </p>
         )}
-      </Box>
+      </div>
 
       <CareerGoals />
 
-      <Box as="section" aria-labelledby="skills-heading" {...panel}>
-        <Heading as="h2" id="skills-heading" size="md" mb={4}>
-          Skills{' '}
-          <Badge variant="subtle" size="sm">
-            {skills.items.length}
-          </Badge>
-        </Heading>
-        <chakra.form onSubmit={addSkill} aria-label="Add a skill" mb={4} noValidate>
-          <HStack align="end" gap={3} flexWrap="wrap">
-            <Field.Root required invalid={Boolean(skillError)} flex="1" minW="12rem">
-              <Field.Label>
-                Skill
-                <Field.RequiredIndicator />
-              </Field.Label>
+      <section aria-labelledby="skills-heading" className="tf-panel os-p-4 md:os-p-5">
+        <h2 id="skills-heading" className="tf-h2 os-m-0 os-mb-4">
+          Skills <Badge size="sm">{skills.items.length}</Badge>
+        </h2>
+        <form onSubmit={addSkill} aria-label="Add a skill" className="os-mb-4" noValidate>
+          <div className="os-flex os-items-end os-gap-3 os-flex-wrap">
+            <Field label="Skill" required className={styles.grow}>
               <Input
                 value={skillName}
                 onChange={(event) => setSkillName(event.target.value)}
                 maxLength={SKILL_NAME_MAX}
                 placeholder="For example, typescript"
+                invalid={Boolean(skillError)}
               />
-            </Field.Root>
-            <Field.Root w="auto">
-              <Field.Label>Level</Field.Label>
-              <NativeSelect.Root>
-                <NativeSelect.Field
-                  value={skillLevel}
-                  onChange={(event) => setSkillLevel(event.target.value as SkillLevel)}
-                >
-                  {SKILL_LEVELS.map((level) => (
-                    <option key={level} value={level}>
-                      {skillLevelLabel[level]}
-                    </option>
-                  ))}
-                </NativeSelect.Field>
-                <NativeSelect.Indicator />
-              </NativeSelect.Root>
-            </Field.Root>
+            </Field>
+            <Field label="Level">
+              <Select
+                value={skillLevel}
+                onChange={(event) => setSkillLevel(event.target.value as SkillLevel)}
+              >
+                {SKILL_LEVELS.map((level) => (
+                  <option key={level} value={level}>
+                    {skillLevelLabel[level]}
+                  </option>
+                ))}
+              </Select>
+            </Field>
             <Button
               type="submit"
-              colorPalette="teal"
               loading={skills.isBusy('new')}
               disabled={!skills.loaded}
+              leftIcon={<LuPlus aria-hidden="true" focusable="false" />}
             >
-              <LuPlus aria-hidden="true" focusable="false" />
               Add skill
             </Button>
-          </HStack>
+          </div>
           {skillError && (
-            <Text role="alert" color="fg.error" fontSize="sm" mt={2}>
+            <p role="alert" className="os-text-danger os-text-sm os-m-0 os-mt-2">
               {skillError}
-            </Text>
+            </p>
           )}
-        </chakra.form>
+        </form>
         {skills.error && !skills.pending ? (
-          <VStack align="start" gap={2}>
-            <Text color="fg.error">{skills.error}</Text>
+          <Stack gap={2} align="flex-start">
+            <p className="os-text-danger os-m-0">{skills.error}</p>
             <Button size="sm" variant="outline" onClick={skills.reload}>
               Retry loading skills
             </Button>
-          </VStack>
+          </Stack>
         ) : skills.loaded && skills.items.length === 0 ? (
-          <Text color="fg.muted">No skills yet. Add the ones you already use.</Text>
+          <p className="os-text-muted os-m-0">No skills yet. Add the ones you already use.</p>
         ) : (
-          <Box as="ul" listStyleType="none" m={0} p={0}>
+          <ul className="os-list-unstyled os-m-0 os-p-0">
             {skills.items.map((skill) => {
               const id = getRecordId(skill);
               return (
-                <HStack
-                  as="li"
+                <li
                   key={id}
-                  justify="space-between"
-                  gap={3}
-                  py={2}
-                  borderTopWidth="1px"
-                  borderColor="border.muted"
-                  flexWrap="wrap"
+                  className="os-flex os-items-center os-justify-between os-gap-3 os-py-2 os-border-top os-flex-wrap"
                 >
-                  <Text fontWeight="medium" overflowWrap="anywhere">
-                    {skill.name}
-                  </Text>
-                  <HStack gap={2}>
-                    <NativeSelect.Root size="xs" w="auto">
-                      <NativeSelect.Field
-                        aria-label={'Level for ' + skill.name}
-                        value={skill.level}
-                        onChange={async (event) => {
-                          const level = event.target.value as SkillLevel;
-                          begin();
-                          const message = await skills.update(id, (current) =>
-                            updateSkill(current, id, { level }),
-                          );
-                          settle(message, skill.name + ' is now ' + skillLevelLabel[level] + '.');
-                        }}
-                      >
-                        {SKILL_LEVELS.map((level) => (
-                          <option key={level} value={level}>
-                            {skillLevelLabel[level]}
-                          </option>
-                        ))}
-                      </NativeSelect.Field>
-                      <NativeSelect.Indicator />
-                    </NativeSelect.Root>
+                  <p className={`os-font-medium os-m-0 ${styles.wrap}`}>{skill.name}</p>
+                  <div className="os-flex os-items-center os-gap-2">
+                    <Select
+                      size="xs"
+                      aria-label={'Level for ' + skill.name}
+                      value={skill.level}
+                      onChange={async (event) => {
+                        const level = event.target.value as SkillLevel;
+                        begin();
+                        const message = await skills.update(id, (current) =>
+                          updateSkill(current, id, { level }),
+                        );
+                        settle(message, skill.name + ' is now ' + skillLevelLabel[level] + '.');
+                      }}
+                    >
+                      {SKILL_LEVELS.map((level) => (
+                        <option key={level} value={level}>
+                          {skillLevelLabel[level]}
+                        </option>
+                      ))}
+                    </Select>
                     <ConfirmDeleteButton
                       name={skill.name}
                       label="Remove"
@@ -377,148 +331,136 @@ const CareerPage = () => {
                         settle(message, 'Removed skill: ' + skill.name + '.', true);
                       }}
                     />
-                  </HStack>
-                </HStack>
+                  </div>
+                </li>
               );
             })}
-          </Box>
+          </ul>
         )}
-      </Box>
+      </section>
 
-      <Box as="section" aria-labelledby="jobs-heading" {...panel}>
-        <Heading as="h2" id="jobs-heading" size="md" mb={4}>
-          Saved jobs{' '}
-          <Badge variant="subtle" size="sm">
-            {jobs.items.length}
-          </Badge>
-        </Heading>
-        <chakra.form onSubmit={addJob} aria-label="Save a job" mb={4} noValidate>
-          <VStack align="stretch" gap={3}>
-            <Field.Root required invalid={jobError === 'Give the job a title.'}>
-              <Field.Label>
-                Job title
-                <Field.RequiredIndicator />
-              </Field.Label>
+      <section aria-labelledby="jobs-heading" className="tf-panel os-p-4 md:os-p-5">
+        <h2 id="jobs-heading" className="tf-h2 os-m-0 os-mb-4">
+          Saved jobs <Badge size="sm">{jobs.items.length}</Badge>
+        </h2>
+        <form onSubmit={addJob} aria-label="Save a job" className="os-mb-4" noValidate>
+          <Stack gap={3}>
+            <Field label="Job title" required>
               <Input
                 value={jobTitle}
                 onChange={(event) => setJobTitle(event.target.value)}
                 maxLength={JOB_TITLE_MAX}
+                invalid={jobError === 'Give the job a title.'}
               />
-            </Field.Root>
-            <HStack gap={3} align="start" flexWrap="wrap">
-              <Field.Root flex="1" minW="12rem">
-                <Field.Label>Company (optional)</Field.Label>
+            </Field>
+            <div className="os-flex os-items-start os-gap-3 os-flex-wrap">
+              <Field label="Company (optional)" className={styles.grow}>
                 <Input
                   value={company}
                   onChange={(event) => setCompany(event.target.value)}
                   maxLength={JOB_COMPANY_MAX}
                 />
-              </Field.Root>
-              <Field.Root flex="1" minW="12rem">
-                <Field.Label>Link (optional, https)</Field.Label>
+              </Field>
+              <Field label="Link (optional, https)" className={styles.grow}>
                 <Input type="url" value={url} onChange={(event) => setUrl(event.target.value)} />
-              </Field.Root>
-            </HStack>
-            <Field.Root>
-              <Field.Label>Required skills (optional)</Field.Label>
+              </Field>
+            </div>
+            <Field
+              label="Required skills (optional)"
+              hint="Separate skills with commas, for example: react, typescript"
+            >
               <Input value={skillList} onChange={(event) => setSkillList(event.target.value)} />
-              <Field.HelperText>
-                Separate skills with commas, for example: react, typescript
-              </Field.HelperText>
-            </Field.Root>
-            <Field.Root>
-              <Field.Label>Notes (optional)</Field.Label>
+            </Field>
+            <Field label="Notes (optional)">
               <Textarea
                 value={notes}
                 onChange={(event) => setNotes(event.target.value)}
                 rows={2}
                 maxLength={JOB_NOTES_MAX}
               />
-            </Field.Root>
+            </Field>
             {jobError && (
-              <Text role="alert" color="fg.error" fontSize="sm">
+              <p role="alert" className="os-text-danger os-text-sm os-m-0">
                 {jobError}
-              </Text>
+              </p>
             )}
-            <HStack>
+            <div className="os-flex os-items-center">
               <Button
                 type="submit"
-                colorPalette="teal"
                 loading={jobs.isBusy('new')}
                 disabled={!jobs.loaded}
+                leftIcon={<LuPlus aria-hidden="true" focusable="false" />}
               >
-                <LuPlus aria-hidden="true" focusable="false" />
                 Save job
               </Button>
-            </HStack>
-          </VStack>
-        </chakra.form>
+            </div>
+          </Stack>
+        </form>
 
         {jobs.error && !jobs.pending ? (
-          <VStack align="start" gap={2}>
-            <Text color="fg.error">{jobs.error}</Text>
+          <Stack gap={2} align="flex-start">
+            <p className="os-text-danger os-m-0">{jobs.error}</p>
             <Button size="sm" variant="outline" onClick={jobs.reload}>
               Retry loading jobs
             </Button>
-          </VStack>
+          </Stack>
         ) : jobs.loaded && jobs.items.length === 0 ? (
-          <Text color="fg.muted">No saved jobs yet.</Text>
+          <p className="os-text-muted os-m-0">No saved jobs yet.</p>
         ) : (
-          <Box as="ul" listStyleType="none" m={0} p={0}>
+          <ul className="os-list-unstyled os-m-0 os-p-0">
             {jobs.items.map((job) => {
               const id = getRecordId(job);
               const gap = getSkillGap(job, skills.items);
               const headingId = 'job-' + id;
               return (
-                <Box as="li" key={id} py={3} borderTopWidth="1px" borderColor="border.muted">
-                  <Heading as="h3" id={headingId} size="sm" overflowWrap="anywhere">
+                <li key={id} className="os-py-3 os-border-top">
+                  <h3 id={headingId} className={`tf-h3 os-m-0 ${styles.wrap}`}>
                     {job.title}
-                  </Heading>
+                  </h3>
                   {job.company && (
-                    <Text fontSize="sm" color="fg.muted" overflowWrap="anywhere">
+                    <p className={`os-text-sm os-text-muted os-m-0 ${styles.wrap}`}>
                       {job.company}
-                    </Text>
+                    </p>
                   )}
                   {safeHttpsUrl(job.url) && (
-                    <Link
+                    <a
                       href={safeHttpsUrl(job.url)!}
                       target="_blank"
                       rel="noopener noreferrer"
-                      fontSize="sm"
-                      color="accent.teal"
+                      className={`os-text-sm ${styles.iconLink}`}
                       aria-label={'Job posting for ' + job.title + ' (opens in a new tab)'}
                     >
                       Job posting
                       <LuExternalLink aria-hidden="true" focusable="false" />
-                    </Link>
+                    </a>
                   )}
                   {job.notes && (
-                    <Text fontSize="sm" whiteSpace="pre-wrap" overflowWrap="anywhere" mt={1}>
+                    <p
+                      className={`os-text-sm os-m-0 os-mt-1 os-max-w-none ${styles.wrap} ${styles.preWrap}`}
+                    >
                       {job.notes}
-                    </Text>
+                    </p>
                   )}
-                  <HStack gap={2} mt={2} flexWrap="wrap">
-                    <NativeSelect.Root size="xs" w="auto">
-                      <NativeSelect.Field
-                        aria-label={'Status for ' + job.title}
-                        value={job.status}
-                        onChange={async (event) => {
-                          const next = event.target.value as JobStatus;
-                          begin();
-                          const message = await jobs.update(id, (current) =>
-                            updateJob(current, id, { status: next }),
-                          );
-                          settle(message, job.title + ' is now ' + jobStatusLabel[next] + '.');
-                        }}
-                      >
-                        {JOB_STATUSES.map((value) => (
-                          <option key={value} value={value}>
-                            {jobStatusLabel[value]}
-                          </option>
-                        ))}
-                      </NativeSelect.Field>
-                      <NativeSelect.Indicator />
-                    </NativeSelect.Root>
+                  <div className="os-flex os-items-center os-gap-2 os-mt-2 os-flex-wrap">
+                    <Select
+                      size="xs"
+                      aria-label={'Status for ' + job.title}
+                      value={job.status}
+                      onChange={async (event) => {
+                        const next = event.target.value as JobStatus;
+                        begin();
+                        const message = await jobs.update(id, (current) =>
+                          updateJob(current, id, { status: next }),
+                        );
+                        settle(message, job.title + ' is now ' + jobStatusLabel[next] + '.');
+                      }}
+                    >
+                      {JOB_STATUSES.map((value) => (
+                        <option key={value} value={value}>
+                          {jobStatusLabel[value]}
+                        </option>
+                      ))}
+                    </Select>
                     <ConfirmDeleteButton
                       name={job.title}
                       busy={jobs.isBusy(id)}
@@ -528,45 +470,36 @@ const CareerPage = () => {
                         settle(message, 'Deleted job: ' + job.title + '.', true);
                       }}
                     />
-                  </HStack>
+                  </div>
                   {job.requiredSkills.length > 0 && skills.loaded && (
-                    <Box mt={3}>
-                      <Text fontSize="sm">
-                        <Text as="span" fontWeight="medium">
-                          You have:
-                        </Text>{' '}
+                    <div className="os-mt-3">
+                      <p className="os-text-sm os-m-0">
+                        <span className="os-font-medium">You have:</span>{' '}
                         {gap.have.length ? gap.have.join(', ') : 'none of the listed skills yet'}
-                      </Text>
-                      <Text fontSize="sm" fontWeight="medium" mt={1}>
+                      </p>
+                      <p className="os-text-sm os-font-medium os-m-0 os-mt-1">
                         {gap.missing.length
                           ? 'Missing: ' + gap.missing.length
                           : 'You have every listed skill.'}
-                      </Text>
+                      </p>
                       {gap.missing.length > 0 && (
-                        <Box
-                          as="ul"
-                          listStyleType="none"
-                          m={0}
-                          p={0}
+                        <ul
+                          className="os-list-unstyled os-m-0 os-p-0"
                           aria-label={'Missing skills for ' + job.title}
                         >
                           {gap.missing.map((skill) => {
                             const added = tasksLoaded && hasLearningTask(tasks, skill, job);
                             const key = id + ':' + skill;
                             return (
-                              <HStack
-                                as="li"
+                              <li
                                 key={skill}
-                                justify="space-between"
-                                gap={3}
-                                py={1.5}
-                                flexWrap="wrap"
+                                className="os-flex os-items-center os-justify-between os-gap-3 os-py-1 os-flex-wrap"
                               >
-                                <Text fontSize="sm">{skill}</Text>
+                                <p className="os-text-sm os-m-0">{skill}</p>
                                 {added ? (
-                                  <Text fontSize="xs" color="fg.muted">
+                                  <p className="os-text-xs os-text-muted os-m-0">
                                     Learning task added
-                                  </Text>
+                                  </p>
                                 ) : (
                                   <Button
                                     size="xs"
@@ -578,19 +511,19 @@ const CareerPage = () => {
                                     Add learning task
                                   </Button>
                                 )}
-                              </HStack>
+                              </li>
                             );
                           })}
-                        </Box>
+                        </ul>
                       )}
-                    </Box>
+                    </div>
                   )}
-                </Box>
+                </li>
               );
             })}
-          </Box>
+          </ul>
         )}
-      </Box>
+      </section>
 
       <ApplicationsSection
         jobs={jobs.items}
@@ -607,7 +540,7 @@ const CareerPage = () => {
         jobs={jobs.items}
         careerLoaded={skills.loaded && jobs.loaded}
       />
-    </VStack>
+    </Stack>
   );
 };
 

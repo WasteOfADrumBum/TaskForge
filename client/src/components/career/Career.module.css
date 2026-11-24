@@ -1,0 +1,6 @@
+/* Shared by the Career sections (ApplicationsSection, CareerGoals, ResumeSection). */
+
+/* Long titles and company names wrap anywhere instead of overflowing on phones. */
+.wrap {
+  overflow-wrap: anywhere;
+}

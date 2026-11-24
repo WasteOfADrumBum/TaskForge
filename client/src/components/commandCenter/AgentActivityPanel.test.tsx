@@ -1,11 +1,10 @@
-import { ChakraProvider } from '@chakra-ui/react';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as api from '../../api/runs';
-import { system } from '../../assets/theme/theme';
+import { Provider as UiProvider } from '../../components/ui/provider';
 import { store } from '../../redux/store';
 import { clearAuth, setToken } from '../../redux/slices/authSlice';
 import { setAgents } from '../../redux/slices/agentSlice';
@@ -34,11 +33,11 @@ const run = (id: string, extra: Partial<AgentRun> = {}): AgentRun => ({
 const renderPanel = () =>
   render(
     <Provider store={store}>
-      <ChakraProvider value={system}>
+      <UiProvider>
         <MemoryRouter>
           <AgentActivityPanel now={now} />
         </MemoryRouter>
-      </ChakraProvider>
+      </UiProvider>
     </Provider>,
   );
 

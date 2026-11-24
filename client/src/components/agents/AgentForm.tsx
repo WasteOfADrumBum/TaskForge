@@ -1,18 +1,4 @@
-import {
-  Box,
-  Button,
-  chakra,
-  Checkbox,
-  Field,
-  Fieldset,
-  Heading,
-  HStack,
-  Input,
-  NativeSelect,
-  Text,
-  Textarea,
-  VStack,
-} from '@chakra-ui/react';
+import { Button, Checkbox, Field, FieldGroup, Input, Select, Stack, Textarea } from '@onesmall/ui';
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { LuPlus, LuSave } from 'react-icons/lu';
 import {
@@ -132,26 +118,21 @@ const AgentForm = ({ agent, saving, error, onSubmit, onCancel }: AgentFormProps)
   const suggestions = SUGGESTED_SKILLS.filter((skill) => !skills.includes(skill));
 
   return (
-    <chakra.form
+    <form
       aria-labelledby={headingId}
       onSubmit={handleSubmit}
-      bg="bg.panel"
-      borderWidth="1px"
-      borderRadius="lg"
-      p={{ base: 4, md: 6 }}
-      minW="0"
+      className="tf-panel os-p-4 md:os-p-6 os-min-w-0"
     >
-      <Heading as="h2" id={headingId} size="lg" mb={1}>
+      <h2 id={headingId} className="tf-h2 os-mt-0 os-mb-1">
         {editing ? 'Edit Agent' : 'Create Agent'}
-      </Heading>
-      <Text color="fg.muted" mb={6}>
+      </h2>
+      <p className="os-text-muted os-mt-0 os-mb-6">
         {editing
           ? 'Update this agent’s definition. Saving does not start a run.'
           : 'Define an AI worker. Saving its definition does not start a run.'}
-      </Text>
-      <VStack align="stretch" gap={5}>
-        <Field.Root required>
-          <Field.Label>Name</Field.Label>
+      </p>
+      <Stack gap={5}>
+        <Field label="Name" required>
           <Input
             ref={nameRef}
             value={name}
@@ -159,18 +140,16 @@ const AgentForm = ({ agent, saving, error, onSubmit, onCancel }: AgentFormProps)
             placeholder="For example, Scout"
             maxLength={AGENT_NAME_MAX}
           />
-        </Field.Root>
-        <Field.Root required>
-          <Field.Label>Role</Field.Label>
+        </Field>
+        <Field label="Role" required>
           <Input
             value={role}
             onChange={(event) => setRole(event.target.value)}
             placeholder="For example, Research assistant"
             maxLength={AGENT_ROLE_MAX}
           />
-        </Field.Root>
-        <Field.Root>
-          <Field.Label>Description</Field.Label>
+        </Field>
+        <Field label="Description">
           <Textarea
             value={description}
             onChange={(event) => setDescription(event.target.value)}
@@ -178,135 +157,109 @@ const AgentForm = ({ agent, saving, error, onSubmit, onCancel }: AgentFormProps)
             rows={3}
             maxLength={AGENT_DESCRIPTION_MAX}
           />
-        </Field.Root>
-        <Field.Root>
-          <Field.Label>Status</Field.Label>
-          <NativeSelect.Root>
-            <NativeSelect.Field
-              value={status}
-              onChange={(event) => setStatus(event.target.value as AgentStatus)}
-            >
-              {AGENT_STATUSES.map((value) => (
-                <option key={value} value={value}>
-                  {agentStatusLabel[value]}
-                </option>
-              ))}
-            </NativeSelect.Field>
-            <NativeSelect.Indicator />
-          </NativeSelect.Root>
-        </Field.Root>
+        </Field>
+        <Field label="Status">
+          <Select value={status} onChange={(event) => setStatus(event.target.value as AgentStatus)}>
+            {AGENT_STATUSES.map((value) => (
+              <option key={value} value={value}>
+                {agentStatusLabel[value]}
+              </option>
+            ))}
+          </Select>
+        </Field>
 
-        <Field.Root invalid={Boolean(skillError)}>
-          <Field.Label>Skills</Field.Label>
-          <HStack w="full" gap={2}>
-            <Input
-              ref={skillRef}
-              value={skillDraft}
-              onChange={(event) => {
-                setSkillDraft(event.target.value);
-                setSkillError(null);
-              }}
-              onKeyDown={handleSkillKey}
-              placeholder="Type a skill and press Enter"
-              maxLength={AGENT_SKILL_MAX + 10}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => addSkill(skillDraft)}
-              disabled={!skillDraft.trim()}
-            >
-              Add skill
-            </Button>
-          </HStack>
-          {skillError ? (
-            <Field.ErrorText>{skillError}</Field.ErrorText>
-          ) : (
-            <Field.HelperText>
-              Saved as lowercase tags, such as software-development.
-            </Field.HelperText>
-          )}
-          <Box mt={2} w="full">
+        <div>
+          <Field
+            label="Skills"
+            hint={skillError ? undefined : 'Saved as lowercase tags, such as software-development.'}
+            error={skillError ?? undefined}
+          >
+            <div className="os-flex os-items-center os-gap-2 os-w-full">
+              <div className="os-flex-1 os-min-w-0">
+                <Input
+                  ref={skillRef}
+                  value={skillDraft}
+                  onChange={(event) => {
+                    setSkillDraft(event.target.value);
+                    setSkillError(null);
+                  }}
+                  onKeyDown={handleSkillKey}
+                  placeholder="Type a skill and press Enter"
+                  maxLength={AGENT_SKILL_MAX + 10}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => addSkill(skillDraft)}
+                disabled={!skillDraft.trim()}
+              >
+                Add skill
+              </Button>
+            </div>
+          </Field>
+          <div className="os-mt-2 os-w-full">
             <SkillTags
               skills={skills}
               onRemove={(skill) => setSkills((current) => current.filter((s) => s !== skill))}
               emptyText="No skills added yet."
             />
-          </Box>
+          </div>
           {suggestions.length > 0 && (
-            <HStack mt={2} gap={1.5} flexWrap="wrap" aria-label="Suggested skills" role="group">
+            <div
+              className="os-flex os-flex-wrap os-items-center os-gap-1 os-mt-2"
+              aria-label="Suggested skills"
+              role="group"
+            >
               {suggestions.map((skill) => (
                 <Button
                   key={skill}
                   type="button"
-                  size="2xs"
+                  size="xs"
                   variant="ghost"
                   onClick={() => addSkill(skill)}
                   aria-label={'Add skill ' + skill}
+                  leftIcon={<LuPlus />}
                 >
-                  <LuPlus />
                   {skill}
                 </Button>
               ))}
-            </HStack>
+            </div>
           )}
-        </Field.Root>
+        </div>
 
-        <Fieldset.Root>
-          <Fieldset.Legend fontSize="sm" fontWeight="medium">
-            Permissions
-          </Fieldset.Legend>
-          <Fieldset.HelperText fontSize="xs">
-            Drafts require Read tasks and Draft artifacts. Update permissions do not enable
-            automatic changes.
-          </Fieldset.HelperText>
-          <Fieldset.Content>
-            <VStack align="stretch" gap={2.5}>
-              {AGENT_PERMISSIONS.map((item) => (
-                <Checkbox.Root
-                  key={item.id}
-                  checked={permissions.includes(item.id)}
-                  onCheckedChange={(details) => togglePermission(item.id, details.checked === true)}
-                  alignItems="flex-start"
-                  colorPalette="teal"
-                >
-                  <Checkbox.HiddenInput />
-                  <Checkbox.Control mt={0.5} />
-                  <Checkbox.Label>
-                    <Text as="span" display="block">
-                      {item.label}
-                    </Text>
-                    <Text
-                      as="span"
-                      display="block"
-                      fontSize="xs"
-                      color="fg.muted"
-                      fontWeight="normal"
-                    >
+        <FieldGroup
+          legend="Permissions"
+          description="Drafts require Read tasks and Draft artifacts. Update permissions do not enable automatic changes."
+        >
+          <Stack gap={3}>
+            {AGENT_PERMISSIONS.map((item) => (
+              <Checkbox
+                key={item.id}
+                checked={permissions.includes(item.id)}
+                onChange={(event) => togglePermission(item.id, event.target.checked)}
+                color="primary"
+                // Label and detail both name the checkbox, as before.
+                label={
+                  <>
+                    <span className="os-block">{item.label}</span>
+                    <span className="os-block os-text-xs os-text-muted os-font-normal">
                       {item.id} · {item.description}
-                    </Text>
-                  </Checkbox.Label>
-                </Checkbox.Root>
-              ))}
-            </VStack>
-          </Fieldset.Content>
-        </Fieldset.Root>
+                    </span>
+                  </>
+                }
+              />
+            ))}
+          </Stack>
+        </FieldGroup>
 
         {error && (
-          <Box
-            role="alert"
-            borderWidth="1px"
-            borderColor="border.error"
-            bg="bg.error"
-            borderRadius="md"
-            p={3}
-          >
-            <Text color="fg.error">{error}</Text>
-          </Box>
+          <div role="alert" className="tf-callout-danger os-p-3">
+            <p className="os-text-danger os-m-0">{error}</p>
+          </div>
         )}
-        <HStack>
-          <Button type="submit" colorPalette="teal" loading={saving}>
-            <LuSave />
+        <div className="os-flex os-items-center os-gap-2">
+          <Button type="submit" color="primary" loading={saving} leftIcon={<LuSave />}>
             {editing ? 'Save Agent' : 'Create Agent'}
           </Button>
           {onCancel && (
@@ -314,9 +267,9 @@ const AgentForm = ({ agent, saving, error, onSubmit, onCancel }: AgentFormProps)
               Cancel
             </Button>
           )}
-        </HStack>
-      </VStack>
-    </chakra.form>
+        </div>
+      </Stack>
+    </form>
   );
 };
 

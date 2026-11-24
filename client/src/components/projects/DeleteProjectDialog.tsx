@@ -1,4 +1,4 @@
-import { Button, Dialog, HStack, Portal, Text } from '@chakra-ui/react';
+import { Button, Dialog } from '@onesmall/ui';
 import { LuTrash2 } from 'react-icons/lu';
 import type { Project } from '../../types/project';
 
@@ -17,41 +17,29 @@ const DeleteProjectDialog = ({
   onOpenChange,
   onConfirm,
 }: DeleteProjectDialogProps) => (
-  <Dialog.Root
+  <Dialog
     open={Boolean(project)}
-    onOpenChange={(details) => onOpenChange(details.open)}
+    onClose={() => onOpenChange(false)}
     role="alertdialog"
+    title="Delete project?"
+    footer={
+      <>
+        <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+          Cancel
+        </Button>
+        <Button color="danger" onClick={onConfirm} loading={loading} leftIcon={<LuTrash2 />}>
+          Delete project
+        </Button>
+      </>
+    }
   >
-    <Portal>
-      <Dialog.Backdrop />
-      <Dialog.Positioner>
-        <Dialog.Content>
-          <Dialog.Header>
-            <Dialog.Title>Delete project?</Dialog.Title>
-          </Dialog.Header>
-          <Dialog.Body>
-            <Text color="fg.muted">
-              {(project?.name ?? 'This project') + ' will be permanently deleted. '}
-              {taskCount
-                ? `Its ${taskCount === 1 ? 'task stays' : taskCount + ' tasks stay'} in Work and become${taskCount === 1 ? 's' : ''} unassigned.`
-                : 'It has no tasks.'}
-            </Text>
-          </Dialog.Body>
-          <Dialog.Footer>
-            <HStack justify="flex-end" w="full">
-              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-                Cancel
-              </Button>
-              <Button colorPalette="red" onClick={onConfirm} loading={loading}>
-                <LuTrash2 />
-                Delete project
-              </Button>
-            </HStack>
-          </Dialog.Footer>
-        </Dialog.Content>
-      </Dialog.Positioner>
-    </Portal>
-  </Dialog.Root>
+    <p className="os-text-muted os-m-0">
+      {(project?.name ?? 'This project') + ' will be permanently deleted. '}
+      {taskCount
+        ? `Its ${taskCount === 1 ? 'task stays' : taskCount + ' tasks stay'} in Work and become${taskCount === 1 ? 's' : ''} unassigned.`
+        : 'It has no tasks.'}
+    </p>
+  </Dialog>
 );
 
 export default DeleteProjectDialog;

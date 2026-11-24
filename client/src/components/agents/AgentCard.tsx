@@ -1,8 +1,9 @@
-import { Box, Button, Heading, HStack, Link, Text } from '@chakra-ui/react';
+import { Button } from '@onesmall/ui';
 import { LuKeyRound, LuListChecks, LuPencil, LuTrash2 } from 'react-icons/lu';
 import { Link as RouterLink } from 'react-router-dom';
 import { getAgentId, permissionLabel, type Agent } from '../../types/agent';
 import type { AgentWorkload } from '../../utils/assignees';
+import styles from './Agents.module.css';
 import AgentStatusBadge from './AgentStatusBadge';
 import SkillTags from './SkillTags';
 
@@ -22,73 +23,71 @@ interface AgentCardProps {
 }
 
 const AgentCard = ({ agent, workload, workloadMessage, onEdit, onDelete }: AgentCardProps) => (
-  <Box as="li" bg="bg.panel" borderWidth="1px" borderRadius="lg" p={{ base: 4, md: 5 }} minW="0">
-    <HStack justify="space-between" align="flex-start" gap={3}>
-      <Box minW="0">
-        <Heading as="h3" size="md" wordBreak="break-word">
-          <Link asChild color="fg" _hover={{ color: 'accent.teal' }}>
-            <RouterLink to={'/workforce/' + getAgentId(agent)}>{agent.name}</RouterLink>
-          </Link>
-        </Heading>
-        <Text fontSize="sm" color="accent.violet" mt={0.5}>
-          {agent.role}
-        </Text>
-      </Box>
+  <li className="tf-panel os-p-4 md:os-p-5 os-min-w-0">
+    <div className="os-flex os-justify-between os-items-start os-gap-3">
+      <div className="os-min-w-0">
+        <h3 className="tf-h3 os-m-0">
+          <RouterLink to={'/workforce/' + getAgentId(agent)} className={styles.titleLink}>
+            {agent.name}
+          </RouterLink>
+        </h3>
+        <p className="os-text-sm os-text-accent os-mt-1 os-mb-0">{agent.role}</p>
+      </div>
       <AgentStatusBadge status={agent.status} />
-    </HStack>
-    <Text color="fg.muted" fontSize="sm" lineClamp={2} mt={2}>
+    </div>
+    <p className="os-text-muted os-text-sm os-line-clamp-2 os-mt-2 os-mb-0">
       {agent.description || 'No description.'}
-    </Text>
-    <Box mt={3}>
+    </p>
+    <div className="os-mt-3">
       <SkillTags skills={agent.skills} />
-    </Box>
-    <HStack mt={3} gap={1.5} fontSize="xs" color="fg.muted" align="flex-start">
-      <Box as="span" mt={0.5} flexShrink={0} aria-hidden="true">
+    </div>
+    <div className="os-flex os-items-start os-gap-2 os-mt-3 os-text-xs os-text-muted">
+      <span className={styles.lineIcon} aria-hidden="true">
         <LuKeyRound />
-      </Box>
-      <Text>
+      </span>
+      <p className="os-m-0">
         {agent.permissions.length
           ? agent.permissions.map(permissionLabel).join(', ')
           : 'No permissions'}
-      </Text>
-    </HStack>
-    <HStack mt={1.5} gap={1.5} fontSize="xs" color="fg.muted">
+      </p>
+    </div>
+    <div className="os-flex os-items-center os-gap-2 os-mt-2 os-text-xs os-text-muted">
       <LuListChecks aria-hidden="true" />
-      <Text>
+      <p className="os-m-0">
         {workload === null
           ? (workloadMessage ?? 'Assigned tasks unavailable.')
           : workload.total
             ? `${workload.total} assigned ${workload.total === 1 ? 'task' : 'tasks'} · ${workload.open} open`
             : 'No assigned tasks'}
-      </Text>
-    </HStack>
-    <HStack justify="space-between" mt={4} gap={2} flexWrap="wrap">
-      <Text fontSize="xs" color="fg.muted">
+      </p>
+    </div>
+    <div className="os-flex os-flex-wrap os-justify-between os-items-center os-gap-2 os-mt-4">
+      <p className="os-text-xs os-text-muted os-m-0">
         {agent.updatedAt ? 'Updated ' + dateFormat.format(new Date(agent.updatedAt)) : ''}
-      </Text>
-      <HStack gap={1}>
+      </p>
+      <div className="os-flex os-gap-1">
         <Button
           size="xs"
           variant="ghost"
           onClick={() => onEdit(agent)}
           aria-label={'Edit ' + agent.name}
+          leftIcon={<LuPencil />}
         >
-          <LuPencil />
           Edit
         </Button>
         <Button
           size="xs"
           variant="ghost"
-          colorPalette="red"
+          color="danger"
           onClick={() => onDelete(agent)}
           aria-label={'Delete ' + agent.name}
+          leftIcon={<LuTrash2 />}
         >
-          <LuTrash2 />
           Delete
         </Button>
-      </HStack>
-    </HStack>
-  </Box>
+      </div>
+    </div>
+  </li>
 );
 
 export default AgentCard;

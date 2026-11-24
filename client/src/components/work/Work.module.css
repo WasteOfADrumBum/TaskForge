@@ -1,0 +1,73 @@
+/* Shared by the Work section's pages (Tasks, Projects, project detail) and its tabs. */
+
+/* Page intro block above the tabs. */
+.pageHeader {
+  margin-bottom: 1.25rem;
+}
+@media (min-width: 768px) {
+  .pageHeader {
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* Small uppercase label above a page's h1. */
+.eyebrow {
+  margin: 0;
+  color: var(--os-primary-text);
+  font-size: var(--os-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Second-level navigation: a bottom-bordered row of links, the current one underlined. */
+.tabs {
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--os-border);
+}
+@media (min-width: 768px) {
+  .tabs {
+    margin-bottom: 2rem;
+  }
+}
+.tabList {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@media (min-width: 768px) {
+  .tabList {
+    gap: 1.5rem;
+  }
+}
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: -1px;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid transparent;
+  color: var(--os-text-muted);
+  font-size: var(--os-text-sm);
+  font-weight: 500;
+  text-decoration: none;
+}
+.tab:hover {
+  color: var(--os-text);
+}
+.tab:focus-visible {
+  outline: 2px solid var(--os-primary);
+  outline-offset: 2px;
+}
+.tab[aria-current='page'] {
+  color: var(--os-primary-text);
+  border-bottom-color: var(--os-primary);
+}
+
+/* Keeps one line of height while a count is still loading, so the list doesn't jump. */
+.reserveLine {
+  min-height: 1.25em;
+}

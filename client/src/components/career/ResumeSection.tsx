@@ -1,14 +1,4 @@
-import {
-  Box,
-  Button,
-  chakra,
-  Field,
-  Heading,
-  Input,
-  Text,
-  Textarea,
-  VStack,
-} from '@chakra-ui/react';
+import { Button, Field, Input, Stack, Textarea } from '@onesmall/ui';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { LuSave } from 'react-icons/lu';
 import { isCurrentSession } from '../../api/authenticatedFetch';
@@ -19,6 +9,7 @@ import type { SavedJob, Skill } from '../../types/career';
 import { RESUME_BODY_MAX, RESUME_HEADLINE_MAX, RESUME_SUMMARY_MAX } from '../../types/resume';
 import { getResumeSkillCheck } from '../../utils/resume';
 import { SessionExpiredError } from '../../utils/session';
+import styles from './Career.module.css';
 
 const timeFormat = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' });
 const left = (max: number, value: string) => {
@@ -27,18 +18,18 @@ const left = (max: number, value: string) => {
 };
 
 const SkillList = ({ id, title, items }: { id: string; title: string; items: string[] }) => (
-  <Box mt={3}>
-    <Heading as="h4" id={id} size="sm" mb={1}>
+  <div className="os-mt-3">
+    <h4 id={id} className="tf-h3 os-m-0 os-mb-1">
       {title}
-    </Heading>
-    <Box as="ul" role="list" listStyleType="none" m={0} p={0} aria-labelledby={id}>
+    </h4>
+    <ul role="list" className="os-list-unstyled os-m-0 os-p-0" aria-labelledby={id}>
       {items.map((item) => (
-        <Box as="li" key={item} py={1} borderTopWidth="1px" borderColor="border.muted">
-          <Text overflowWrap="anywhere">{item}</Text>
-        </Box>
+        <li key={item} className="os-py-1 os-border-top">
+          <p className={`os-m-0 os-max-w-none ${styles.wrap}`}>{item}</p>
+        </li>
       ))}
-    </Box>
-  </Box>
+    </ul>
+  </div>
 );
 
 // The user's plain-text resume, with a rule-based check of which skills it mentions.
@@ -145,37 +136,25 @@ const ResumeSection = ({
   else if (loaded && savedAt) status = 'Saved at ' + timeFormat.format(new Date(savedAt)) + '.';
 
   return (
-    <Box
-      as="section"
-      aria-labelledby="resume-heading"
-      bg="bg.panel"
-      borderWidth="1px"
-      borderRadius="lg"
-      p={{ base: 4, md: 5 }}
-    >
-      <Heading as="h2" id="resume-heading" size="md" mb={1}>
+    <section aria-labelledby="resume-heading" className="tf-panel os-p-4 md:os-p-5">
+      <h2 id="resume-heading" className="tf-h2 os-m-0 os-mb-1">
         Resume
-      </Heading>
-      <Text fontSize="sm" color="fg.muted">
-        Plain text, kept private to your account.
-      </Text>
-      <Text
+      </h2>
+      <p className="os-text-sm os-text-muted os-m-0">Plain text, kept private to your account.</p>
+      <p
         ref={statusRef}
         tabIndex={-1}
         role="status"
         aria-live="polite"
-        fontSize="sm"
-        color="fg.muted"
-        mt={1}
-        _focusVisible={{ outline: '2px solid', outlineColor: 'accent.teal' }}
+        className="os-text-sm os-text-muted os-m-0 os-mt-1"
       >
         {status}
-      </Text>
+      </p>
       {loadError && !read.pending ? (
-        <VStack align="start" gap={2} mt={2}>
-          <Text role="alert" color="fg.error">
+        <Stack gap={2} align="flex-start" className="os-mt-2">
+          <p role="alert" className="os-text-danger os-m-0">
             {loadError}
-          </Text>
+          </p>
           <Button
             size="sm"
             variant="outline"
@@ -187,13 +166,12 @@ const ResumeSection = ({
           >
             Retry loading resume
           </Button>
-        </VStack>
+        </Stack>
       ) : loaded ? (
         <>
-          <chakra.form onSubmit={onSubmit} noValidate aria-label="Edit resume" mt={3}>
-            <VStack align="stretch" gap={4}>
-              <Field.Root>
-                <Field.Label>Headline</Field.Label>
+          <form onSubmit={onSubmit} noValidate aria-label="Edit resume" className="os-mt-3">
+            <Stack gap={4}>
+              <Field label="Headline" hint={left(RESUME_HEADLINE_MAX, headline)}>
                 <Input
                   value={headline}
                   onChange={(event) => {
@@ -202,10 +180,8 @@ const ResumeSection = ({
                   }}
                   maxLength={RESUME_HEADLINE_MAX}
                 />
-                <Field.HelperText>{left(RESUME_HEADLINE_MAX, headline)}</Field.HelperText>
-              </Field.Root>
-              <Field.Root>
-                <Field.Label>Summary</Field.Label>
+              </Field>
+              <Field label="Summary" hint={left(RESUME_SUMMARY_MAX, summary)}>
                 <Textarea
                   value={summary}
                   onChange={(event) => {
@@ -215,10 +191,8 @@ const ResumeSection = ({
                   rows={3}
                   maxLength={RESUME_SUMMARY_MAX}
                 />
-                <Field.HelperText>{left(RESUME_SUMMARY_MAX, summary)}</Field.HelperText>
-              </Field.Root>
-              <Field.Root>
-                <Field.Label>Experience, education and the rest</Field.Label>
+              </Field>
+              <Field label="Experience, education and the rest" hint={left(RESUME_BODY_MAX, body)}>
                 <Textarea
                   value={body}
                   onChange={(event) => {
@@ -228,33 +202,33 @@ const ResumeSection = ({
                   rows={10}
                   maxLength={RESUME_BODY_MAX}
                 />
-                <Field.HelperText>{left(RESUME_BODY_MAX, body)}</Field.HelperText>
-              </Field.Root>
+              </Field>
               {saveError && (
-                <Text role="alert" color="fg.error">
+                <p role="alert" className="os-text-danger os-m-0">
                   {saveError}
-                </Text>
+                </p>
               )}
-              <Box>
-                <Button type="submit" colorPalette="teal" loading={write.pending}>
-                  <LuSave aria-hidden="true" focusable="false" />
+              <div>
+                <Button
+                  type="submit"
+                  loading={write.pending}
+                  leftIcon={<LuSave aria-hidden="true" focusable="false" />}
+                >
                   Save resume
                 </Button>
-              </Box>
-            </VStack>
-          </chakra.form>
+              </div>
+            </Stack>
+          </form>
 
-          <Box mt={6}>
-            <Heading as="h3" size="sm">
-              Skill check
-            </Heading>
-            <Text fontSize="sm" color="fg.muted">
+          <div className="os-mt-6">
+            <h3 className="tf-h3 os-m-0">Skill check</h3>
+            <p className="os-text-sm os-text-muted os-m-0">
               Compares the text above with your skills and saved jobs by whole word. Rule-based.
-            </Text>
+            </p>
             {!careerLoaded ? (
-              <Text color="fg.muted" mt={2}>
+              <p className="os-text-muted os-m-0 os-mt-2">
                 Waiting for your skills and saved jobs...
-              </Text>
+              </p>
             ) : (
               <>
                 {check.mentioned.length > 0 && (
@@ -285,16 +259,16 @@ const ResumeSection = ({
                   />
                 )}
                 {skills.length === 0 && check.jobNeeds.length === 0 && (
-                  <Text color="fg.muted" mt={2}>
+                  <p className="os-text-muted os-m-0 os-mt-2">
                     Add skills and saved jobs above to check your resume against them.
-                  </Text>
+                  </p>
                 )}
               </>
             )}
-          </Box>
+          </div>
         </>
       ) : null}
-    </Box>
+    </section>
   );
 };
 

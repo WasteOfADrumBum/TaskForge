@@ -1,0 +1,60 @@
+/* A task card: a panel with a status-colored left edge (red when overdue) that lifts on hover. */
+.card {
+  padding: 1rem;
+  border: 1px solid var(--os-border);
+  border-left-width: 4px;
+  border-radius: var(--os-radius-xl);
+  background-color: var(--os-surface);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--os-shadow-md);
+}
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .card:hover {
+    transition: none;
+    transform: none;
+  }
+}
+@media (min-width: 768px) {
+  .card {
+    padding: 1.25rem;
+  }
+}
+/* v2 accents: violet = not started, orange = in progress, teal = done. */
+.card[data-status='todo'] {
+  border-left-color: var(--os-accent);
+}
+.card[data-status='in-progress'] {
+  border-left-color: var(--os-secondary);
+}
+.card[data-status='done'] {
+  border-left-color: var(--os-primary);
+}
+.card[data-overdue] {
+  border-left-color: var(--os-danger);
+}
+
+.body {
+  min-width: 0;
+}
+.title {
+  overflow-wrap: anywhere;
+}
+
+/* Muted inline links in the meta row (project, agent), teal on hover. */
+.metaLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--os-text-muted);
+  text-decoration: none;
+}
+.metaLink:hover {
+  color: var(--os-primary-text);
+  text-decoration: underline;
+}

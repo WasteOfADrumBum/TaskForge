@@ -1,17 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import {
-  Box,
-  Button,
-  chakra,
-  Field,
-  Heading,
-  HStack,
-  Link,
-  NativeSelect,
-  Text,
-  Textarea,
-  VStack,
-} from '@chakra-ui/react';
+import { Button, Field, Select, Stack, Textarea } from '@onesmall/ui';
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom';
 import { createRun, getRuns } from '../../api/runs';
 import { isCurrentSession } from '../../api/authenticatedFetch';
@@ -132,29 +120,23 @@ function ActivityContent({ token, sessionVersion }: { token: string; sessionVers
   const blocked = write.pending || refreshRequired;
   const displayed = agentFilter ? runs.filter((run) => run.agent === agentFilter) : runs;
   return (
-    <VStack align="stretch" gap={5} minW="0">
-      <Heading as="h1" size="2xl">
-        Run activity
-      </Heading>
-      <Text color="fg.muted">
+    <Stack gap={5} className="os-min-w-0">
+      <h1 className="tf-h1 os-m-0">Run activity</h1>
+      <p className="os-text-muted os-m-0">
         Latest 100 owned runs.{agentFilter ? ' Showing this agent’s subset.' : ''} Drafts require
         human review; creating a run does not execute it.
-      </Text>
-      <HStack>
+      </p>
+      <div className="os-flex os-items-center os-gap-2">
         <Button variant="outline" disabled={write.pending || read.pending} onClick={refresh}>
           Refresh runs
         </Button>
-        {agentFilter && (
-          <Link asChild>
-            <RouterLink to="/workforce/runs">All run activity</RouterLink>
-          </Link>
-        )}
-      </HStack>
+        {agentFilter && <RouterLink to="/workforce/runs">All run activity</RouterLink>}
+      </div>
       {read.pending && (
-        <HStack>
-          <Text role="status">
+        <div className="os-flex os-items-center os-gap-2">
+          <p role="status" className="os-m-0">
             {read.waiting ? 'TaskForge is still loading runs...' : 'Loading runs...'}
-          </Text>
+          </p>
           <Button
             variant="outline"
             onClick={() => {
@@ -165,80 +147,77 @@ function ActivityContent({ token, sessionVersion }: { token: string; sessionVers
           >
             Cancel loading
           </Button>
-        </HStack>
+        </div>
       )}
       {error && (
-        <Text role="alert" color="fg.error">
+        <p role="alert" className="os-text-danger os-m-0">
           {error}
-        </Text>
+        </p>
       )}
       <RunSection title="Create queued run">
-        <chakra.form onSubmit={(event) => void create(event)}>
-          <VStack align="stretch" gap={4}>
+        <form onSubmit={(event) => void create(event)}>
+          <Stack gap={4}>
             {!resourcesReady && (
-              <Text role="status">
+              <p role="status" className="os-m-0">
                 Task and agent data must load successfully before creating a run.
-              </Text>
+              </p>
             )}
             {resourcesReady && !eligible.length && (
-              <Text>No tasks assigned to an active agent. Assign a task in Work first.</Text>
+              <p className="os-m-0">
+                No tasks assigned to an active agent. Assign a task in Work first.
+              </p>
             )}
-            <Field.Root disabled={blocked || !resourcesReady}>
-              <Field.Label htmlFor="run-task">Assigned task</Field.Label>
-              <NativeSelect.Root disabled={blocked || !resourcesReady}>
-                <NativeSelect.Field
-                  id="run-task"
-                  value={taskId}
-                  onChange={(e) => setTaskId(e.target.value)}
-                >
-                  <option value="">Choose an assigned task</option>
-                  {eligible.map((task) => (
-                    <option key={getTaskId(task)} value={getTaskId(task)}>
-                      {task.title}
-                    </option>
-                  ))}
-                </NativeSelect.Field>
-                <NativeSelect.Indicator />
-              </NativeSelect.Root>
-            </Field.Root>
-            <Field.Root>
-              <Field.Label htmlFor="run-input">Requested work</Field.Label>
+            <Field id="run-task" label="Assigned task" disabled={blocked || !resourcesReady}>
+              <Select
+                value={taskId}
+                disabled={blocked || !resourcesReady}
+                onChange={(e) => setTaskId(e.target.value)}
+              >
+                <option value="">Choose an assigned task</option>
+                {eligible.map((task) => (
+                  <option key={getTaskId(task)} value={getTaskId(task)}>
+                    {task.title}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field
+              id="run-input"
+              label="Requested work"
+              hint="Up to 8000 characters. Queued runs wait for an explicit execution choice."
+            >
               <Textarea
-                id="run-input"
                 value={input}
                 maxLength={8000}
                 disabled={blocked}
                 onChange={(e) => setInput(e.target.value)}
               />
-              <Field.HelperText>
-                Up to 8000 characters. Queued runs wait for an explicit execution choice.
-              </Field.HelperText>
-            </Field.Root>
+            </Field>
             {writeError && (
-              <Text role="alert" color="fg.error">
+              <p role="alert" className="os-text-danger os-m-0">
                 {writeError}
-              </Text>
+              </p>
             )}
             {refreshRequired && (
-              <Text>
+              <p className="os-m-0">
                 Refresh runs before trying again. A manual retry of the same input reuses its
                 creation key.
-              </Text>
+              </p>
             )}
             <Button
               type="submit"
-              colorPalette="teal"
+              color="primary"
               disabled={!selected || !input.trim() || blocked || read.pending}
             >
               Create queued run
             </Button>
             {write.pending && (
-              <HStack>
-                <Text role="status">
+              <div className="os-flex os-items-center os-gap-2">
+                <p role="status" className="os-m-0">
                   {write.waiting
                     ? 'TaskForge is still creating the run...'
                     : 'Creating queued run...'}
-                </Text>
+                </p>
                 <Button
                   type="button"
                   variant="outline"
@@ -251,43 +230,35 @@ function ActivityContent({ token, sessionVersion }: { token: string; sessionVers
                 >
                   Stop waiting
                 </Button>
-              </HStack>
+              </div>
             )}
-          </VStack>
-        </chakra.form>
+          </Stack>
+        </form>
       </RunSection>
       <RunSection title="Recent runs">
-        {loaded && !error && !displayed.length && <Text>No runs yet.</Text>}
-        <VStack align="stretch" gap={3}>
+        {loaded && !error && !displayed.length && <p className="os-m-0">No runs yet.</p>}
+        <Stack gap={3}>
           {displayed.map((run) => (
-            <Box
-              key={getRunId(run)}
-              borderWidth="1px"
-              borderColor="border.muted"
-              borderRadius="md"
-              p={4}
-              minW="0"
-            >
-              <HStack flexWrap="wrap" justify="space-between">
+            <div key={getRunId(run)} className="os-border os-rounded-md os-p-4 os-min-w-0">
+              <div className="os-flex os-flex-wrap os-justify-between os-items-center os-gap-2">
                 <RunStatusBadge status={run.status} />
-                <Text color="fg.muted" fontSize="sm">
-                  {runDate(run.createdAt)}
-                </Text>
-              </HStack>
-              <Box mt={2}>
+                <p className="os-text-muted os-text-sm os-m-0">{runDate(run.createdAt)}</p>
+              </div>
+              <div className="os-mt-2">
                 <RunText value={run.input} />
-              </Box>
-              <Text fontSize="sm" color="fg.muted" overflowWrap="anywhere">
-                Run: {getRunId(run)}
-              </Text>
-              <Link asChild mt={3} color="accent.teal">
-                <RouterLink to={'/workforce/runs/' + getRunId(run)}>View run</RouterLink>
-              </Link>
-            </Box>
+              </div>
+              <p className="os-text-sm os-text-muted os-text-break os-m-0">Run: {getRunId(run)}</p>
+              <RouterLink
+                to={'/workforce/runs/' + getRunId(run)}
+                className="os-inline-block os-mt-3"
+              >
+                View run
+              </RouterLink>
+            </div>
           ))}
-        </VStack>
+        </Stack>
       </RunSection>
-    </VStack>
+    </Stack>
   );
 }
 export default function RunActivityPage() {

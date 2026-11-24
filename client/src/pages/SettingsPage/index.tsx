@@ -1,70 +1,64 @@
-import { Box, Button, Heading, HStack, Text, VStack } from '@chakra-ui/react';
+import { Button, Stack } from '@onesmall/ui';
 import { useColorMode } from '../../components/ui/color-mode';
 import { LuLaptop, LuMoon, LuSun } from 'react-icons/lu';
 
 const SettingsPage = () => {
   const { preference: theme, setColorMode: setTheme } = useColorMode();
   return (
-    <Box>
-      <Heading as="h1" size={{ base: '2xl', md: '3xl' }}>
-        Settings
-      </Heading>
-      <Text color="fg.muted" mt={2} mb={8}>
-        Manage your TaskForge workspace preferences.
-      </Text>
-      <VStack maxW="3xl" align="stretch" gap={6}>
-        <Box bg="bg.panel" borderWidth="1px" borderRadius="lg" p={6}>
-          <Heading as="h2" size="lg">
-            Appearance
-          </Heading>
-          <Text color="fg.muted" mt={1} mb={5}>
+    <div>
+      <h1 className="tf-h1 os-m-0">Settings</h1>
+      <p className="os-text-muted os-mt-2 os-mb-8">Manage your TaskForge workspace preferences.</p>
+      <Stack gap={6} style={{ maxWidth: '48rem' }}>
+        <div className="tf-panel os-p-6">
+          <h2 className="tf-h2 os-m-0">Appearance</h2>
+          <p className="os-text-muted os-mt-1 os-mb-5">
             Choose how TaskForge looks on this device.
-          </Text>
-          <HStack gap={3} flexWrap="wrap" role="group" aria-label="Color theme">
+          </p>
+          <div
+            className="os-flex os-flex-wrap os-items-center os-gap-3"
+            role="group"
+            aria-label="Color theme"
+          >
             <Button
               variant={theme === 'system' ? 'solid' : 'outline'}
               aria-pressed={theme === 'system'}
               onClick={() => setTheme('system')}
+              leftIcon={<LuLaptop aria-hidden="true" focusable="false" />}
             >
-              <LuLaptop aria-hidden="true" focusable="false" />
               System
             </Button>
             <Button
               variant={theme === 'light' ? 'solid' : 'outline'}
               aria-pressed={theme === 'light'}
               onClick={() => setTheme('light')}
+              leftIcon={<LuSun aria-hidden="true" focusable="false" />}
             >
-              <LuSun aria-hidden="true" focusable="false" />
               Light
             </Button>
             <Button
               variant={theme === 'dark' ? 'solid' : 'outline'}
               aria-pressed={theme === 'dark'}
               onClick={() => setTheme('dark')}
+              leftIcon={<LuMoon aria-hidden="true" focusable="false" />}
             >
-              <LuMoon aria-hidden="true" focusable="false" />
               Dark
             </Button>
-          </HStack>
-        </Box>
-        <Box bg="bg.panel" borderWidth="1px" borderRadius="lg" p={6}>
-          <Heading as="h2" size="lg">
-            Account
-          </Heading>
-          <Text color="fg.muted" mt={2}>
+          </div>
+        </div>
+        <div className="tf-panel os-p-6">
+          <h2 className="tf-h2 os-m-0">Account</h2>
+          <p className="os-text-muted os-mt-2 os-mb-0">
             Profile details and account-management controls are planned and are not available yet.
-          </Text>
-        </Box>
-        <Box bg="bg.panel" borderWidth="1px" borderRadius="lg" p={6}>
-          <Heading as="h2" size="lg">
-            Danger Zone
-          </Heading>
-          <Text color="fg.muted" mt={2}>
+          </p>
+        </div>
+        <div className="tf-panel os-p-6">
+          <h2 className="tf-h2 os-m-0">Danger Zone</h2>
+          <p className="os-text-muted os-mt-2 os-mb-0">
             Account deletion is planned and is not available yet.
-          </Text>
-        </Box>
-      </VStack>
-    </Box>
+          </p>
+        </div>
+      </Stack>
+    </div>
   );
 };
 export default SettingsPage;

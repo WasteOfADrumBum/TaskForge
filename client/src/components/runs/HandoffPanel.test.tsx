@@ -1,11 +1,10 @@
-import { ChakraProvider } from '@chakra-ui/react';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import HandoffPanel from './HandoffPanel';
-import { system } from '../../assets/theme/theme';
+import { Provider as UiProvider } from '../ui/provider';
 import { store } from '../../redux/store';
 import { clearAuth, setToken } from '../../redux/slices/authSlice';
 import { setTasks } from '../../redux/slices/taskSlice';
@@ -77,11 +76,11 @@ const seed = () => {
 const show = (run = parent) =>
   render(
     <Provider store={store}>
-      <ChakraProvider value={system}>
+      <UiProvider>
         <MemoryRouter>
           <HandoffPanel run={run} />
         </MemoryRouter>
-      </ChakraProvider>
+      </UiProvider>
     </Provider>,
   );
 beforeEach(() => {
@@ -106,7 +105,7 @@ it('fails closed for unapproved parent and max-depth source', async () => {
   expect(screen.queryByRole('button', { name: 'Create queued handoff' })).not.toBeInTheDocument();
   view.rerender(
     <Provider store={store}>
-      <ChakraProvider value={system}>
+      <UiProvider>
         <MemoryRouter>
           <HandoffPanel
             run={{
@@ -120,7 +119,7 @@ it('fails closed for unapproved parent and max-depth source', async () => {
             }}
           />
         </MemoryRouter>
-      </ChakraProvider>
+      </UiProvider>
     </Provider>,
   );
   expect(screen.getByText('Handoff depth limit reached.')).toBeInTheDocument();
