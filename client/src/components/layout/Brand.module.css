@@ -1,0 +1,33 @@
+.regular,
+.compact,
+.hero {
+  display: block;
+  width: auto;
+  max-width: min(100%, 220px);
+  object-fit: contain;
+}
+.regular {
+  height: 44px;
+}
+.compact {
+  height: 36px;
+}
+.hero {
+  height: 120px;
+  max-width: 280px;
+  padding: 0.75rem;
+  border-radius: var(--os-radius-lg);
+  background-color: #ffffff;
+}
+@media (min-width: 768px) {
+  .regular {
+    height: 48px;
+  }
+  .compact {
+    height: 40px;
+  }
+  .hero {
+    height: 170px;
+    max-width: 420px;
+  }
+}

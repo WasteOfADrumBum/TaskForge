@@ -2,10 +2,11 @@ import RequestFeedback from '../../components/ui/RequestFeedback';
 import { useDelayedRequest } from '../../hooks/useDelayedRequest';
 import { store } from '../../redux/store';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Box, Button, chakra, Field, Heading, HStack, Input, Text, VStack } from '@chakra-ui/react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Button, Field, Input, Stack } from '@onesmall/ui';
+import { useNavigate } from 'react-router-dom';
 import { login } from '../../api/auth';
-import Brand from '../../components/layout/Brand';
+import AuthPageFrame from '../../components/auth/AuthPageFrame';
+import styles from '../../components/auth/AuthPage.module.css';
 import TextLink from '../../components/auth/TextLink';
 import { toaster } from '../../components/ui/toaster';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks/typedHooks';
@@ -96,92 +97,66 @@ const LoginPage = () => {
     setRequestMessage('Sign-in cancelled. You can try again.');
   };
   return (
-    <Box minH="100vh" bg="bg.subtle">
-      <HStack
-        as="header"
-        maxW="7xl"
-        mx="auto"
-        px={{ base: 4, md: 6 }}
-        py={5}
-        justify="space-between"
-      >
-        <Brand compact />
-        <Button asChild variant="ghost">
-          <Link to="/register">Create account</Link>
-        </Button>
-      </HStack>
-      <Box as="main" maxW="md" mx="auto" px={4} py={{ base: 10, md: 20 }}>
-        <chakra.form
-          onSubmit={handleLogin}
-          bg="bg.panel"
-          borderWidth="1px"
-          borderRadius="2xl"
-          p={{ base: 6, md: 8 }}
-          boxShadow="sm"
-        >
-          <VStack align="stretch" gap={6}>
-            <Box>
-              <Heading as="h1" size="2xl">
-                Welcome back
-              </Heading>
-              <Text color="fg.muted" mt={2}>
-                Sign in to continue to your TaskForge workspace.
-              </Text>
-            </Box>
-            {sessionExpired && (
-              <Text role="alert" color="red.fg">
-                {SESSION_EXPIRED_MESSAGE}
-              </Text>
-            )}
-            <Field.Root required>
-              <Field.Label>Email</Field.Label>
-              <Input
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="you@example.com"
-                size="lg"
-                autoComplete="email"
-              />
-            </Field.Root>
-            <Field.Root required>
-              <Field.Label>Password</Field.Label>
-              <Input
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="Enter your password"
-                size="lg"
-                autoComplete="current-password"
-              />
-            </Field.Root>
-            <Text fontSize="sm" textAlign="end">
-              <TextLink to="/forgot-password">Forgot password?</TextLink>
-            </Text>
-            {requestState.waiting ? (
-              <RequestFeedback message="TaskForge may be waking up. Sign-in is still waiting for a response." />
-            ) : requestMessage && !requestState.pending ? (
-              <RequestFeedback
-                message={requestMessage}
-                onRetry={() => void submitLogin()}
-                retryLabel="Retry sign in"
-              />
-            ) : null}
-            {requestState.pending && (
-              <Button type="button" variant="outline" onClick={cancelLogin}>
-                Cancel request
-              </Button>
-            )}
-            <Button type="submit" size="lg" width="full" loading={loading}>
-              Sign in
+    <AuthPageFrame headerAction={{ label: 'Create account', to: '/register' }}>
+      <form onSubmit={handleLogin} className={styles.card}>
+        <Stack gap={6}>
+          <div>
+            <h1 className="tf-h1 os-m-0">Welcome back</h1>
+            <p className="os-text-muted os-mt-2 os-mb-0">
+              Sign in to continue to your TaskForge workspace.
+            </p>
+          </div>
+          {sessionExpired && (
+            <p role="alert" className="os-text-danger os-m-0">
+              {SESSION_EXPIRED_MESSAGE}
+            </p>
+          )}
+          <Field label="Email" required>
+            <Input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="you@example.com"
+              size="lg"
+              autoComplete="email"
+            />
+          </Field>
+          <Field label="Password" required>
+            <Input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Enter your password"
+              size="lg"
+              autoComplete="current-password"
+            />
+          </Field>
+          <p className="os-text-sm os-text-end os-m-0 os-max-w-none">
+            <TextLink to="/forgot-password">Forgot password?</TextLink>
+          </p>
+          {requestState.waiting ? (
+            <RequestFeedback message="TaskForge may be waking up. Sign-in is still waiting for a response." />
+          ) : requestMessage && !requestState.pending ? (
+            <RequestFeedback
+              message={requestMessage}
+              onRetry={() => void submitLogin()}
+              retryLabel="Retry sign in"
+            />
+          ) : null}
+          {requestState.pending && (
+            <Button type="button" variant="outline" onClick={cancelLogin}>
+              Cancel request
             </Button>
-            <Text textAlign="center" color="fg.muted">
-              New to TaskForge? <Link to="/register">Create an account</Link>
-            </Text>
-          </VStack>
-        </chakra.form>
-      </Box>
-    </Box>
+          )}
+          <Button type="submit" size="lg" fullWidth loading={loading}>
+            Sign in
+          </Button>
+          <p className="os-text-center os-text-muted os-m-0 os-max-w-none">
+            New to TaskForge? <TextLink to="/register">Create an account</TextLink>
+          </p>
+        </Stack>
+      </form>
+    </AuthPageFrame>
   );
 };
 

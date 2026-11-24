@@ -1,39 +1,47 @@
-'use client';
+import { useToast, type StatusColor } from '@onesmall/ui';
+import { useEffect } from 'react';
 
-import {
-  Toaster as ChakraToaster,
-  Portal,
-  Spinner,
-  Stack,
-  Toast,
-  createToaster,
-} from '@chakra-ui/react';
+// TaskForge raises toasts from event handlers and async flows outside React (`toaster.create`), so a
+// small module-level queue feeds OneSmallUI's toast stack, which <Toaster /> mounts once in App.
+export type ToastType = 'success' | 'error' | 'warning' | 'info' | 'loading';
 
-export const toaster = createToaster({
-  placement: 'bottom-end',
-  pauseOnPageIdle: true,
-});
+export interface ToastInput {
+  title: string;
+  description?: string;
+  type?: ToastType;
+  /** Milliseconds; `null` keeps it until dismissed. */
+  duration?: number | null;
+}
 
-export const Toaster = () => {
-  return (
-    <Portal>
-      <ChakraToaster toaster={toaster} insetInline={{ mdDown: '4' }}>
-        {(toast) => (
-          <Toast.Root width={{ md: 'sm' }}>
-            {toast.type === 'loading' ? (
-              <Spinner size="sm" color="blue.solid" />
-            ) : (
-              <Toast.Indicator />
-            )}
-            <Stack gap="1" flex="1" maxWidth="100%">
-              {toast.title && <Toast.Title>{toast.title}</Toast.Title>}
-              {toast.description && <Toast.Description>{toast.description}</Toast.Description>}
-            </Stack>
-            {toast.action && <Toast.ActionTrigger>{toast.action.label}</Toast.ActionTrigger>}
-            {toast.meta?.closable && <Toast.CloseTrigger />}
-          </Toast.Root>
-        )}
-      </ChakraToaster>
-    </Portal>
-  );
+type Listener = (toast: ToastInput) => void;
+let listener: Listener | null = null;
+const pending: ToastInput[] = [];
+
+const colors: Record<ToastType, StatusColor> = {
+  success: 'success',
+  error: 'danger',
+  warning: 'warning',
+  info: 'info',
+  loading: 'info',
+};
+
+export const toaster = {
+  create(toast: ToastInput) {
+    if (listener) listener(toast);
+    else pending.push(toast);
+  },
+};
+
+/** Mount once, inside OneSmallUI's ToastProvider. Shows every `toaster.create` call. */
+export const ToastBridge = () => {
+  const { toast } = useToast();
+  useEffect(() => {
+    listener = ({ title, description, type = 'info', duration }) =>
+      toast({ title, description, color: colors[type], duration });
+    pending.splice(0).forEach((queued) => listener?.(queued));
+    return () => {
+      listener = null;
+    };
+  }, [toast]);
+  return null;
 };

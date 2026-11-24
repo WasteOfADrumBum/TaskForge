@@ -1,9 +1,9 @@
 import { Box, Button, Heading, HStack, Text, VStack } from '@chakra-ui/react';
-import { useTheme } from 'next-themes';
+import { useColorMode } from '../../components/ui/color-mode';
 import { LuLaptop, LuMoon, LuSun } from 'react-icons/lu';
 
 const SettingsPage = () => {
-  const { theme, setTheme } = useTheme();
+  const { preference: theme, setColorMode: setTheme } = useColorMode();
   return (
     <Box>
       <Heading as="h1" size={{ base: '2xl', md: '3xl' }}>

@@ -1,0 +1,66 @@
+/*
+ * TaskForge palette for OneSmallUI (@onesmall/ui). The same colors as the Chakra theme in theme.ts
+ * (teal primary, orange secondary, violet accent; near-black dark surfaces), with the derived tokens
+ * OneSmallUI needs (hover, on-, soft, text). Every text pair reaches WCAG AAA (7:1) and every boundary
+ * 3:1; onesmall-theme.test.ts guards this. Status colors (success, warning, danger, info) stay
+ * OneSmallUI's own. Unlayered, so these win over the library's layered defaults.
+ */
+:root {
+  --os-font-sans: 'Figtree', system-ui, sans-serif;
+  --os-font-display: 'Figtree', system-ui, sans-serif;
+}
+
+:root,
+[data-os-theme='light'] {
+  --os-bg: #fafafa;
+  --os-surface: #ffffff;
+  --os-surface-2: #f4f4f5;
+  --os-surface-3: #e4e4e7;
+  --os-border: #d4d4d8;
+  --os-border-strong: #71717a;
+  --os-text: #18181b;
+  --os-text-muted: #46464e;
+  --os-focus: #0c5d56;
+  --os-primary: #0c5d56;
+  --os-primary-hover: #114240;
+  --os-on-primary: #ffffff;
+  --os-primary-soft: #f0fdfa;
+  --os-primary-text: #094b45;
+  --os-secondary: #92310a;
+  --os-secondary-hover: #6c2710;
+  --os-on-secondary: #ffffff;
+  --os-secondary-soft: #fff7ed;
+  --os-secondary-text: #7a2808;
+  --os-accent: #6b21a8;
+  --os-accent-hover: #561a88;
+  --os-on-accent: #ffffff;
+  --os-accent-soft: #faf5ff;
+  --os-accent-text: #5b1a94;
+}
+
+[data-os-theme='dark'] {
+  --os-bg: #101216;
+  --os-surface: #171b22;
+  --os-surface-2: #1b1f26;
+  --os-surface-3: #242a33;
+  --os-border: #2b323d;
+  --os-border-strong: #6f7b8c;
+  --os-text: #e6eaf0;
+  --os-text-muted: #b0b8c4;
+  --os-focus: #72dccb;
+  --os-primary: #72dccb;
+  --os-primary-hover: #94e6d8;
+  --os-on-primary: #082720;
+  --os-primary-soft: #19302e;
+  --os-primary-text: #80e0d0;
+  --os-secondary: #e8ad78;
+  --os-secondary-hover: #efc39a;
+  --os-on-secondary: #2b1606;
+  --os-secondary-soft: #30241d;
+  --os-secondary-text: #edbb8c;
+  --os-accent: #b7a4ed;
+  --os-accent-hover: #cbbcf3;
+  --os-on-accent: #1a1230;
+  --os-accent-soft: #282232;
+  --os-accent-text: #c4b5f1;
+}

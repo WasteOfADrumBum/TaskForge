@@ -111,14 +111,14 @@ const ProgressPage = () => {
                     ' days'
               }
               icon={LuCircleCheck}
-              accent="accent.teal"
+              accent="primary"
             />
             <MetricCard
               label="Created"
               value={summary.created}
               detail={'New tasks in the ' + rangeLabel}
               icon={LuCirclePlus}
-              accent="accent.violet"
+              accent="accent"
             />
             <MetricCard
               label="Finished on time"
@@ -132,14 +132,14 @@ const ProgressPage = () => {
                   : 'No completed tasks had a due date'
               }
               icon={LuCalendarCheck}
-              accent="accent.teal"
+              accent="primary"
             />
             <MetricCard
               label="Average per day"
               value={average}
               detail={'Completed tasks across ' + range + ' days'}
               icon={LuGauge}
-              accent="accent.orange"
+              accent="secondary"
             />
           </SimpleGrid>
 

@@ -11,7 +11,7 @@
     <link rel="preload" href="/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin />
     <!--
       Apply the saved color mode before first paint so dark mode (the default) doesn't flash
-      white while the app loads. Reads the same "theme" key next-themes uses.
+      white while the app loads. Reads the "theme" key the ThemeProvider in provider.tsx uses.
     -->
     <script>
       (function () {
@@ -23,10 +23,11 @@
             mode = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         } catch (e) {}
         document.documentElement.classList.add(mode);
+        document.documentElement.setAttribute('data-os-theme', mode);
         document.documentElement.style.colorScheme = mode;
       })();
     </script>
-    <!-- #101216 must match the dark `bg` tokens in client/src/assets/theme/theme.ts. -->
+    <!-- #101216 must match the dark `bg` tokens in theme.ts and onesmall-theme.css. -->
     <style>
       html.dark,
       html.dark body {

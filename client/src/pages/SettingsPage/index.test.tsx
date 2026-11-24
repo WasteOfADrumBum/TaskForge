@@ -70,7 +70,7 @@ describe('Settings honest controls and theme accessibility', () => {
     expect(localStorage.getItem('theme')).toBe('system');
   });
 
-  it('restores the saved theme through the real next-themes provider after remount', async () => {
+  it('restores the saved theme through the real theme provider after remount', async () => {
     const first = renderSettings();
     await userEvent.click(screen.getByRole('button', { name: 'Light' }));
     await waitFor(() => expect(localStorage.getItem('theme')).toBe('light'));

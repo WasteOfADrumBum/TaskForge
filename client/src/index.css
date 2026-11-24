@@ -1,3 +1,13 @@
+/*
+ * OneSmallUI (@onesmall/ui) sits in its own cascade layer while Chakra UI still renders some
+ * screens: after Chakra's reset, before its base, tokens and recipes, so neither library's element
+ * resets restyle the other's components. Drop the layer line once Chakra is gone.
+ */
+@layer reset, onesmall, base, tokens, recipes;
+@import '@onesmall/ui/styles.css' layer(onesmall);
+@import './assets/theme/onesmall-theme.css';
+@import './styles/app.css';
+
 /* Figtree, self-hosted (SIL Open Font License, see /fonts/OFL.txt). Variable weight 400-700. */
 @font-face {
   font-family: 'Figtree';

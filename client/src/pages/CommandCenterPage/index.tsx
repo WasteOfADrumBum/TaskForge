@@ -139,28 +139,28 @@ const CommandCenterPage = () => {
           value={open}
           detail={summary.todo + ' to do'}
           icon={LuListTodo}
-          accent="accent.teal"
+          accent="primary"
         />
         <MetricCard
           label="In progress"
           value={summary.inProgress}
           detail="Started and not finished"
           icon={LuLoaderCircle}
-          accent="accent.violet"
+          accent="accent"
         />
         <MetricCard
           label="Completed"
           value={summary.done}
           detail={completion + '% of all tasks'}
           icon={LuCircleCheck}
-          accent="accent.teal"
+          accent="primary"
         />
         <MetricCard
           label="Overdue"
           value={summary.overdue}
           detail={summary.overdue ? 'Past their due date' : 'All caught up'}
           icon={LuTriangleAlert}
-          accent="accent.orange"
+          accent="secondary"
         />
       </SimpleGrid>
 

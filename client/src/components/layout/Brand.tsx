@@ -1,4 +1,4 @@
-import { Image } from '@chakra-ui/react';
+import styles from './Brand.module.css';
 
 interface BrandProps {
   compact?: boolean;
@@ -6,24 +6,12 @@ interface BrandProps {
 }
 
 // The logo files are cropped to their visible content, so these heights are the logo's real
-// size. maxW keeps it inside narrow containers such as the sidebar.
+// size. max-width keeps it inside narrow containers such as the sidebar.
 const Brand = ({ compact = false, hero = false }: BrandProps) => (
-  <Image
+  <img
     src={hero ? '/taskforge-logo.png' : '/taskforge-logo-alt.png'}
     alt="TaskForge"
-    h={
-      hero
-        ? { base: '120px', md: '170px' }
-        : compact
-          ? { base: '36px', md: '40px' }
-          : { base: '44px', md: '48px' }
-    }
-    w="auto"
-    maxW={hero ? { base: '280px', md: '420px' } : 'min(100%, 220px)'}
-    objectFit="contain"
-    bg={hero ? 'white' : undefined}
-    p={hero ? 3 : undefined}
-    borderRadius={hero ? 'lg' : undefined}
+    className={hero ? styles.hero : compact ? styles.compact : styles.regular}
   />
 );
 

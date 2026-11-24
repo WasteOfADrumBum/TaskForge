@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Box, Button, chakra, Field, Heading, Input, Text, VStack } from '@chakra-ui/react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Button, Field, Input, Stack } from '@onesmall/ui';
+import { useNavigate } from 'react-router-dom';
 import TextLink from '../../components/auth/TextLink';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { resetPassword } from '../../api/auth';
 import AuthPageFrame from '../../components/auth/AuthPageFrame';
+import styles from '../../components/auth/AuthPage.module.css';
+import { LinkButton } from '../../components/ui/links';
 import { toaster } from '../../components/ui/toaster';
 import { getRegistrationPasswordError, REGISTRATION_PASSWORD_HELP } from '../../utils/authInput';
 
@@ -92,50 +94,36 @@ const ResetPasswordPage = () => {
   if (!token) {
     return (
       <AuthPageFrame>
-        <VStack
-          align="stretch"
-          gap={6}
-          bg="bg.panel"
-          borderWidth="1px"
-          borderRadius="2xl"
-          p={{ base: 6, md: 8 }}
-        >
-          <Heading as="h1" size="2xl">
-            This reset link does not work
-          </Heading>
-          <Text color="fg.muted">
+        <Stack gap={6} className={styles.card}>
+          <h1 className="tf-h1 os-m-0">This reset link does not work</h1>
+          <p className="os-text-muted os-m-0">
             The link is incomplete, or this page was reloaded after opening it. Reset links work
             once and expire after 30 minutes.
-          </Text>
-          <Button asChild size="lg">
-            <Link to="/forgot-password">Ask for a new link</Link>
-          </Button>
-        </VStack>
+          </p>
+          <LinkButton to="/forgot-password" size="lg">
+            Ask for a new link
+          </LinkButton>
+        </Stack>
       </AuthPageFrame>
     );
   }
 
   return (
     <AuthPageFrame>
-      <chakra.form
-        onSubmit={handleSubmit}
-        bg="bg.panel"
-        borderWidth="1px"
-        borderRadius="2xl"
-        p={{ base: 6, md: 8 }}
-        boxShadow="sm"
-      >
-        <VStack align="stretch" gap={6}>
-          <Box>
-            <Heading as="h1" size="2xl">
-              Choose a new password
-            </Heading>
-            <Text color="fg.muted" mt={2}>
+      <form onSubmit={handleSubmit} className={styles.card}>
+        <Stack gap={6}>
+          <div>
+            <h1 className="tf-h1 os-m-0">Choose a new password</h1>
+            <p className="os-text-muted os-mt-2 os-mb-0">
               After you save it, sign in with the new password.
-            </Text>
-          </Box>
-          <Field.Root required invalid={Boolean(passwordError)}>
-            <Field.Label>New password</Field.Label>
+            </p>
+          </div>
+          <Field
+            label="New password"
+            required
+            hint={REGISTRATION_PASSWORD_HELP}
+            error={passwordError ?? undefined}
+          >
             <Input
               ref={passwordInput}
               type="password"
@@ -147,11 +135,8 @@ const ResetPasswordPage = () => {
               size="lg"
               autoComplete="new-password"
             />
-            <Field.HelperText fontSize="xs">{REGISTRATION_PASSWORD_HELP}</Field.HelperText>
-            <Field.ErrorText fontSize="xs">{passwordError}</Field.ErrorText>
-          </Field.Root>
-          <Field.Root required invalid={Boolean(confirmError)}>
-            <Field.Label>Confirm new password</Field.Label>
+          </Field>
+          <Field label="Confirm new password" required error={confirmError ?? undefined}>
             <Input
               ref={confirmInput}
               type="password"
@@ -163,27 +148,26 @@ const ResetPasswordPage = () => {
               size="lg"
               autoComplete="new-password"
             />
-            <Field.ErrorText fontSize="xs">{confirmError}</Field.ErrorText>
-          </Field.Root>
+          </Field>
           {/* The screen-reader alert stays mounted (and empty) so text placed in it is announced;
               the visible copy is hidden from assistive tech to avoid a repeat. */}
-          <Text srOnly role="alert">
+          <p className="os-sr-only" role="alert">
             {requestError ?? ''}
-          </Text>
+          </p>
           {requestError && (
-            <VStack align="stretch" gap={2}>
-              <Text aria-hidden="true" color="red.fg">
+            <Stack gap={2}>
+              <p aria-hidden="true" className="os-text-danger os-m-0">
                 {requestError}
-              </Text>
+              </p>
               <TextLink to="/forgot-password">Ask for a new reset link</TextLink>
-            </VStack>
+            </Stack>
           )}
           {/* aria-disabled instead of disabled keeps keyboard focus on the button while saving. */}
-          <Button type="submit" size="lg" width="full" aria-disabled={pending || undefined}>
+          <Button type="submit" size="lg" fullWidth aria-disabled={pending || undefined}>
             {pending ? 'Saving new password…' : 'Save new password'}
           </Button>
-        </VStack>
-      </chakra.form>
+        </Stack>
+      </form>
     </AuthPageFrame>
   );
 };
