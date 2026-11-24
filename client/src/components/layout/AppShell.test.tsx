@@ -220,7 +220,7 @@ describe('authenticated app shell', () => {
     renderApp('/workforce');
     await screen.findByRole('heading', { level: 1, name: 'Workforce' });
     // '/workforce' starts with '/work'; the breadcrumb must still name the right section.
-    const breadcrumb = within(screen.getByRole('navigation', { name: 'breadcrumb' }));
+    const breadcrumb = within(screen.getByRole('navigation', { name: 'Breadcrumb' }));
     expect(breadcrumb.getByText('Workforce')).toHaveAttribute('aria-current', 'page');
     expect(breadcrumb.queryByText('Work')).not.toBeInTheDocument();
   });

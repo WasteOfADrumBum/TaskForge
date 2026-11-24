@@ -1,4 +1,11 @@
-import { Box, Flex, HStack, IconButton, Text, VStack } from '@chakra-ui/react';
+import {
+  Button,
+  Sidebar as NavSidebar,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarItem,
+  SidebarSection,
+} from '@onesmall/ui';
 import {
   LuBot,
   LuBookOpen,
@@ -14,9 +21,11 @@ import {
   LuSettings,
   LuUserRound,
 } from 'react-icons/lu';
-import { NavLink } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useLogout } from '../../hooks/useLogout';
+import { RouterLink } from '../ui/links';
 import Brand from './Brand';
+import styles from './Shell.module.css';
 
 export const navItems = [
   { to: '/home', label: 'Command Center', icon: LuLayoutDashboard },
@@ -32,6 +41,10 @@ export const navItems = [
   { to: '/settings', label: 'Settings', icon: LuSettings },
 ];
 
+// Match whole path segments: '/workforce' must not count as the '/work' item.
+export const isSectionActive = (pathname: string, to: string) =>
+  pathname === to || pathname.startsWith(to + '/');
+
 interface SidebarProps {
   // Called after a navigation so the mobile drawer can close itself.
   onNavigate?: () => void;
@@ -39,92 +52,57 @@ interface SidebarProps {
 
 const Sidebar = ({ onNavigate }: SidebarProps) => {
   const logout = useLogout();
+  const { pathname } = useLocation();
   return (
-    <Flex direction="column" h="full" px={4} py={6} gap={8}>
-      <Box px={2}>
-        <NavLink to="/home" onClick={onNavigate} aria-label="TaskForge Command Center">
+    <NavSidebar aria-label="Main navigation" drawerBelow={false} className={styles.sidebar}>
+      <SidebarHeader>
+        <RouterLink
+          href="/home"
+          onClick={onNavigate}
+          aria-label="TaskForge Command Center"
+          className={styles.brandLink}
+        >
           <Brand />
-        </NavLink>
-      </Box>
-      <Box>
-        <Text
-          px={3}
-          mb={2}
-          fontSize="xs"
-          fontWeight="semibold"
-          letterSpacing="widest"
-          color="fg.muted"
-          textTransform="uppercase"
-        >
-          Workspace
-        </Text>
-        <Box as="nav" aria-label="Main navigation">
-          <VStack as="ul" listStyleType="none" align="stretch" gap={1} m={0} p={0}>
-            {navItems.map(({ to, label, icon: Icon }) => (
-              <Box as="li" key={to}>
-                <Box
-                  asChild
-                  display="flex"
-                  alignItems="center"
-                  gap={3}
-                  px={3}
-                  py={2.5}
-                  borderRadius="md"
-                  borderLeftWidth="2px"
-                  borderLeftColor="transparent"
-                  color="fg.muted"
-                  fontSize="sm"
-                  fontWeight="medium"
-                  _hover={{ bg: 'bg.muted', color: 'fg' }}
-                  _focusVisible={{
-                    outline: '2px solid',
-                    outlineColor: 'accent.teal',
-                    outlineOffset: '2px',
-                  }}
-                  _currentPage={{
-                    bg: 'accent.tealSubtle',
-                    color: 'accent.teal',
-                    borderLeftColor: 'accent.teal',
-                  }}
-                >
-                  <NavLink to={to} onClick={onNavigate}>
-                    <Icon size={18} aria-hidden="true" />
-                    <Text as="span" flex="1">
-                      {label}
-                    </Text>
-                  </NavLink>
-                </Box>
-              </Box>
-            ))}
-          </VStack>
-        </Box>
-      </Box>
-      <HStack mt="auto" pt={4} borderTopWidth="1px" gap={3}>
-        <Box
-          display="grid"
-          placeItems="center"
-          boxSize="9"
-          borderRadius="md"
-          bg="accent.tealSubtle"
-          color="accent.teal"
-          flexShrink={0}
-          aria-hidden="true"
-        >
-          <LuUserRound size={18} />
-        </Box>
-        <Box flex="1" minW="0">
-          <Text fontSize="sm" fontWeight="semibold">
-            Signed in
-          </Text>
-          <Text fontSize="xs" color="fg.muted">
-            Personal workspace
-          </Text>
-        </Box>
-        <IconButton aria-label="Log out" variant="ghost" size="sm" onClick={() => void logout()}>
-          <LuLogOut />
-        </IconButton>
-      </HStack>
-    </Flex>
+        </RouterLink>
+      </SidebarHeader>
+      <p className={styles.sectionLabel} aria-hidden="true">
+        Workspace
+      </p>
+      <SidebarSection>
+        {navItems.map(({ to, label, icon: Icon }) => (
+          <SidebarItem
+            key={to}
+            as={RouterLink}
+            href={to}
+            active={isSectionActive(pathname, to)}
+            icon={<Icon size={18} />}
+            onClick={onNavigate}
+          >
+            {label}
+          </SidebarItem>
+        ))}
+      </SidebarSection>
+      <SidebarFooter>
+        <div className={styles.account}>
+          <span className={styles.avatar} aria-hidden="true">
+            <LuUserRound size={18} />
+          </span>
+          <div className={styles.accountText}>
+            <p className="os-text-sm os-font-semibold os-m-0">Signed in</p>
+            <p className="os-text-xs os-text-muted os-m-0">Personal workspace</p>
+          </div>
+          <Button
+            iconOnly
+            variant="ghost"
+            size="sm"
+            aria-label="Log out"
+            onClick={() => void logout()}
+          >
+            <LuLogOut aria-hidden="true" />
+          </Button>
+        </div>
+      </SidebarFooter>
+    </NavSidebar>
   );
 };
 
