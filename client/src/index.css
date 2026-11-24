@@ -1,10 +1,5 @@
-/*
- * OneSmallUI (@onesmall/ui) sits in its own cascade layer while Chakra UI still renders some
- * screens: after Chakra's reset, before its base, tokens and recipes, so neither library's element
- * resets restyle the other's components. Drop the layer line once Chakra is gone.
- */
-@layer reset, onesmall, base, tokens, recipes;
-@import '@onesmall/ui/styles.css' layer(onesmall);
+/* OneSmallUI (@onesmall/ui) styles, then TaskForge's palette and app classes on top. */
+@import '@onesmall/ui/styles.css';
 @import './assets/theme/onesmall-theme.css';
 @import './styles/app.css';
 
@@ -31,7 +26,7 @@
     U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* No font-family here: Chakra sets the body font (Figtree) from the theme in theme.ts. */
+/* No font-family here: OneSmallUI sets the body font from --os-font-sans (onesmall-theme.css). */
 body {
   margin: 0;
   -webkit-font-smoothing: antialiased;

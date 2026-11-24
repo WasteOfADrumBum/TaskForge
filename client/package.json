@@ -3,10 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@chakra-ui/react": "^3.15.1",
-    "@chakra-ui/theme": "^3.4.6",
-    "@chakra-ui/theme-tools": "^2.2.6",
-    "@emotion/react": "^11.14.0",
     "@onesmall/ui": "0.6.0",
     "@reduxjs/toolkit": "^2.6.1",
     "@types/react": "^19.1.0",

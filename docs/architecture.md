@@ -33,6 +33,7 @@ flowchart LR
 
 ## Frontend
 
+- UI: [OneSmallUI](https://github.com/WasteOfADrumBum/one-small-ui) (`@onesmall/ui`, pinned exactly), styled through `--os-*` tokens. TaskForge's palette is `client/src/assets/theme/onesmall-theme.css`; app-wide classes are `client/src/styles/app.css`; page-specific styles are co-located CSS modules.
 - Built with Vite and served by Vercel as static files. `client/vercel.json` rewrites every path to `index.html` so client-side routes like `/home` work on refresh.
 - Routing (React Router v7) with lazy-loaded pages:
   - Public: `/` (landing), `/login`, `/register`, `/forgot-password`, `/reset-password`.

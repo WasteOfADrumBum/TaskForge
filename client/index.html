@@ -22,15 +22,14 @@
           else if (saved === 'system')
             mode = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         } catch (e) {}
-        document.documentElement.classList.add(mode);
         document.documentElement.setAttribute('data-os-theme', mode);
         document.documentElement.style.colorScheme = mode;
       })();
     </script>
-    <!-- #101216 must match the dark `bg` tokens in theme.ts and onesmall-theme.css. -->
+    <!-- #101216 must match the dark --os-bg token in client/src/assets/theme/onesmall-theme.css. -->
     <style>
-      html.dark,
-      html.dark body {
+      html[data-os-theme='dark'],
+      html[data-os-theme='dark'] body {
         background-color: #101216;
       }
     </style>
